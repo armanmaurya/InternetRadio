@@ -110,7 +110,7 @@ fun PlayerSheetContent(
                 .size(currentSize)
                 .graphicsLayer { rotationZ = rotation }
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(Color(0xFF1E1E1E)),
             error = painterResource(id = R.drawable.ic_launcher_foreground),
             fallback = painterResource(id = R.drawable.ic_launcher_foreground)
         )

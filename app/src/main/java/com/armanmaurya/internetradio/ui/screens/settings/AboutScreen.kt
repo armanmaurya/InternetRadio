@@ -183,7 +183,7 @@ fun AboutScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        IconButton(onClick = { openUrl("https://www.instagram.com/param_maurya_26/") }) {
+                        IconButton(onClick = { openUrl("https://www.instagram.com/param.cs/") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_instagram),
                                 contentDescription = "Instagram",
