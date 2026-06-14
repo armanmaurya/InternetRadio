@@ -20,11 +20,10 @@ InternetRadio is an Android app for discovering and listening to radio stations 
 ## Screenshots
 
 <div align="center">
-  <!-- Add your screenshot paths here -->
-  <!-- <img width="23%" src="path/to/screenshot1.jpg" alt="Home Screen"> -->
-  <!-- <img width="23%" src="path/to/screenshot2.jpg" alt="Player Screen"> -->
-  <!-- <img width="23%" src="path/to/screenshot3.jpg" alt="Search Screen"> -->
-  <!-- <img width="23%" src="path/to/screenshot4.jpg" alt="Settings Screen"> -->
+  <img width="23%" src="fastlane/metadata/android/en-US/images/1.jpg" alt="Home Screen">
+  <img width="23%" src="fastlane/metadata/android/en-US/images/2.jpg" alt="Player Screen">
+  <img width="23%" src="fastlane/metadata/android/en-US/images/3.jpg" alt="Search Screen">
+  <img width="23%" src="fastlane/metadata/android/en-US/images/4.jpg" alt="Settings Screen">
 </div>
 
 ## Tech Stack
@@ -32,7 +31,7 @@ InternetRadio is an Android app for discovering and listening to radio stations 
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - **Database**: [Room](https://developer.android.com/training/data-storage/room)
-- **Media Playback**: [Media3 / ExoPlayer](https://developer.android.com/media/media3)
+- **Dependency Injection**: [Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
 - **API**: [Radio Browser API](https://www.radio-browser.info/)
 
 ## Building From Source
@@ -57,7 +56,8 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct
 
 InternetRadio uses the following open-source libraries:
 
-- [Android Jetpack Libraries](https://developer.android.com/jetpack) (Compose, Room, Media3, Lifecycle, Navigation, etc.)
+- [Android Jetpack Libraries](https://developer.android.com/jetpack) (Compose, Room, Media3, Lifecycle, Navigation, DataStore, etc.)
+- [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) - A dependency injection library for Android.
 - [Radio Browser API](https://www.radio-browser.info/) - A community-driven effort to collect radio stations.
 
 ## License

@@ -104,9 +104,15 @@ class PlayerController @Inject constructor(
     }
 
     fun play(station: RadioStation) {
+        val player = controller ?: return
+        
+        if (activeStation?.stationUuid == station.stationUuid) {
+            player.play()
+            return
+        }
+
         activeStation = station
         _playbackState.update { it.copy(currentStation = station) }
-        val player = controller ?: return
         val mediaItem = MediaItem.Builder()
             .setMediaId(station.stationUuid)
             .setUri(station.urlResolved)
