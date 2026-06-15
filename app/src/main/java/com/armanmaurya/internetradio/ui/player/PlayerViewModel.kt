@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.data.repository.FavoriteRepository
 import com.armanmaurya.internetradio.data.repository.RecentRepository
+import com.armanmaurya.internetradio.data.repository.StationRepository
 import com.armanmaurya.internetradio.player.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +17,8 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     private val playerController: PlayerController,
     private val favoriteRepository: FavoriteRepository,
-    private val recentRepository: RecentRepository
+    private val recentRepository: RecentRepository,
+    private val stationRepository: StationRepository
 ) : ViewModel() {
 
     val playbackState = playerController.playbackState
@@ -46,6 +48,7 @@ class PlayerViewModel @Inject constructor(
         playerController.play(station)
         viewModelScope.launch {
             recentRepository.addRecentStation(station)
+            stationRepository.registerClick(station.stationUuid)
         }
     }
 
