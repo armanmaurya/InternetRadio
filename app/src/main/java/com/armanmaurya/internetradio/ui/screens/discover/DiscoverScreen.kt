@@ -140,11 +140,15 @@ fun DiscoverScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(uiState.stations) { station ->
+                    items(
+                        items = uiState.stations,
+                        key = { it.stationUuid }
+                    ) { station ->
                         ListItem(
                             headlineContent = { Text(station.name) },
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .animateItem()
                                 .clickable {
                                     viewModel.onSearchQueryChange(station.name)
                                     viewModel.onSearchExpandedChange(false)
@@ -479,12 +483,14 @@ private fun StationsList(
             else -> {
                 items(
                     items = uiState.stations,
-                    key = { "${it.stationUuid}_${uiState.stations.indexOf(it)}" }, // Use index for stability if needed, though UUID should be fine
+                    key = { it.stationUuid },
                 ) { station ->
                     StationCard(
                         station = station,
                         onClick = { onStationClick(station) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
                     )
                 }
 

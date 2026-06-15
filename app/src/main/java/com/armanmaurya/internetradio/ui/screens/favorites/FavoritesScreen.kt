@@ -59,7 +59,9 @@ fun FavoritesContent(
                 StationCard(
                     station = station,
                     onClick = { onStationClick(station) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem(),
                 )
             }
         }

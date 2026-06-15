@@ -59,7 +59,9 @@ fun AddedContent(
                     station = station,
                     onClick = { onStationClick(station) },
                     onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
                 )
             }
         }

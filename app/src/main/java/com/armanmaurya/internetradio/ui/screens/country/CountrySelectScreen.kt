@@ -153,7 +153,8 @@ fun CountrySelectScreen(
                         CountryItem(
                             country = country,
                             isSelected = isSelected,
-                            onClick = { onCountrySelected(country) }
+                            onClick = { onCountrySelected(country) },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
@@ -166,7 +167,8 @@ fun CountrySelectScreen(
 private fun CountryItem(
     country: Country,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         headlineContent = { 
@@ -188,7 +190,7 @@ private fun CountryItem(
                 Text(country.isoCode)
             }
         },
-        modifier = Modifier
+        modifier = modifier
             .clickable(onClick = onClick)
             .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent)
     )

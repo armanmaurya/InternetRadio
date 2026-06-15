@@ -56,7 +56,9 @@ fun RecentContent(
                 StationCard(
                     station = station,
                     onClick = { onStationClick(station) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
                 )
             }
         }

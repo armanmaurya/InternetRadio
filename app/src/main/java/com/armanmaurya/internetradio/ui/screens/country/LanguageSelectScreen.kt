@@ -150,7 +150,8 @@ fun LanguageSelectScreen(
                         LanguageItem(
                             language = language,
                             isSelected = isSelected,
-                            onClick = { onLanguageSelected(language) }
+                            onClick = { onLanguageSelected(language) },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
@@ -163,7 +164,8 @@ fun LanguageSelectScreen(
 private fun LanguageItem(
     language: Language,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         headlineContent = { 
@@ -185,7 +187,7 @@ private fun LanguageItem(
                 Text(language.isoCode.uppercase())
             }
         },
-        modifier = Modifier
+        modifier = modifier
             .clickable(onClick = onClick)
             .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent)
     )
