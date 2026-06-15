@@ -12,6 +12,7 @@ import com.armanmaurya.internetradio.data.local.entity.FavoriteStationEntity
 import com.armanmaurya.internetradio.data.local.entity.LanguageEntity
 import com.armanmaurya.internetradio.data.local.entity.RecentStationEntity
 import com.armanmaurya.internetradio.data.local.entity.SearchHistoryEntity
+import com.armanmaurya.internetradio.data.local.entity.TagEntity
 
 @Database(
     entities = [
@@ -19,9 +20,10 @@ import com.armanmaurya.internetradio.data.local.entity.SearchHistoryEntity
         CountryEntity::class,
         LanguageEntity::class,
         SearchHistoryEntity::class,
-        RecentStationEntity::class
+        RecentStationEntity::class,
+        TagEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.armanmaurya.internetradio.data.model.AppPreferences
@@ -13,6 +14,7 @@ import com.armanmaurya.internetradio.ui.theme.AppTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -33,6 +35,9 @@ class SettingsRepository @Inject constructor(
         val SELECTED_LANGUAGE = stringPreferencesKey("selected_language")
         val SORT_ORDER = stringPreferencesKey("sort_order")
         val SORT_REVERSE = booleanPreferencesKey("sort_reverse")
+        val LAST_COUNTRY_FETCH_TIME = longPreferencesKey("last_country_fetch_time")
+        val LAST_LANGUAGE_FETCH_TIME = longPreferencesKey("last_language_fetch_time")
+        val LAST_TAG_FETCH_TIME = longPreferencesKey("last_tag_fetch_time")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -121,5 +126,26 @@ class SettingsRepository @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SORT_REVERSE] = reverse
         }
+    }
+
+    suspend fun getLastCountryFetchTime(): Long =
+        context.dataStore.data.map { it[PreferencesKeys.LAST_COUNTRY_FETCH_TIME] ?: 0L }.first()
+
+    suspend fun setLastCountryFetchTime(time: Long) {
+        context.dataStore.edit { it[PreferencesKeys.LAST_COUNTRY_FETCH_TIME] = time }
+    }
+
+    suspend fun getLastLanguageFetchTime(): Long =
+        context.dataStore.data.map { it[PreferencesKeys.LAST_LANGUAGE_FETCH_TIME] ?: 0L }.first()
+
+    suspend fun setLastLanguageFetchTime(time: Long) {
+        context.dataStore.edit { it[PreferencesKeys.LAST_LANGUAGE_FETCH_TIME] = time }
+    }
+
+    suspend fun getLastTagFetchTime(): Long =
+        context.dataStore.data.map { it[PreferencesKeys.LAST_TAG_FETCH_TIME] ?: 0L }.first()
+
+    suspend fun setLastTagFetchTime(time: Long) {
+        context.dataStore.edit { it[PreferencesKeys.LAST_TAG_FETCH_TIME] = time }
     }
 }

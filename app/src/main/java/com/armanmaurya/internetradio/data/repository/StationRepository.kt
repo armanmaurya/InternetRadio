@@ -19,7 +19,11 @@ class StationRepository @Inject constructor(
     private val api: RadioBrowserApi,
     @ApplicationContext private val context: Context,
     private val metadataDao: MetadataDao,
+    private val settingsRepository: SettingsRepository
 ) {
+    private companion object {
+        const val METADATA_TTL_MILLIS = 7 * 24 * 60 * 60 * 1000L // 7 days
+    }
 
     suspend fun filterStations(
         name: String? = null,
@@ -72,31 +76,57 @@ class StationRepository @Inject constructor(
 
     suspend fun getCountries(): Result<List<Country>> =
         runCatching {
+            val lastFetch = settingsRepository.getLastCountryFetchTime()
             val cached = metadataDao.getCountries()
-            if (cached.isNotEmpty()) {
+            val isExpired = System.currentTimeMillis() - lastFetch > METADATA_TTL_MILLIS
+
+            if (cached.isNotEmpty() && !isExpired) {
                 cached.map { it.toDomain() }
             } else {
-                val remote = api.getCountries()
-                    .map { it.toDomain() }
-                    .filter { it.isoCode.isNotBlank() }
-                
-                metadataDao.insertCountries(remote.map { it.toEntity() })
-                remote.sortedByDescending { it.stationCount }
+                try {
+                    val remote = api.getCountries()
+                        .map { it.toDomain() }
+                        .filter { it.isoCode.isNotBlank() }
+                    
+                    metadataDao.clearCountries()
+                    metadataDao.insertCountries(remote.map { it.toEntity() })
+                    settingsRepository.setLastCountryFetchTime(System.currentTimeMillis())
+                    remote.sortedByDescending { it.stationCount }
+                } catch (e: Exception) {
+                    if (cached.isNotEmpty()) {
+                        cached.map { it.toDomain() }
+                    } else {
+                        throw e
+                    }
+                }
             }
         }
 
     suspend fun getLanguages(filter: String? = null): Result<List<Language>> =
         runCatching {
             if (filter.isNullOrBlank()) {
+                val lastFetch = settingsRepository.getLastLanguageFetchTime()
                 val cached = metadataDao.getLanguages()
-                if (cached.isNotEmpty()) {
+                val isExpired = System.currentTimeMillis() - lastFetch > METADATA_TTL_MILLIS
+
+                if (cached.isNotEmpty() && !isExpired) {
                     cached.map { it.toDomain() }
                 } else {
-                    val remote = api.getLanguages(order = "stationcount", reverse = true)
-                        .map { it.toDomain() }
-                    
-                    metadataDao.insertLanguages(remote.map { it.toEntity() })
-                    remote
+                    try {
+                        val remote = api.getLanguages(order = "stationcount", reverse = true)
+                            .map { it.toDomain() }
+                        
+                        metadataDao.clearLanguages()
+                        metadataDao.insertLanguages(remote.map { it.toEntity() })
+                        settingsRepository.setLastLanguageFetchTime(System.currentTimeMillis())
+                        remote
+                    } catch (e: Exception) {
+                        if (cached.isNotEmpty()) {
+                            cached.map { it.toDomain() }
+                        } else {
+                            throw e
+                        }
+                    }
                 }
             } else {
                 api.getLanguagesFiltered(filter = filter, order = "stationcount", reverse = true)
@@ -107,8 +137,29 @@ class StationRepository @Inject constructor(
     suspend fun getTags(filter: String? = null): Result<List<Tag>> =
         runCatching {
             if (filter.isNullOrBlank()) {
-                api.getTags(order = "stationcount", reverse = true)
-                    .map { it.toDomain() }
+                val lastFetch = settingsRepository.getLastTagFetchTime()
+                val cached = metadataDao.getTags()
+                val isExpired = System.currentTimeMillis() - lastFetch > METADATA_TTL_MILLIS
+
+                if (cached.isNotEmpty() && !isExpired) {
+                    cached.map { it.toDomain() }
+                } else {
+                    try {
+                        val remote = api.getTags(order = "stationcount", reverse = true)
+                            .map { it.toDomain() }
+                        
+                        metadataDao.clearTags()
+                        metadataDao.insertTags(remote.map { it.toEntity() })
+                        settingsRepository.setLastTagFetchTime(System.currentTimeMillis())
+                        remote
+                    } catch (e: Exception) {
+                        if (cached.isNotEmpty()) {
+                            cached.map { it.toDomain() }
+                        } else {
+                            throw e
+                        }
+                    }
+                }
             } else {
                 api.getTagsFiltered(filter = filter, order = "stationcount", reverse = true)
                     .map { it.toDomain() }

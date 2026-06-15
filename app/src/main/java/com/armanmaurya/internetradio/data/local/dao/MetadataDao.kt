@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.armanmaurya.internetradio.data.local.entity.CountryEntity
 import com.armanmaurya.internetradio.data.local.entity.LanguageEntity
+import com.armanmaurya.internetradio.data.local.entity.TagEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,4 +29,13 @@ interface MetadataDao {
 
     @Query("DELETE FROM languages")
     suspend fun clearLanguages()
+
+    @Query("SELECT * FROM tags ORDER BY stationCount DESC")
+    suspend fun getTags(): List<TagEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTags(tags: List<TagEntity>)
+
+    @Query("DELETE FROM tags")
+    suspend fun clearTags()
 }
