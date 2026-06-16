@@ -11,5 +11,8 @@ data class AppPreferences(
     val selectedLanguage: String? = null,
     val selectedTags: Set<String> = emptySet(),
     val order: String = "votes",
-    val reverse: Boolean = true
+    val reverse: Boolean = true,
+    val useFilterOnRecent: Boolean = false,
+    val useFilterOnFavorites: Boolean = false,
+    val useFilterOnAdded: Boolean = false
 )

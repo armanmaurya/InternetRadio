@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e55a5199db88919228fb1c0b833cd300",
+    "identityHash": "5837c9ded91793b6cd01d5b5c0ef979a",
     "entities": [
       {
         "tableName": "favorite_stations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `countryCode` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
         "fields": [
           {
             "fieldPath": "stationUuid",
@@ -47,6 +47,12 @@
           {
             "fieldPath": "country",
             "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCode",
+            "columnName": "countryCode",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -143,7 +149,7 @@
       },
       {
         "tableName": "recent_stations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `lastPlayedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `countryCode` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `lastPlayedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
         "fields": [
           {
             "fieldPath": "stationUuid",
@@ -184,6 +190,12 @@
           {
             "fieldPath": "country",
             "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCode",
+            "columnName": "countryCode",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -245,7 +257,7 @@
       },
       {
         "tableName": "user_stations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `favicon` TEXT NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `countryCode` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))",
         "fields": [
           {
             "fieldPath": "stationUuid",
@@ -266,9 +278,51 @@
             "notNull": true
           },
           {
+            "fieldPath": "urlResolved",
+            "columnName": "urlResolved",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "favicon",
             "columnName": "favicon",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tags",
+            "columnName": "tags",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "country",
+            "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCode",
+            "columnName": "countryCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codec",
+            "columnName": "codec",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bitrate",
+            "columnName": "bitrate",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -288,7 +342,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e55a5199db88919228fb1c0b833cd300')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5837c9ded91793b6cd01d5b5c0ef979a')"
     ]
   }
 }

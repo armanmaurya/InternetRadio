@@ -172,8 +172,8 @@ fun DiscoverScreen(
         if (showAddBottomSheet) {
             AddStationBottomSheet(
                 onDismiss = { showAddBottomSheet = false },
-                onConfirm = { name, url, favicon ->
-                    addedViewModel.addStation(name, url, favicon)
+                onConfirm = { name, url, favicon, tags, country, language ->
+                    addedViewModel.addStation(name, url, favicon, tags, country, "", language)
                     coroutineScope.launch {
                         sheetState.hide()
                     }.invokeOnCompletion {

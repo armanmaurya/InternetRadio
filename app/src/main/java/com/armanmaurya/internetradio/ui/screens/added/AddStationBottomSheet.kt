@@ -32,12 +32,15 @@ import com.armanmaurya.internetradio.R
 @Composable
 fun AddStationBottomSheet(
     onDismiss: () -> Unit,
-    onConfirm: (name: String, url: String, favicon: String) -> Unit,
+    onConfirm: (name: String, url: String, favicon: String, tags: List<String>, country: String, language: String) -> Unit,
     sheetState: SheetState
 ) {
     var name by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }
     var favicon by remember { mutableStateOf("") }
+    var tags by remember { mutableStateOf("") }
+    var country by remember { mutableStateOf("") }
+    var language by remember { mutableStateOf("") }
 
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val imeInset = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
@@ -100,10 +103,47 @@ fun AddStationBottomSheet(
                 colors = textFieldColors
             )
 
+            TextField(
+                value = tags,
+                onValueChange = { tags = it },
+                label = { Text(text = "Tags (comma separated)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                singleLine = true,
+                shape = fieldShape,
+                colors = textFieldColors
+            )
+
+            TextField(
+                value = country,
+                onValueChange = { country = it },
+                label = { Text(text = "Country") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                singleLine = true,
+                shape = fieldShape,
+                colors = textFieldColors
+            )
+
+            TextField(
+                value = language,
+                onValueChange = { language = it },
+                label = { Text(text = "Language") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                singleLine = true,
+                shape = fieldShape,
+                colors = textFieldColors
+            )
+
             Button(
                 onClick = {
                     if (name.isNotBlank() && url.isNotBlank()) {
-                        onConfirm(name, url, favicon)
+                        val tagsList = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        onConfirm(name, url, favicon, tagsList, country, language)
                     }
                 },
                 enabled = name.isNotBlank() && url.isNotBlank(),

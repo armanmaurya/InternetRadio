@@ -45,7 +45,7 @@ class FavoriteRepository @Inject constructor(
             favicon = favicon,
             tags = tags,
             country = country,
-            countryCode = "",
+            countryCode = countryCode,
             state = "",
             iso3166_2 = null,
             language = language,
@@ -79,6 +79,7 @@ class FavoriteRepository @Inject constructor(
             favicon = favicon,
             tags = tags,
             country = country,
+            countryCode = countryCode,
             language = language,
             codec = codec,
             bitrate = bitrate

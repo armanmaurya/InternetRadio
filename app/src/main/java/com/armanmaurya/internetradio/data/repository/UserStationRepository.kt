@@ -19,12 +19,25 @@ class UserStationRepository @Inject constructor(
             entities.map { it.toDomain() }
         }
 
-    suspend fun addUserStation(name: String, url: String, favicon: String = "") {
+    suspend fun addUserStation(
+        name: String,
+        url: String,
+        favicon: String = "",
+        tags: List<String> = emptyList(),
+        country: String = "",
+        countryCode: String = "",
+        language: String = ""
+    ) {
         val station = UserStationEntity(
             stationUuid = UUID.randomUUID().toString(),
             name = name,
             url = url,
-            favicon = favicon
+            urlResolved = url,
+            favicon = favicon,
+            tags = tags,
+            country = country,
+            countryCode = countryCode,
+            language = language
         )
         userStationDao.insertUserStation(station)
     }

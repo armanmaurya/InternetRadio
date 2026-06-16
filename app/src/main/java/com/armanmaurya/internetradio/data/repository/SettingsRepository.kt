@@ -36,6 +36,9 @@ class SettingsRepository @Inject constructor(
         val SELECTED_TAGS = androidx.datastore.preferences.core.stringSetPreferencesKey("selected_tags")
         val SORT_ORDER = stringPreferencesKey("sort_order")
         val SORT_REVERSE = booleanPreferencesKey("sort_reverse")
+        val USE_FILTER_ON_RECENT = booleanPreferencesKey("use_filter_on_recent")
+        val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
+        val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
         val LAST_COUNTRY_FETCH_TIME = longPreferencesKey("last_country_fetch_time")
         val LAST_LANGUAGE_FETCH_TIME = longPreferencesKey("last_language_fetch_time")
         val LAST_TAG_FETCH_TIME = longPreferencesKey("last_tag_fetch_time")
@@ -61,6 +64,9 @@ class SettingsRepository @Inject constructor(
             val selectedTags = preferences[PreferencesKeys.SELECTED_TAGS] ?: emptySet()
             val order = preferences[PreferencesKeys.SORT_ORDER] ?: "votes"
             val reverse = preferences[PreferencesKeys.SORT_REVERSE] ?: true
+            val useFilterOnRecent = preferences[PreferencesKeys.USE_FILTER_ON_RECENT] ?: false
+            val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
+            val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -71,9 +77,24 @@ class SettingsRepository @Inject constructor(
                 selectedLanguage = selectedLanguage,
                 selectedTags = selectedTags,
                 order = order,
-                reverse = reverse
+                reverse = reverse,
+                useFilterOnRecent = useFilterOnRecent,
+                useFilterOnFavorites = useFilterOnFavorites,
+                useFilterOnAdded = useFilterOnAdded
             )
         }
+
+    suspend fun setUseFilterOnRecent(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_RECENT] = enabled }
+    }
+
+    suspend fun setUseFilterOnFavorites(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_FAVORITES] = enabled }
+    }
+
+    suspend fun setUseFilterOnAdded(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_ADDED] = enabled }
+    }
 
     suspend fun setThemeMode(themeMode: AppTheme) {
         context.dataStore.edit { preferences ->

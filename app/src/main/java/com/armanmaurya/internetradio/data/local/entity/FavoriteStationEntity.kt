@@ -12,6 +12,7 @@ data class FavoriteStationEntity(
     val favicon: String,
     val tags: List<String>,
     val country: String,
+    val countryCode: String,
     val language: String,
     val codec: String,
     val bitrate: Int,
