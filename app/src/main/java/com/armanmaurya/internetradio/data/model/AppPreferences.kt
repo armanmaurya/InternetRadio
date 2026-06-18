@@ -14,5 +14,6 @@ data class AppPreferences(
     val reverse: Boolean = true,
     val useFilterOnRecent: Boolean = false,
     val useFilterOnFavorites: Boolean = false,
-    val useFilterOnAdded: Boolean = false
+    val useFilterOnAdded: Boolean = false,
+    val resumeStation: String? = null
 )

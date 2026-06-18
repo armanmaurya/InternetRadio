@@ -8,8 +8,10 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +28,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PlayerController @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val settingsRepository: SettingsRepository
 ) {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
@@ -40,6 +44,16 @@ class PlayerController @Inject constructor(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _playbackState.update { it.copy(isPlaying = isPlaying) }
+            scope.launch {
+                if (isPlaying) {
+                    activeStation?.let { station ->
+                        val stationJson = Gson().toJson(station)
+                        settingsRepository.setResumeStation(stationJson)
+                    }
+                } else {
+                    settingsRepository.setResumeStation(null)
+                }
+            }
         }
 
         override fun onPlaybackStateChanged(state: Int) {
@@ -101,6 +115,38 @@ class PlayerController @Inject constructor(
                             currentStation = null
                         )
                     }
+                    
+                    scope.launch {
+                        val resumeStationJson = settingsRepository.appPreferencesFlow.first().resumeStation
+                        if (resumeStationJson != null) {
+                            try {
+                                val station = Gson().fromJson(resumeStationJson, RadioStation::class.java)
+                                if (station != null) {
+                                    activeStation = station
+                                    _playbackState.update { state ->
+                                        state.copy(
+                                            isPlaying = false,
+                                            currentStation = station
+                                        )
+                                    }
+                                    val mediaItem = MediaItem.Builder()
+                                        .setMediaId(station.stationUuid)
+                                        .setUri(station.urlResolved)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setTitle(station.name)
+                                                .setArtworkUri(android.net.Uri.parse(station.favicon))
+                                                .build()
+                                        )
+                                        .setTag(station)
+                                        .build()
+                                    it.setMediaItem(mediaItem)
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
                 }
             }
         }, MoreExecutors.directExecutor())
@@ -110,6 +156,9 @@ class PlayerController @Inject constructor(
         val player = controller ?: return
         
         if (activeStation?.stationUuid == station.stationUuid) {
+            if (player.playbackState == Player.STATE_IDLE) {
+                player.prepare()
+            }
             player.play()
             return
         }
@@ -138,6 +187,9 @@ class PlayerController @Inject constructor(
         if (player.isPlaying) {
             player.pause()
         } else {
+            if (player.playbackState == Player.STATE_IDLE) {
+                player.prepare()
+            }
             player.play()
         }
     }

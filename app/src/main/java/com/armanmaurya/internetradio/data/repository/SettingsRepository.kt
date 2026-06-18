@@ -39,6 +39,7 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_RECENT = booleanPreferencesKey("use_filter_on_recent")
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
+        val RESUME_STATION = stringPreferencesKey("resume_station")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -64,6 +65,7 @@ class SettingsRepository @Inject constructor(
             val useFilterOnRecent = preferences[PreferencesKeys.USE_FILTER_ON_RECENT] ?: false
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
+            val resumeStation = preferences[PreferencesKeys.RESUME_STATION]
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -77,7 +79,8 @@ class SettingsRepository @Inject constructor(
                 reverse = reverse,
                 useFilterOnRecent = useFilterOnRecent,
                 useFilterOnFavorites = useFilterOnFavorites,
-                useFilterOnAdded = useFilterOnAdded
+                useFilterOnAdded = useFilterOnAdded,
+                resumeStation = resumeStation
             )
         }
 
@@ -91,6 +94,16 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setUseFilterOnAdded(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_ADDED] = enabled }
+    }
+
+    suspend fun setResumeStation(stationJson: String?) {
+        context.dataStore.edit { preferences ->
+            if (stationJson == null) {
+                preferences.remove(PreferencesKeys.RESUME_STATION)
+            } else {
+                preferences[PreferencesKeys.RESUME_STATION] = stationJson
+            }
+        }
     }
 
     suspend fun setThemeMode(themeMode: AppTheme) {
