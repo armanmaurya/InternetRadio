@@ -19,6 +19,12 @@
         android:theme="@style/Theme.App.Starting"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+        <!-- Android Auto: declare this app as a media app -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -31,12 +37,20 @@
             </intent-filter>
         </activity>
 
+        <!--
+            exported="true" is required so the Android Auto host process can
+            bind to the service. MediaBrowserService intent-filter lets Auto
+            discover this app in the media section.
+        -->
         <service
             android:name=".player.PlaybackService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
     </application>

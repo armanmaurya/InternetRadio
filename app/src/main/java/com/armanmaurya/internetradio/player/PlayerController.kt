@@ -148,14 +148,15 @@ class PlayerController @Inject constructor(
                                             currentStation = station
                                         )
                                     }
-                                    val mediaItem = MediaItem.Builder()
-                                        .setMediaId(station.stationUuid)
-                                        .setUri(station.urlResolved)
-                                        .setMediaMetadata(
-                                            MediaMetadata.Builder()
-                                                .setArtworkUri(android.net.Uri.parse(station.favicon))
-                                                .build()
-                                        )
+                                        val mediaItem = MediaItem.Builder()
+                                            .setMediaId(station.stationUuid)
+                                            .setUri(station.urlResolved)
+                                            .setMediaMetadata(
+                                                MediaMetadata.Builder()
+                                                    .setTitle(station.name)
+                                                    .setArtworkUri(android.net.Uri.parse(station.favicon))
+                                                    .build()
+                                            )
                                         .setTag(station)
                                         .build()
                                     it.setMediaItem(mediaItem)
@@ -188,6 +189,7 @@ class PlayerController @Inject constructor(
             .setUri(station.urlResolved)
             .setMediaMetadata(
                 MediaMetadata.Builder()
+                    .setTitle(station.name)
                     .setArtworkUri(android.net.Uri.parse(station.favicon))
                     .build()
             )
