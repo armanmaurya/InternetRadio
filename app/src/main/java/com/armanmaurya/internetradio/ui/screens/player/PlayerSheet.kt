@@ -31,6 +31,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import android.widget.Toast
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.player.PlaybackState
@@ -73,6 +79,9 @@ fun PlayerSheetContent(
     val density = LocalDensity.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
+
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     var isTimerOptionsExpanded by remember { mutableStateOf(false) }
 
@@ -157,16 +166,27 @@ fun PlayerSheetContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    val currentTrackText = playbackState.currentTrack ?: if (playbackState.isLoading) "Buffering..." else buildString {
+                        if (station.country.isNotBlank()) append(station.country)
+                        if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
+                        if (station.language.isNotBlank()) append(station.language)
+                    }
                     Text(
-                        text = playbackState.currentTrack ?: if (playbackState.isLoading) "Buffering..." else buildString {
-                            if (station.country.isNotBlank()) append(station.country)
-                            if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
-                            if (station.language.isNotBlank()) append(station.language)
-                        },
+                        text = currentTrackText,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.pointerInput(currentTrackText) {
+                            detectTapGestures(
+                                onLongPress = {
+                                    if (playbackState.currentTrack != null) {
+                                        clipboardManager.setText(AnnotatedString(currentTrackText))
+                                        Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        }
                     )
                 }
 
@@ -269,7 +289,15 @@ fun PlayerSheetContent(
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.pointerInput(playbackState.currentTrack) {
+                                detectTapGestures(
+                                    onLongPress = {
+                                        clipboardManager.setText(AnnotatedString(playbackState.currentTrack))
+                                        Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            }
                         )
                     }
                 }
