@@ -35,6 +35,32 @@ class PlaybackService : MediaLibraryService() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             autoCallback.updateFavoriteButton(mediaItem?.mediaId)
         }
+
+        override fun onMetadata(metadata: androidx.media3.common.Metadata) {
+            for (i in 0 until metadata.length()) {
+                val entry = metadata.get(i)
+                if (entry is androidx.media3.extractor.metadata.icy.IcyInfo) {
+                    val trackTitle = entry.title
+                    if (!trackTitle.isNullOrBlank()) {
+                        val currentPlayer = player ?: return
+                        val currentMediaItem = currentPlayer.currentMediaItem ?: return
+                        
+                        // Avoid unnecessary updates
+                        if (currentMediaItem.mediaMetadata.title?.toString() == trackTitle) return
+                        
+                        val newMetadata = currentMediaItem.mediaMetadata.buildUpon()
+                            .setTitle(trackTitle)
+                            .build()
+                        val newMediaItem = currentMediaItem.buildUpon()
+                            .setMediaMetadata(newMetadata)
+                            .build()
+                            
+                        // Update metadata without interrupting playback
+                        currentPlayer.replaceMediaItem(currentPlayer.currentMediaItemIndex, newMediaItem)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreate() {

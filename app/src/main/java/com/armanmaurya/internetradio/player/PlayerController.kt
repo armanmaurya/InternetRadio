@@ -91,18 +91,6 @@ class PlayerController @Inject constructor(
                 _playbackState.update { it.copy(currentTrack = title) }
             }
         }
-
-        override fun onMetadata(metadata: androidx.media3.common.Metadata) {
-            for (i in 0 until metadata.length()) {
-                val entry = metadata.get(i)
-                if (entry is androidx.media3.extractor.metadata.icy.IcyInfo) {
-                    val title = entry.title
-                    if (!title.isNullOrBlank() && title != activeStation?.name) {
-                        _playbackState.update { it.copy(currentTrack = title) }
-                    }
-                }
-            }
-        }
     }
 
     init {
