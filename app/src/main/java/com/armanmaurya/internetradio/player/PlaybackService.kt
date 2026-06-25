@@ -72,11 +72,29 @@ class PlaybackService : MediaLibraryService() {
         val mediaSourceFactory = DefaultMediaSourceFactory(this)
             .setDataSourceFactory(dataSourceFactory)
 
-        player = ExoPlayer.Builder(this)
+        val exoPlayer = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .build()
+
+        player = object : androidx.media3.common.ForwardingPlayer(exoPlayer) {
+            override fun play() {
+                // Since stop() removes the notification, we let it pause() normally.
+                // However, to prevent playing old buffered audio and crashing from a stale
+                // connection when the user resumes, we force a fresh connection here.
+                val item = currentMediaItem
+                // Only reset if we are actually paused. This prevents interrupting 
+                // playback if a redundant play() command is received.
+                if (item != null && !playWhenReady) {
+                    // Re-setting the item and preparing clears the old buffer 
+                    // and establishes a new live connection.
+                    setMediaItem(item)
+                    prepare()
+                }
+                super.play()
+            }
+        }
 
         player?.let {
             it.addListener(stationChangeListener)
