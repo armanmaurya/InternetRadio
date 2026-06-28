@@ -17,8 +17,8 @@ android {
         applicationId = "com.armanmaurya.internetradio"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.6.4"
+        versionCode = 8
+        versionName = "0.6.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
