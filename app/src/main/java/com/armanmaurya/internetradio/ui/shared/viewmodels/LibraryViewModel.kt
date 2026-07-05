@@ -62,6 +62,11 @@ class LibraryViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
+    // Set of all bookmarked UUIDs — used by Browse/Recent to show the bookmark badge
+    val stationUuids: StateFlow<Set<String>> = libraryRepository.getAllStations()
+        .map { list -> list.map { it.stationUuid }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     fun toggleFilter() {
         viewModelScope.launch {
             settingsRepository.setUseFilterOnFavorites(!useFilter.value)

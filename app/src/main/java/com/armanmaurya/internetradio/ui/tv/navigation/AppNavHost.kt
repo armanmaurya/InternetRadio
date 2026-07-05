@@ -35,6 +35,7 @@ fun AppNavHost(
     libraryViewModel: LibraryViewModel,
     playerViewModel: PlayerViewModel,
     homeViewModel: HomeViewModel,
+    startDestination: String = AppDestination.Browse.route,
     modifier: Modifier = Modifier
 ) {
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -44,7 +45,7 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = AppDestination.Browse.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable(AppDestination.Browse.route) {

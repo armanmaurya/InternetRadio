@@ -82,6 +82,7 @@ import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 import com.armanmaurya.internetradio.ui.shared.theme.TvInternetRadioTheme
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -95,13 +96,23 @@ fun HomeScreen(
     recentViewModel: RecentViewModel = hiltViewModel(),
     libraryViewModel: LibraryViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
-    homeViewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route ?: AppDestination.Browse.route
 
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
+    val startDestination = remember(settingsUiState.defaultTab) {
+        when (settingsUiState.defaultTab) {
+            1 -> AppDestination.Recent.route
+            2 -> AppDestination.Library.route
+            else -> AppDestination.Browse.route
+        }
+    }
 
     // Forward search query from HomeViewModel -> BrowseViewModel
     LaunchedEffect(homeUiState.searchQuery) {
@@ -514,7 +525,8 @@ fun HomeScreen(
                         recentViewModel = recentViewModel,
                         libraryViewModel = libraryViewModel,
                         playerViewModel = playerViewModel,
-                        homeViewModel = homeViewModel
+                        homeViewModel = homeViewModel,
+                        startDestination = startDestination
                     )
                 }
             }
