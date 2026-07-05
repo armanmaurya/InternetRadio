@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -242,7 +243,7 @@ fun PlayerSheetContent(
                         maxLines = 1,
                         modifier = Modifier.basicMarquee()
                     )
-                    val currentTrackText = playbackState.currentTrack ?: if (playbackState.isLoading) "Buffering..." else "No track data"
+                    val currentTrackText = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
                     Text(
                         text = currentTrackText,
                         style = MaterialTheme.typography.bodySmall,
@@ -274,21 +275,11 @@ fun PlayerSheetContent(
                     )
                 }
 
-                if (playbackState.isLoading) {
-                    IconButton(onClick = { }) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 2.dp
-                        )
-                    }
-                } else {
-                    IconButton(onClick = onTogglePlayPause) {
-                        Icon(
-                            imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null
-                        )
-                    }
+                IconButton(onClick = onTogglePlayPause) {
+                    Icon(
+                        imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null
+                    )
                 }
 
                 IconButton(
@@ -443,7 +434,7 @@ fun PlayerSheetContent(
                                     maxLines = 1,
                                     modifier = Modifier.basicMarquee()
                                 )
-                                val currentTrackText = playbackState.currentTrack ?: if (playbackState.isLoading) "Buffering..." else "No track data"
+                                val currentTrackText = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
                                 Text(
                                     text = currentTrackText,
                                     style = MaterialTheme.typography.bodySmall,
@@ -464,21 +455,11 @@ fun PlayerSheetContent(
                                 )
                             }
 
-                            if (playbackState.isLoading) {
-                                IconButton(onClick = { }) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        strokeWidth = 2.dp
-                                    )
-                                }
-                            } else {
-                                IconButton(onClick = onTogglePlayPause) {
-                                    Icon(
-                                        imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                        contentDescription = null
-                                    )
-                                }
+                            IconButton(onClick = onTogglePlayPause) {
+                                Icon(
+                                    imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = null
+                                )
                             }
 
                             IconButton(
@@ -520,13 +501,12 @@ fun PlayerSheetContent(
                     )
 
                     AnimatedContent(
-                        targetState = playbackState.currentTrack,
+                        targetState = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data",
                         transitionSpec = {
                             fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
                         },
                         label = "TrackAnimation"
-                    ) { track ->
-                        val displayTrack = track ?: if (playbackState.isLoading) "Buffering..." else "No track data"
+                    ) { displayTrack ->
                         Column {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -540,8 +520,8 @@ fun PlayerSheetContent(
                                     .pointerInput(displayTrack) {
                                         detectTapGestures(
                                             onLongPress = {
-                                                if (track != null) {
-                                                    clipboardManager.setText(AnnotatedString(track))
+                                                if (displayTrack != "Buffering..." && displayTrack != "No track data") {
+                                                    clipboardManager.setText(AnnotatedString(displayTrack))
                                                     Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
                                                 }
                                             }
@@ -576,19 +556,11 @@ fun PlayerSheetContent(
                             modifier = Modifier.size(80.dp),
                             shape = CircleShape
                         ) {
-                            if (playbackState.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(48.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 4.dp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                            }
+                            Icon(
+                                imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp)
+                            )
                         }
 
                         FilledIconButton(
@@ -816,6 +788,9 @@ fun SleepTimerDialog(
         
         AlertDialog(
             onDismissRequest = onDismissRequest,
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             title = { Text("Sleep Timer") },
             text = {
                 val mins = (remaining / 60000).toInt() + 1
@@ -841,8 +816,12 @@ fun SleepTimerDialog(
     } else {
         var hours by remember { mutableIntStateOf(0) }
         var minutes by remember { mutableIntStateOf(15) }
+        val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
         AlertDialog(
             onDismissRequest = onDismissRequest,
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             title = { Text("Set Sleep Timer") },
             text = {
                 Row(
@@ -858,6 +837,9 @@ fun SleepTimerDialog(
                                     minValue = 0
                                     maxValue = 23
                                     value = hours
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                        this.textColor = textColor
+                                    }
                                     setOnValueChangedListener { _, _, newVal ->
                                         hours = newVal
                                     }
@@ -877,6 +859,9 @@ fun SleepTimerDialog(
                                     minValue = 0
                                     maxValue = 59
                                     value = minutes
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                        this.textColor = textColor
+                                    }
                                     setOnValueChangedListener { _, _, newVal ->
                                         minutes = newVal
                                     }

@@ -52,7 +52,8 @@ fun LibraryStationEntity.toDomain() = RadioStation(
     geoLat = null,
     geoLong = null,
     geoDistance = null,
-    hasExtendedInfo = false
+    hasExtendedInfo = false,
+    isCustom = isCustom
 )
 
 fun RadioStation.toLibraryEntity(isCustom: Boolean = false) = LibraryStationEntity(

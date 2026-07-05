@@ -13,7 +13,7 @@ sealed class AppDestination(val route: String) {
     data object TagSelect : AppDestination("tag_select?selectedTags={selectedTags}") {
         fun createRoute(selectedTags: Set<String>) = "tag_select?selectedTags=${selectedTags.joinToString(",")}"
     }
-    data object AddEditStation : AppDestination("add_edit_station?stationUuid={stationUuid}") {
-        fun createRoute(stationUuid: String?) = if (stationUuid != null) "add_edit_station?stationUuid=$stationUuid" else "add_edit_station"
+    data object EditStation : AppDestination("edit_station?stationUuid={stationUuid}") {
+        fun createRoute(stationUuid: String?) = if (stationUuid != null) "edit_station?stationUuid=$stationUuid" else "edit_station"
     }
 }

@@ -225,6 +225,36 @@ class PlayerController @Inject constructor(
         player.play()
     }
     
+    fun updateCurrentStation(updatedStation: RadioStation) {
+        val player = controller ?: return
+        if (activeStation?.stationUuid != updatedStation.stationUuid) return
+
+        val urlChanged = activeStation?.url != updatedStation.url || activeStation?.urlResolved != updatedStation.urlResolved
+
+        activeStation = updatedStation
+        _playbackState.update { it.copy(currentStation = updatedStation) }
+        
+        currentPlaylist = currentPlaylist.map { 
+            if (it.stationUuid == updatedStation.stationUuid) updatedStation else it 
+        }
+
+        if (urlChanged) {
+            val currentIndex = player.currentMediaItemIndex
+            if (currentIndex != -1) {
+                val mediaItems = currentPlaylist.map { it.toMediaItem() }
+                val position = player.currentPosition
+                player.setMediaItems(mediaItems, currentIndex, position)
+                player.prepare()
+                player.play()
+            }
+        } else {
+            val currentIndex = player.currentMediaItemIndex
+            if (currentIndex != -1) {
+                player.replaceMediaItem(currentIndex, updatedStation.toMediaItem())
+            }
+        }
+    }
+    
     fun next() {
         controller?.let { player ->
             if (player.hasNextMediaItem()) {

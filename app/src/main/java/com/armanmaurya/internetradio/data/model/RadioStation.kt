@@ -31,5 +31,6 @@ data class RadioStation(
     val geoLat: Double?,
     val geoLong: Double?,
     val geoDistance: Double?,
-    val hasExtendedInfo: Boolean
+    val hasExtendedInfo: Boolean,
+    val isCustom: Boolean = false
 )

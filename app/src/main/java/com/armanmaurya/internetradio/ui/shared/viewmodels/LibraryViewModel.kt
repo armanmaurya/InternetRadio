@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
+import com.armanmaurya.internetradio.data.repository.StationRepository
+import com.armanmaurya.internetradio.player.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val stationRepository: StationRepository,
+    private val playerController: PlayerController
 ) : ViewModel() {
 
     // Using useFilterOnFavorites and isGridViewFavorites for now, maybe we can rename these in Settings later
@@ -102,6 +106,22 @@ class LibraryViewModel @Inject constructor(
                 favicon = favicon,
                 tags = tags
             )
+            val updatedStation = libraryRepository.getStationById(stationUuid)
+            if (updatedStation != null && playerController.playbackState.value.currentStation?.stationUuid == stationUuid) {
+                playerController.updateCurrentStation(updatedStation)
+            }
+        }
+    }
+
+    fun fetchOriginalStation(stationUuid: String, onResult: (RadioStation?) -> Unit) {
+        viewModelScope.launch {
+            stationRepository.getStationsByUuid(listOf(stationUuid))
+                .onSuccess { stations ->
+                    onResult(stations.firstOrNull())
+                }
+                .onFailure {
+                    onResult(null)
+                }
         }
     }
 
