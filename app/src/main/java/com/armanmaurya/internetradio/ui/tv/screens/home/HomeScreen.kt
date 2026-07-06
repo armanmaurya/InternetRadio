@@ -146,8 +146,8 @@ fun HomeScreen(
                             .fillMaxHeight()
                             .widthIn(max = 280.dp)
                             .background(
-                                if (currentDestination == AppDestination.Player.route) {
-                                    if (drawerValue == DrawerValue.Closed) Color.Transparent else Color.Black.copy(alpha = 0.4f)
+                                if (currentDestination == AppDestination.Player.route && drawerValue == DrawerValue.Closed) {
+                                    Color.Transparent
                                 } else {
                                     MaterialTheme.colorScheme.surface
                                 }
