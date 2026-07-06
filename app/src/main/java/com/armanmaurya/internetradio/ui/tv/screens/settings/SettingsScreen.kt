@@ -56,15 +56,20 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 48.dp, vertical = 32.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
         Text(
             text = "Settings",
-            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // ── General Section ──────────────────────────────────────────
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(32.dp)
+        ) {
+            // ── General Section ──────────────────────────────────────────
         TvSettingsSection(title = "General") {
 
             // Default Tab on Startup
@@ -103,6 +108,7 @@ fun SettingsScreen(
                 icon = Icons.Default.Info,
                 onClick = onAboutClick
             )
+        }
         }
     }
 
