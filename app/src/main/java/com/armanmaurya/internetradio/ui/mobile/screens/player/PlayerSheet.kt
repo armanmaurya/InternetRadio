@@ -1310,7 +1310,9 @@ fun PlayerSheetContent(
                                                             text = station.country,
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold
+                                                            fontWeight = FontWeight.Bold,
+                                                            maxLines = 1,
+                                                            modifier = Modifier.basicMarquee()
                                                         )
                                                     }
                                                 }
@@ -1346,7 +1348,9 @@ fun PlayerSheetContent(
                                                             text = station.language,
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold
+                                                            fontWeight = FontWeight.Bold,
+                                                            maxLines = 1,
+                                                            modifier = Modifier.basicMarquee()
                                                         )
                                                     }
                                                 }
