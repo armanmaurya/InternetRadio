@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
 class PcmToAacEncoder(
     private val sampleRate: Int,
     private val channelCount: Int,
+    private val bytesPerFrame: Int,
     private val fileDescriptor: FileDescriptor?,
     private val filePath: String?
 ) {
@@ -21,6 +22,7 @@ class PcmToAacEncoder(
     private var muxerStarted = false
     private val bufferInfo = MediaCodec.BufferInfo()
     private var isRecording = false
+    private var totalFramesEncoded: Long = 0
 
     init {
         try {
@@ -61,7 +63,9 @@ class PcmToAacEncoder(
                 inputBuffer?.clear()
                 inputBuffer?.put(pcmData, offset, length)
                 
-                val presentationTimeUs = System.nanoTime() / 1000
+                val numFrames = length / bytesPerFrame
+                val presentationTimeUs = (totalFramesEncoded * 1000000L) / sampleRate
+                totalFramesEncoded += numFrames
                 codec.queueInputBuffer(inputBufferIndex, 0, length, presentationTimeUs, 0)
             }
 
@@ -126,7 +130,8 @@ class PcmToAacEncoder(
             if (codec != null) {
                 val inputBufferIndex = codec.dequeueInputBuffer(10000)
                 if (inputBufferIndex >= 0) {
-                    codec.queueInputBuffer(inputBufferIndex, 0, 0, System.nanoTime() / 1000, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                    val presentationTimeUs = (totalFramesEncoded * 1000000L) / sampleRate
+                    codec.queueInputBuffer(inputBufferIndex, 0, 0, presentationTimeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                 }
                 drain(true)
             }

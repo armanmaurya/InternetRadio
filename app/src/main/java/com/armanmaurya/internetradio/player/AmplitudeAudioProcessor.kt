@@ -11,7 +11,7 @@ class AmplitudeAudioProcessor(
 ) : BaseAudioProcessor() {
 
     override fun onConfigure(inputAudioFormat: AudioFormat): AudioFormat {
-        recordingManager.setAudioFormat(inputAudioFormat.sampleRate, inputAudioFormat.channelCount)
+        recordingManager.setAudioFormat(inputAudioFormat.sampleRate, inputAudioFormat.channelCount, inputAudioFormat.bytesPerFrame)
         return inputAudioFormat
     }
 

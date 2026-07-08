@@ -70,10 +70,12 @@ class RecordingManager @Inject constructor(
     
     private var sampleRate = 44100
     private var channelCount = 2
+    private var bytesPerFrame = 4
 
-    fun setAudioFormat(sampleRate: Int, channelCount: Int) {
+    fun setAudioFormat(sampleRate: Int, channelCount: Int, bytesPerFrame: Int) {
         this.sampleRate = sampleRate
         this.channelCount = channelCount
+        this.bytesPerFrame = bytesPerFrame
     }
 
     fun setPlaying(playing: Boolean) {
@@ -109,7 +111,7 @@ class RecordingManager @Inject constructor(
                 uri?.let {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         pfd = context.contentResolver.openFileDescriptor(it, "rw")
-                        encoder = PcmToAacEncoder(sampleRate, channelCount, pfd?.fileDescriptor, null)
+                        encoder = PcmToAacEncoder(sampleRate, channelCount, bytesPerFrame, pfd?.fileDescriptor, null)
                     } else {
                         // Fallback for Q without O? That doesn't exist, Q is 29, O is 26.
                     }
@@ -122,7 +124,7 @@ class RecordingManager @Inject constructor(
                 }
                 val file = File(folder, fileName)
                 currentFile = file
-                encoder = PcmToAacEncoder(sampleRate, channelCount, null, file.absolutePath)
+                encoder = PcmToAacEncoder(sampleRate, channelCount, bytesPerFrame, null, file.absolutePath)
             }
 
             if (encoder != null) {
