@@ -143,18 +143,45 @@ fun PlayerScreen(
                     verticalArrangement = Arrangement.Bottom,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    AsyncImage(
-                        model = station.favicon.ifEmpty { null },
-                        contentDescription = "Station Thumbnail",
-                        placeholder = fallbackPainter,
-                        error = fallbackPainter,
-                        fallback = fallbackPainter,
-                        modifier = Modifier
-                            .size(192.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentScale = ContentScale.Crop
-                    )
+                    Box(modifier = Modifier.size(192.dp)) {
+                        AsyncImage(
+                            model = station.favicon.ifEmpty { null },
+                            contentDescription = "Station Thumbnail",
+                            placeholder = fallbackPainter,
+                            error = fallbackPainter,
+                            fallback = fallbackPainter,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        if (station.bitrate > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.7f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                val badgeText = buildString {
+                                    append("${station.bitrate} kbps")
+                                    if (station.codec.isNotEmpty()) {
+                                        append(" • ${station.codec.uppercase()}")
+                                    }
+                                }
+                                Text(
+                                    text = badgeText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
