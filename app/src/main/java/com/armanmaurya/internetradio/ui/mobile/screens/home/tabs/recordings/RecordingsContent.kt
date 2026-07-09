@@ -4,6 +4,7 @@ import android.content.Intent
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,6 +41,7 @@ fun RecordingsContent(
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     var selectedFolder by remember { mutableStateOf<RecordingFolder?>(null) }
     val context = LocalContext.current
+    val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
 
     LaunchedEffect(Unit) {
         viewModel.loadFolders()
@@ -85,6 +87,13 @@ fun RecordingsContent(
                         modifier = Modifier
                             .padding(vertical = 4.dp)
                             .clip(RoundedCornerShape(12.dp))
+                            .then(
+                                if (isPureBlack) Modifier.border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                    RoundedCornerShape(12.dp)
+                                ) else Modifier
+                            )
                             .clickable { selectedFolder = folder },
                         headlineContent = {
                             Text(
@@ -108,7 +117,7 @@ fun RecordingsContent(
                             )
                         },
                         colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            containerColor = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         )
                     )
                 }

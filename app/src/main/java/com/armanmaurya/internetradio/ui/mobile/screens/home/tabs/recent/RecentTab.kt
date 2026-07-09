@@ -70,7 +70,7 @@ fun RecentContent(
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     state = gridState,
-                    columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
+                    columns = if (isGridView) GridCells.Adaptive(150.dp) else GridCells.Fixed(1),
                     modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp,

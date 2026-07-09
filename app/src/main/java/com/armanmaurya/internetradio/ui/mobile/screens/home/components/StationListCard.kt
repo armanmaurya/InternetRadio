@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -122,7 +123,7 @@ fun StationListCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primary else Color.Unspecified,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -130,7 +131,7 @@ fun StationListCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
             }
 

@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.ui.mobile.screens.about
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -86,6 +87,7 @@ fun AboutScreen(
             )
         }
     ) { innerPadding ->
+        val isPureBlack = MaterialTheme.colorScheme.surface == Color.Black
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -101,7 +103,14 @@ fun AboutScreen(
                 modifier = Modifier
                     .size(144.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant)
+                    .then(
+                        if (isPureBlack) Modifier.border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            CircleShape
+                        ) else Modifier
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -142,10 +151,16 @@ fun AboutScreen(
 
             // Author Card
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().then(
+                    if (isPureBlack) Modifier.border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        RoundedCornerShape(16.dp)
+                    ) else Modifier
+                ),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
                 Column(
@@ -200,10 +215,16 @@ fun AboutScreen(
 
             // Contributors Card
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().then(
+                    if (isPureBlack) Modifier.border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        RoundedCornerShape(16.dp)
+                    ) else Modifier
+                ),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
                 Column(

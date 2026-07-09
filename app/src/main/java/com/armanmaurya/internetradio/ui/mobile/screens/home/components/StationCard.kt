@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
@@ -58,9 +59,9 @@ fun StationCard(
         Brush.verticalGradient(
             colors = listOf(
                 Color.Transparent,
-                Color.Black.copy(alpha = 0.3f)
-            ),
-            startY = 300f
+                Color.Transparent,
+                Color.Black.copy(alpha = 0.8f)
+            )
         )
     }
 
@@ -172,14 +173,14 @@ fun StationCard(
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
                 Text(
                     text = subtitleText,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.8f),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
             }
         }

@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -139,6 +140,7 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
+            val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
             RadioSearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
@@ -231,6 +233,15 @@ fun HomeScreen(
                                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                     shape = RoundedCornerShape(100)
                                 )
+                                .then(
+                                    if (MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black) {
+                                        Modifier.border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                            RoundedCornerShape(100)
+                                        )
+                                    } else Modifier
+                                )
                                 .zIndex(-1f)
                         )
                     }
@@ -275,7 +286,13 @@ fun HomeScreen(
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                border = if (MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black) {
+                    androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+                } else null
             ) {
                 HorizontalPager(
                     state = pagerState,

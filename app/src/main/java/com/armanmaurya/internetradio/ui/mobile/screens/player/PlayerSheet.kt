@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -216,6 +217,20 @@ fun PlayerSheetContent(
                 .fillMaxSize()
                 .clickable(enabled = progress < 0.1f, onClick = onExpand)
         ) {
+            if (MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            androidx.compose.foundation.shape.RoundedCornerShape(
+                                topStart = 28.dp,
+                                topEnd = 28.dp
+                            )
+                        )
+                )
+            }
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
         val baseExpandedSize = (screenWidth - 32.dp).coerceAtMost(400.dp)
@@ -936,11 +951,21 @@ fun PlayerSheetContent(
                         label = "tab3Text"
                     )
 
+                    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (isHistoryExpanded) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent,
+                                color = if (isHistoryExpanded) {
+                                    if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                } else androidx.compose.ui.graphics.Color.Transparent,
                                 shape = RoundedCornerShape(12.dp)
+                            )
+                            .then(
+                                if (isHistoryExpanded && isPureBlack) Modifier.border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                    RoundedCornerShape(12.dp)
+                                ) else Modifier
                             )
                             .padding(4.dp)
                     ) {
@@ -952,7 +977,17 @@ fun PlayerSheetContent(
                                         .offset(x = indicatorOffset)
                                         .width(tabWidth)
                                         .fillMaxHeight()
-                                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surface,
+                                            RoundedCornerShape(10.dp)
+                                        )
+                                        .then(
+                                            if (isPureBlack) Modifier.border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                RoundedCornerShape(10.dp)
+                                            ) else Modifier
+                                        )
                                 )
                             }
                         }
@@ -1103,12 +1138,23 @@ fun PlayerSheetContent(
                                         
                                         var isExpanded by remember { mutableStateOf(false) }
                                         
+                                        val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
                                         @OptIn(ExperimentalFoundationApi::class)
                                         Column(
                                             modifier = Modifier
                                                 .padding(vertical = 4.dp)
                                                 .clip(RoundedCornerShape(12.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                                                .background(
+                                                    if (isPureBlack) androidx.compose.ui.graphics.Color.Black 
+                                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                                )
+                                                .then(
+                                                    if (isPureBlack) Modifier.border(
+                                                        1.dp,
+                                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                        RoundedCornerShape(12.dp)
+                                                    ) else Modifier
+                                                )
                                                 .animateContentSize()
                                         ) {
                                             ListItem(
@@ -1270,6 +1316,7 @@ fun PlayerSheetContent(
                                 }
                             }
                         } else if (page == 2) {
+                            val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier
@@ -1299,7 +1346,14 @@ fun PlayerSheetContent(
                                                     modifier = Modifier
                                                         .weight(1f)
                                                         .clip(RoundedCornerShape(12.dp))
-                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
+                                                        .then(
+                                                            if (isPureBlack) Modifier.border(
+                                                                1.dp,
+                                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                                RoundedCornerShape(12.dp)
+                                                            ) else Modifier
+                                                        )
                                                         .padding(vertical = 12.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
@@ -1327,8 +1381,8 @@ fun PlayerSheetContent(
                                                 Box(
                                                     modifier = Modifier
                                                         .width(20.dp)
-                                                        .height(4.dp)
-                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .height(if (isPureBlack) 1.dp else 4.dp)
+                                                        .background(if (isPureBlack) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primaryContainer)
                                                 )
                                             }
                                             
@@ -1337,7 +1391,14 @@ fun PlayerSheetContent(
                                                     modifier = Modifier
                                                         .weight(1f)
                                                         .clip(RoundedCornerShape(12.dp))
-                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
+                                                        .then(
+                                                            if (isPureBlack) Modifier.border(
+                                                                1.dp,
+                                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                                RoundedCornerShape(12.dp)
+                                                            ) else Modifier
+                                                        )
                                                         .padding(vertical = 12.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
@@ -1385,10 +1446,14 @@ fun PlayerSheetContent(
                                                     onClick = { },
                                                     label = { Text(tag) },
                                                     colors = SuggestionChipDefaults.suggestionChipColors(
-                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                        containerColor = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.secondaryContainer,
                                                         labelColor = MaterialTheme.colorScheme.onSecondaryContainer
                                                     ),
-                                                    border = null
+                                                    border = if (isPureBlack) SuggestionChipDefaults.suggestionChipBorder(
+                                                        enabled = true,
+                                                        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                        borderWidth = 1.dp
+                                                    ) else null
                                                 )
                                             }
                                         }

@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.tv.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -64,9 +65,9 @@ fun StationCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.8f)
-                            ),
-                            startY = 100f
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.9f)
+                            )
                         )
                     )
             )
@@ -104,7 +105,7 @@ fun StationCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
                 Text(
                     text = buildString {
@@ -115,7 +116,7 @@ fun StationCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.8f),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
                 )
             }
         }

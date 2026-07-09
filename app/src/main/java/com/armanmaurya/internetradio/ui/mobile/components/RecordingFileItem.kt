@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import android.text.format.DateUtils
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,11 +38,23 @@ fun RecordingFileItem(
         DateUtils.FORMAT_ABBREV_RELATIVE
     ).toString()
 
+    val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
     Column(
         modifier = modifier
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isExpanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(
+                if (isPureBlack) androidx.compose.ui.graphics.Color.Black 
+                else if (isExpanded) MaterialTheme.colorScheme.surfaceVariant 
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+            .then(
+                if (isPureBlack) Modifier.border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    RoundedCornerShape(12.dp)
+                ) else Modifier
+            )
             .animateContentSize()
             .clickable(onClick = onClick)
     ) {

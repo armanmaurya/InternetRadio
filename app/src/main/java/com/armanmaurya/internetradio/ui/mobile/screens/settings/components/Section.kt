@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.ui.mobile.screens.settings.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,8 +27,15 @@ fun Section(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
         )
+        val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().then(
+                if (isPureBlack) Modifier.border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    MaterialTheme.shapes.medium
+                ) else Modifier
+            ),
             shape = MaterialTheme.shapes.medium
         ) {
             Column(modifier = Modifier.padding(vertical = 4.dp)) {
