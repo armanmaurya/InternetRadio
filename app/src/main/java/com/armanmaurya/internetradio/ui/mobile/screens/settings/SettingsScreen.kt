@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
@@ -59,6 +60,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onCheckUpdatesClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -103,7 +105,10 @@ fun SettingsScreen(
                 onSetDefaultTab = viewModel::setDefaultTab,
                 onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart
             )
-            AboutSection(onAboutClick)
+            AboutSection(
+                onAboutClick = onAboutClick,
+                onCheckUpdatesClick = onCheckUpdatesClick
+            )
         }
     }
 }
@@ -288,7 +293,10 @@ private fun GeneralSection(
 }
 
 @Composable
-private fun AboutSection(onAboutClick: () -> Unit) {
+private fun AboutSection(
+    onAboutClick: () -> Unit,
+    onCheckUpdatesClick: () -> Unit
+) {
     val context = LocalContext.current
 
     Section(title = stringResource(R.string.settings_about_section)) {
@@ -311,6 +319,11 @@ private fun AboutSection(onAboutClick: () -> Unit) {
             title = stringResource(R.string.settings_about_us),
             onClick = onAboutClick,
             icon = Icons.Default.Info
+        )
+        Item(
+            title = "Check for updates",
+            onClick = onCheckUpdatesClick,
+            icon = Icons.Default.Update
         )
     }
 }

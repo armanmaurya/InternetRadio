@@ -52,6 +52,7 @@ class SettingsRepository @Inject constructor(
         val TRACK_HISTORY_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("track_history_limit")
         val DEFAULT_TAB = androidx.datastore.preferences.core.intPreferencesKey("default_tab")
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
+        val LAST_UPDATE_CHECK_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_update_check_time")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -85,6 +86,7 @@ class SettingsRepository @Inject constructor(
             val trackHistoryLimit = preferences[PreferencesKeys.TRACK_HISTORY_LIMIT] ?: 50
             val defaultTab = preferences[PreferencesKeys.DEFAULT_TAB] ?: 0
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
+            val lastUpdateCheckTime = preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] ?: 0L
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -106,7 +108,8 @@ class SettingsRepository @Inject constructor(
                 isGridViewAdded = isGridViewAdded,
                 trackHistoryLimit = trackHistoryLimit,
                 defaultTab = defaultTab,
-                autoPlayOnStart = autoPlayOnStart
+                autoPlayOnStart = autoPlayOnStart,
+                lastUpdateCheckTime = lastUpdateCheckTime
             )
         }
 
@@ -235,6 +238,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setDefaultTab(tabIndex: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEFAULT_TAB] = tabIndex
+        }
+    }
+
+    suspend fun setLastUpdateCheckTime(timeInMillis: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] = timeInMillis
         }
     }
 }

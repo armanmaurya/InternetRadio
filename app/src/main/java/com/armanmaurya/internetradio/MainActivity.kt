@@ -43,7 +43,10 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
+import com.armanmaurya.internetradio.ui.shared.viewmodels.MainViewModel
+import com.armanmaurya.internetradio.ui.shared.components.UpdateBottomSheet
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -71,10 +74,32 @@ class MainActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
         setContent {
+            val mainViewModel: MainViewModel = hiltViewModel()
+            val updateAvailable by mainViewModel.updateAvailable.collectAsStateWithLifecycle()
+            
+            LaunchedEffect(Unit) {
+                val versionName = try {
+                    packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+                } catch (e: Exception) {
+                    "0.0.0"
+                }
+                mainViewModel.checkForUpdates(versionName)
+            }
+            
             val appPreferences by settingsRepository.appPreferencesFlow
                 .collectAsStateWithLifecycle(initialValue = com.armanmaurya.internetradio.data.model.AppPreferences())
 
             InternetRadioTheme(appPreferences = appPreferences) {
+                updateAvailable?.let { release ->
+                    UpdateBottomSheet(
+                        release = release,
+                        onDismiss = { mainViewModel.dismissUpdate() },
+                        onConfirm = { 
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.html_url)))
+                        }
+                    )
+                }
+                
                 val navController = rememberNavController()
                 val playerViewModel: PlayerViewModel = hiltViewModel()
                 val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
@@ -178,7 +203,15 @@ class MainActivity : AppCompatActivity() {
                     AppNavHost(
                         navController = navController,
                         contentPadding = innerPadding,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onCheckUpdates = {
+                            val vName = try {
+                                packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+                            } catch (e: Exception) {
+                                "0.0.0"
+                            }
+                            mainViewModel.checkForUpdates(vName, force = true)
+                        }
                     )
                 }
             }

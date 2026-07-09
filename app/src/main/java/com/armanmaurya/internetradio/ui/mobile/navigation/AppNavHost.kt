@@ -27,6 +27,7 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    onCheckUpdates: () -> Unit = {}
 ) {
     val discoverViewModel: HomeViewModel = hiltViewModel()
 
@@ -83,6 +84,7 @@ fun AppNavHost(
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
                 onAboutClick = { navController.navigate(AppDestination.About.route) },
+                onCheckUpdatesClick = onCheckUpdates,
                 contentPadding = contentPadding
             )
         }

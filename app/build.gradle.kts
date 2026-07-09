@@ -39,6 +39,9 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
         }
     }
     compileOptions {
@@ -90,6 +93,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.logging.interceptor)
+    implementation(libs.compose.markdown)
 
     implementation(libs.androidx.compose.material.icons.core)
 
