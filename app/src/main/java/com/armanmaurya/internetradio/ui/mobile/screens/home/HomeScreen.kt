@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -115,10 +116,10 @@ fun HomeScreen(
     }
 
     val tabs = listOf(
-        stringResource(R.string.tab_browse),
-        stringResource(R.string.tab_recent),
-        "Library",
-        "Recordings"
+        stringResource(R.string.home_tab_browse),
+        stringResource(R.string.home_tab_recent),
+        stringResource(R.string.home_tab_library),
+        stringResource(R.string.home_tab_recordings)
     )
     val pagerState = rememberPagerState(
         initialPage = uiState.selectedTab,
@@ -208,7 +209,7 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_station)
+                        contentDescription = stringResource(R.string.edit_station_add_station)
                     )
                 }
             }
@@ -301,7 +302,7 @@ fun HomeScreen(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
-                                text = uiState.searchQuery.ifEmpty { "Search" },
+                                text = uiState.searchQuery.ifEmpty { stringResource(R.string.general_search) },
                                 color = if (uiState.searchQuery.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -318,7 +319,7 @@ fun HomeScreen(
                             ) {
                                 Icon(
                                     Icons.Default.LocalOffer,
-                                    contentDescription = "Tags",
+                                    contentDescription = stringResource(R.string.home_cd_tags),
                                     modifier = Modifier.size(20.dp),
                                     tint = if (uiState.selectedTags.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -330,7 +331,7 @@ fun HomeScreen(
                                 androidx.compose.foundation.layout.Box {
                                     Icon(
                                         Icons.Default.Translate,
-                                        contentDescription = "Language",
+                                        contentDescription = stringResource(R.string.edit_station_language_field),
                                         modifier = Modifier.size(20.dp),
                                         tint = if (!uiState.selectedLanguage.isNullOrBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -356,7 +357,7 @@ fun HomeScreen(
                                 androidx.compose.foundation.layout.Box {
                                     Icon(
                                         Icons.Default.Public,
-                                        contentDescription = "Country",
+                                        contentDescription = stringResource(R.string.edit_station_country_field),
                                         modifier = Modifier.size(20.dp),
                                         tint = if (!uiState.selectedCountryCode.isNullOrBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -379,7 +380,7 @@ fun HomeScreen(
                                 onClick = onSettingsClick,
                                 modifier = Modifier.size(36.dp)
                             ) {
-                                Icon(Icons.Default.Settings, contentDescription = "Settings", modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.home_cd_settings), modifier = Modifier.size(20.dp))
                             }
                         }
                         val icons = listOf(

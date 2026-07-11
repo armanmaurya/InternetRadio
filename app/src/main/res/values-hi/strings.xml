@@ -1,67 +1,205 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">इंटरनेट रेडियो</string>
+    <!-- ========================================== -->
+    <!-- 1. APP DEFINITION                          -->
+    <!-- ========================================== -->
+    <string name="app_name">Internet Radio</string>
+    <string name="version_format">संस्करण %1$s</string>
+
+    <!-- ========================================== -->
+    <!-- 2. GENERAL ACTIONS                         -->
+    <!-- ========================================== -->
+    <string name="general_search">खोजें</string>
+    <string name="general_clear">साफ़ करें</string>
+    <string name="general_later">बाद में</string>
+    <string name="general_update_now">अभी अपडेट करें</string>
+    <string name="general_cancel">रद्द करें</string>
+    <string name="general_ok">ठीक है</string>
+    <string name="general_reset">रीसेट करें</string>
+    <string name="general_discard">खारिज करें</string>
+    <string name="general_save">सहेजें</string>
+    <string name="general_add">जोड़ें</string>
+    <string name="cd_back">पीछे</string>
+    <string name="cd_close_search">खोज बंद करें</string>
+    <string name="cd_search">खोजें</string>
+    <string name="cd_clear_search">खोज साफ़ करें</string>
+
+    <!-- ========================================== -->
+    <!-- 3. GENERAL LABELS                          -->
+    <!-- ========================================== -->
+    <string name="general_name">नाम</string>
+    <string name="general_hours">घंटे</string>
+    <string name="general_minutes">मिनट</string>
+    <string name="general_unknown">अज्ञात</string>
+    <string name="general_station_count_msg">%1$d स्टेशन</string>
+    <string name="general_no_recordings">अभी कोई रिकॉर्डिंग नहीं</string>
+
+    <!-- ========================================== -->
+    <!-- 4. ERRORS                                  -->
+    <!-- ========================================== -->
+    <string name="error_unknown">अज्ञात त्रुटि</string>
+    <string name="error_something_went_wrong">कुछ गलत हो गया। कृपया पुनः प्रयास करें।</string>
+    <string name="error_station_not_found">स्टेशन नहीं मिला</string>
+    <string name="error_invalid_url">अमान्य URL</string>
+    <string name="error_cannot_open_website">वेबसाइट नहीं खोली जा सकती</string>
+    <string name="error_cannot_open_url">URL नहीं खोला जा सकता</string>
+
+    <!-- ========================================== -->
+    <!-- 5. SETTINGS                                -->
+    <!-- ========================================== -->
     <string name="settings_title">सेटिंग्स</string>
     <string name="settings_appearance_section">दिखावट</string>
-    <string name="settings_dynamic_theme_title">डायनेमिक रंग</string>
+    <string name="settings_dynamic_theme_title">डायनामिक रंग</string>
     <string name="settings_dynamic_theme_subtitle">वॉलपेपर-आधारित रंगों का उपयोग करें (Android 12+)</string>
     <string name="settings_theme_title">थीम</string>
-    <string name="settings_theme_light">हल्का</string>
-    <string name="settings_theme_dark">गहरा</string>
-    <string name="settings_theme_system">सिस्टम डिफ़ॉल्ट</string>
-    <string name="settings_pure_black_title">शुद्ध काला</string>
+    <string name="settings_theme_light">लाइट</string>
+    <string name="settings_theme_dark">डार्क</string>
+    <string name="settings_pure_black_title">प्योर ब्लैक</string>
     <string name="settings_pure_black_subtitle">डार्क मोड में शुद्ध काले रंग की पृष्ठभूमि का उपयोग करें</string>
     <string name="settings_general_section">सामान्य</string>
     <string name="settings_language_title">भाषा</string>
-    <string name="settings_about_section">हमारे बारे में</string>
-    <string name="settings_rate_review">रेट करें और समीक्षा करें</string>
-    <string name="settings_about_us">हमारे बारे में</string>
+    <string name="settings_auto_play">शुरू होने पर स्वतः चलाएँ</string>
+    <string name="settings_auto_play_desc">ऐप शुरू होने पर पिछला सुना गया स्टेशन चलाएँ</string>
+    <string name="settings_default_tab">शुरुआत में डिफ़ॉल्ट टैब</string>
+    <string name="settings_check_updates">अपडेट की जाँच करें</string>
+    <string name="settings_rate_review">रेट और रिव्यू करें</string>
+    <string name="settings_track_history_limit">ट्रैक इतिहास सीमा</string>
+    <string name="settings_system_default">सिस्टम डिफ़ॉल्ट</string>
+    <string name="settings_number_of_tracks">ट्रैक की संख्या</string>
+    <string name="settings_checking_for_updates">अपडेट की जाँच हो रही है...</string>
+    <string name="settings_no_update_available">कोई अपडेट उपलब्ध नहीं है</string>
+    <string name="settings_theme_system">सिस्टम डिफ़ॉल्ट</string>
 
-    <!-- About Screen -->
-    <string name="about_title">के बारे में</string>
+    <!-- ========================================== -->
+    <!-- 6. ABOUT                                   -->
+    <!-- ========================================== -->
+    <string name="about_title">हमारे बारे बारे में</string>
+    <string name="about_us">हमारे बारे में</string>
     <string name="about_app_description">एक सरल इंटरनेट रेडियो प्लेयर जो आपको दुनिया भर के हजारों रेडियो स्टेशनों को खोजने और सुनने की सुविधा देता है।</string>
-    <string name="about_view_contributors">योगदानकर्ता देखें</string>
+    <string name="about_view_contributors">योगदानकर्ताओं को देखें</string>
     <string name="about_view_github">GitHub पर देखें</string>
+    <string name="about_author">लेखक</string>
+    <string name="about_author_name">अरमान मौर्य</string>
+    <string name="about_contributors">योगदानकर्ता</string>
+    <string name="about_contribute_msg">इंटरनेट रेडियो अभी अपने शुरुआती दिनों में है। योगदान का स्वागत है 💡</string>
+    <string name="about_cd_app_icon">ऐप आइकन</string>
+    <string name="about_cd_linkedin">लिंक्डइन</string>
+    <string name="about_cd_github">गिटहब</string>
+    <string name="about_cd_instagram">इंस्टाग्राम</string>
 
-    <!-- Discover Screen -->
-    <string name="tab_browse">ब्राउज़ करें</string>
-    <string name="tab_recent">हाल ही के</string>
-    <string name="tab_favourites">पसंदीदा</string>
-    <string name="tab_added">जोड़े गए</string>
+    <!-- ========================================== -->
+    <!-- 7. HOME                                    -->
+    <!-- ========================================== -->
+    <string name="home_tab_browse">ब्राउज़ करें</string>
+    <string name="home_tab_recent">हाल ही के</string>
+    <string name="home_tab_library">लाइब्रेरी</string>
+    <string name="home_tab_recordings">रिकॉर्डिंग</string>
+    <string name="home_filters_active">फ़िल्टर सक्रिय</string>
+    <string name="home_use_filters">फ़िल्टर का उपयोग करें</string>
+    <string name="home_cd_settings">सेटिंग्स</string>
+    <string name="home_votes">वोट</string>
+    <string name="home_clicks">क्लिक</string>
+    <string name="home_trend">रुझान</string>
+    <string name="home_toggle_view">दृश्य बदलें</string>
+    <string name="home_delete_station">स्टेशन हटाएँ</string>
+    <string name="home_descending">अवरोही</string>
+    <string name="home_ascending">आरोही</string>
+    <string name="home_cd_descending">अवरोही</string>
+    <string name="home_cd_ascending">आरोही</string>
+    <string name="home_cd_select_tags">टैग चुनें</string>
+    <string name="home_cd_select_language">भाषा चुनें</string>
+    <string name="home_cd_select_country">देश चुनें</string>
+    <string name="home_cd_back_to_folders">फ़ोल्डर्स पर वापस</string>
+    <string name="home_cd_scroll_to_top">ऊपर स्क्रॉल करें</string>
+    <string name="home_cd_tags">टैग</string>
+    <string name="home_cd_station_logo">%1$s लोगो</string>
+    <string name="home_cd_favorite">पसंदीदा</string>
+    <string name="home_cd_more_options">अधिक विकल्प</string>
+    <string name="home_no_recent_stations_filtered">आपके फ़िल्टर से मेल खाने वाला कोई हाल ही में बजाया गया स्टेशन नहीं है।</string>
+    <string name="home_no_recent_stations">हाल ही में कोई स्टेशन नहीं बजाया गया</string>
+    <string name="home_no_stations_found_for">\"%1$s\" के लिए कोई स्टेशन नहीं मिला</string>
+    <string name="home_no_library_stations_filter">फ़िल्टर के साथ कोई लाइब्रेरी स्टेशन नहीं मिला</string>
+    <string name="home_no_library_stations_yet">अभी तक कोई लाइब्रेरी स्टेशन नहीं</string>
 
-    <!-- Added Tab -->
-    <string name="add_station">स्टेशन जोड़ें</string>
-    <string name="no_added_stations">कोई कस्टम स्टेशन नहीं जोड़ा गया</string>
-    <string name="dialog_add_station_title">कस्टम स्टेशन जोड़ें</string>
-    <string name="dialog_add_station_name_label">स्टेशन का नाम</string>
-    <string name="dialog_add_station_url_label">स्ट्रीम URL</string>
-    <string name="dialog_add_station_thumbnail_label">थंबनेल URL (वैकल्पिक)</string>
-    <string name="dialog_add_station_add">जोड़ें</string>
-    <string name="dialog_add_station_cancel">रद्द करें</string>
+    <!-- ========================================== -->
+    <!-- 8. SELECT COUNTRY                          -->
+    <!-- ========================================== -->
+    <string name="select_country_search">देश खोजें...</string>
+    <string name="select_country_title">देश चुनें</string>
+    <string name="select_country_all">सभी देश</string>
 
-    <string name="filters_active">फ़िल्टर सक्रिय हैं</string>
-    <string name="use_filters">फ़िल्टर उपयोग करें</string>
-    <string name="search">खोजें</string>
-    <string name="search_countries">देश खोजें...</string>
-    <string name="select_country">देश चुनें</string>
-    <string name="search_languages">भाषाएं खोजें...</string>
-    <string name="select_language">भाषा चुनें</string>
-    <string name="search_tags">टैग खोजें...</string>
-    <string name="select_tags">टैग चुनें</string>
-    <string name="no_favorite_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई पसंदीदा स्टेशन नहीं हैं।</string>
-    <string name="no_favorite_stations_yet">अभी तक कोई पसंदीदा स्टेशन नहीं है।\nउन्हें यहां देखने के लिए अपने पसंदीदा स्टेशनों को दिल दें!</string>
-    <string name="votes">वोट</string>
-    <string name="clicks">क्लिक</string>
-    <string name="trend">रुझान</string>
-    <string name="name">नाम</string>
-    <string name="toggle_view">दृश्य बदलें</string>
-    <string name="descending">अवरोही</string>
-    <string name="ascending">आरोही</string>
-    <string name="clear">साफ़ करें</string>
-    <string name="discard_changes">परिवर्तन छोड़ें?</string>
-    <string name="discard_changes_message">आपके पास सहेजे न गए टैग चयन हैं। क्या आप निश्चित रूप से वापस जाना और उन्हें छोड़ना चाहते हैं?</string>
-    <string name="discard">छोड़ें</string>
-    <string name="no_recent_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई हाल ही में चलाए गए स्टेशन नहीं हैं।</string>
-    <string name="no_recent_stations">कोई हाल ही में चलाए गए स्टेशन नहीं</string>
-    <string name="no_added_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई जोड़े गए स्टेशन नहीं हैं।</string>
+    <!-- ========================================== -->
+    <!-- 9. SELECT LANGUAGE                         -->
+    <!-- ========================================== -->
+    <string name="select_language_search">भाषाएँ खोजें...</string>
+    <string name="select_language_title">भाषा चुनें</string>
+    <string name="select_language_all">सभी भाषाएँ</string>
+
+    <!-- ========================================== -->
+    <!-- 10. SELECT TAGS                            -->
+    <!-- ========================================== -->
+    <string name="select_tags_search">टैग खोजें...</string>
+    <string name="select_tags_title">टैग चुनें</string>
+    <string name="select_tags_cd_clear_all">सभी साफ़ करें</string>
+    <string name="select_tags_cd_apply">लागू करें</string>
+    <string name="select_tags_cd_remove_tag">टैग हटाएँ</string>
+    <string name="select_tags_discard_changes">परिवर्तन रद्द करें?</string>
+    <string name="select_tags_discard_changes_message">आपके पास सहेजे न गए टैग चयन हैं। क्या आप वाकई वापस जाना चाहते हैं और उन्हें रद्द करना चाहते हैं?</string>
+
+    <!-- ========================================== -->
+    <!-- 11. EDIT STATION                           -->
+    <!-- ========================================== -->
+    <string name="edit_station_add_station">स्टेशन जोड़ें</string>
+    <string name="edit_station_title">स्टेशन संपादित करें</string>
+    <string name="edit_station_name_field">नाम</string>
+    <string name="edit_station_stream_url_field">स्ट्रीम URL</string>
+    <string name="edit_station_favicon_url_optional">फेविकॉन URL (वैकल्पिक)</string>
+    <string name="edit_station_favicon_url_field">फेविकॉन URL</string>
+    <string name="edit_station_country_field">देश</string>
+    <string name="edit_station_language_field">भाषा</string>
+    <string name="edit_station_tags_optional">टैग (अल्पविराम से अलग)</string>
+    <string name="edit_station_failed_fetch_original_data">मूल डेटा प्राप्त करने में विफल</string>
+    <string name="edit_station_unsaved_changes">सहेजे न गए परिवर्तन</string>
+    <string name="edit_station_unsaved_changes_message_exit">आपके पास सहेजे न गए परिवर्तन हैं। क्या आप वाकई उन्हें रद्द करके बाहर निकलना चाहते हैं?</string>
+    <string name="edit_station_reset_title">स्टेशन रीसेट करें</string>
+    <string name="edit_station_reset_message">क्या आप वाकई इस स्टेशन को इसके मूल डेटा पर रीसेट करना चाहते हैं? आपके सभी संपादन नष्ट जाएँगे।</string>
+    <string name="edit_station_fields_reset_message">फ़ील्ड्स को मूल डेटा पर रीसेट कर दिया गया है</string>
+    <string name="edit_station_saved_message">सहेजा गया</string>
+    <string name="edit_station_cd_reset_to_original">मूल पर रीसेट करें</string>
+
+    <!-- ========================================== -->
+    <!-- 12. PLAYER                                 -->
+    <!-- ========================================== -->
+    <string name="player_buffering">बफ़रिंग...</string>
+    <string name="player_no_track_data">कोई ट्रैक डेटा नहीं</string>
+    <string name="player_station_info">स्टेशन की जानकारी</string>
+    <string name="player_label_tags">टैग</string>
+    <string name="player_label_website">वेबसाइट</string>
+    <string name="player_sleep_timer_title">स्लीप टाइमर</string>
+    <string name="player_turn_off_timer">टाइमर बंद करें</string>
+    <string name="player_set_sleep_timer">स्लीप टाइमर सेट करें</string>
+    <string name="player_start_button">शुरू करें</string>
+    <string name="player_timer_ends_in_msg">टाइमर %1$s मिनट में समाप्त होगा।</string>
+    <string name="player_recording_saved">रिकॉर्डिंग सहेजी गई!</string>
+    <string name="player_copied_track_to_clipboard">ट्रैक क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="player_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="player_website_copied">वेबसाइट कॉपी की गई</string>
+    <string name="player_stream_url_copied">स्ट्रीम URL कॉपी किया गया</string>
+    <string name="player_favicon_url_copied">फेविकॉन URL कॉपी किया गया</string>
+    <string name="player_station_codec_bitrate">%1$s • %2$s kbps</string>
+    <string name="player_station_bitrate_only">%1$s kbps</string>
+    <string name="player_cd_pause">रोकें</string>
+    <string name="player_cd_play">चलाएँ</string>
+    <string name="player_cd_previous">पिछला</string>
+    <string name="player_cd_next">अगला</string>
+    <string name="player_cd_toggle_favorite">पसंदीदा टॉगल करें</string>
+    <string name="player_cd_collapse">छोटा करें</string>
+    <string name="player_cd_homepage">होमपेज</string>
+    <string name="player_cd_record">रिकॉर्ड</string>
+    <string name="player_cd_copy_track_name">ट्रैक का नाम कॉपी करें</string>
+    <string name="player_cd_search_youtube">यूट्यूब पर खोजें</string>
+    <string name="player_cd_search_spotify">स्पॉटिफाई पर खोजें</string>
+    <string name="player_cd_search_google">गूगल पर खोजें</string>
+    <string name="player_no_tracks_played">अभी तक कोई ट्रैक नहीं बजाया गया</string>
+    <string name="player_tab_about">हमारे बारे में</string>
+    <string name="player_tab_tracks">ट्रैक</string>
 </resources>

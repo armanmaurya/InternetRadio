@@ -1,5 +1,51 @@
 <resources>
-    <string name="app_name">İnternet Radyosu</string>
+    <!-- ========================================== -->
+    <!-- 1. APP DEFINITION                          -->
+    <!-- ========================================== -->
+    <string name="app_name">Internet Radio</string>
+    <string name="version_format">Version %1$s</string>
+
+    <!-- ========================================== -->
+    <!-- 2. GENERAL ACTIONS                         -->
+    <!-- ========================================== -->
+    <string name="general_search">Ara</string>
+    <string name="general_clear">Temizle</string>
+    <string name="general_later">Sonra</string>
+    <string name="general_update_now">Şimdi Güncelle</string>
+    <string name="general_cancel">İptal</string>
+    <string name="general_ok">Tamam</string>
+    <string name="general_reset">Sıfırla</string>
+    <string name="general_discard">Vazgeç</string>
+    <string name="general_save">Kaydet</string>
+    <string name="general_add">Ekle</string>
+    <string name="cd_back">Geri</string>
+    <string name="cd_close_search">Aramayı kapat</string>
+    <string name="cd_search">Ara</string>
+    <string name="cd_clear_search">Aramayı temizle</string>
+
+    <!-- ========================================== -->
+    <!-- 3. GENERAL LABELS                          -->
+    <!-- ========================================== -->
+    <string name="general_name">İsim</string>
+    <string name="general_hours">Saat</string>
+    <string name="general_minutes">Dakika</string>
+    <string name="general_unknown">Bilinmeyen</string>
+    <string name="general_station_count_msg">%1$d istasyon</string>
+    <string name="general_no_recordings">Henüz kayıt yok</string>
+
+    <!-- ========================================== -->
+    <!-- 4. ERRORS                                  -->
+    <!-- ========================================== -->
+    <string name="error_unknown">Bilinmeyen hata</string>
+    <string name="error_something_went_wrong">Bir şeyler yanlış gitti. Lütfen tekrar deneyin.</string>
+    <string name="error_station_not_found">İstasyon bulunamadı</string>
+    <string name="error_invalid_url">Geçersiz URL</string>
+    <string name="error_cannot_open_website">Web sitesi açılamıyor</string>
+    <string name="error_cannot_open_url">URL açılamıyor</string>
+
+    <!-- ========================================== -->
+    <!-- 5. SETTINGS                                -->
+    <!-- ========================================== -->
     <string name="settings_title">Ayarlar</string>
     <string name="settings_appearance_section">Görünüm</string>
     <string name="settings_dynamic_theme_title">Dinamik Renk</string>
@@ -7,56 +53,153 @@
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Açık</string>
     <string name="settings_theme_dark">Koyu</string>
-    <string name="settings_theme_system">Sistem Varsayılanı</string>
     <string name="settings_pure_black_title">Saf Siyah</string>
     <string name="settings_pure_black_subtitle">Koyu modda saf siyah arka plan kullan</string>
     <string name="settings_general_section">Genel</string>
     <string name="settings_language_title">Dil</string>
-    <string name="settings_about_section">Hakkında</string>
+    <string name="settings_auto_play">Başlangıçta otomatik oynat</string>
+    <string name="settings_auto_play_desc">Uygulama başladığında son dinlenen istasyonu çal</string>
+    <string name="settings_default_tab">Başlangıçta Varsayılan Sekme</string>
+    <string name="settings_check_updates">Güncellemeleri kontrol et</string>
     <string name="settings_rate_review">Puan Ver &amp; Değerlendir</string>
-    <string name="settings_about_us">Hakkımızda</string>
-    <!-- About Screen -->
+    <string name="settings_track_history_limit">Parça Geçmişi Sınırı</string>
+    <string name="settings_system_default">Sistem Varsayılanı</string>
+    <string name="settings_number_of_tracks">Parça sayısı</string>
+    <string name="settings_checking_for_updates">Güncellemeler kontrol ediliyor...</string>
+    <string name="settings_no_update_available">Güncelleme yok</string>
+    <string name="settings_theme_system">Sistem Varsayılanı</string>
+
+    <!-- ========================================== -->
+    <!-- 6. ABOUT                                   -->
+    <!-- ========================================== -->
     <string name="about_title">Hakkında</string>
+    <string name="about_us">Hakkımızda</string>
     <string name="about_app_description">Dünyanın dört bir yanından binlerce radyo istasyonunu keşfedip dinlemenizi sağlayan basit bir internet radyo uygulaması.</string>
     <string name="about_view_contributors">Katkıda Bulunanları Gör</string>
     <string name="about_view_github">GitHub\'da Görüntüle</string>
-    <!-- Discover Screen -->
-    <string name="tab_browse">Keşfet</string>
-    <string name="tab_recent">Son Dinlenenler</string>
-    <string name="tab_favourites">Favoriler</string>
-    <string name="tab_added">Eklenenler</string>
-    <!-- Added Tab -->
-    <string name="add_station">İstasyon Ekle</string>
-    <string name="no_added_stations">Eklenmiş özel istasyon yok</string>
-    <string name="dialog_add_station_title">Özel İstasyon Ekle</string>
-    <string name="dialog_add_station_name_label">İstasyon Adı</string>
-    <string name="dialog_add_station_url_label">Yayın URL\'si</string>
-    <string name="dialog_add_station_thumbnail_label">Küçük Resim URL\'si (İsteğe Bağlı)</string>
-    <string name="dialog_add_station_add">Ekle</string>
-    <string name="dialog_add_station_cancel">İptal</string>
-    <string name="filters_active">Filtreler Aktif</string>
-    <string name="use_filters">Filtre Kullan</string>
-    <string name="search">Ara</string>
-    <string name="search_countries">Ülke ara...</string>
-    <string name="select_country">Ülke Seç</string>
-    <string name="search_languages">Dil ara...</string>
-    <string name="select_language">Dil Seç</string>
-    <string name="search_tags">Etiket ara...</string>
-    <string name="select_tags">Etiket Seç</string>
-    <string name="no_favorite_stations_filtered">Filtrelerinizle eşleşen favori istasyon yok.</string>
-    <string name="no_favorite_stations_yet">Henüz favori istasyon yok.\nFavori istasyonlarınızı kalp simgesiyle işaretleyin!</string>
-    <string name="votes">Oylar</string>
-    <string name="clicks">Tıklamalar</string>
-    <string name="trend">Trend</string>
-    <string name="name">Ad</string>
-    <string name="toggle_view">Görünümü Değiştir</string>
-    <string name="descending">Azalan</string>
-    <string name="ascending">Artan</string>
-    <string name="clear">Temizle</string>
-    <string name="discard_changes">Değişiklikler iptal edilsin mi?</string>
-    <string name="discard_changes_message">Kaydedilmemiş etiket seçimleriniz var. Geri dönüp bunları iptal etmek istediğinizden emin misiniz?</string>
-    <string name="discard">İptal Et</string>
-    <string name="no_recent_stations_filtered">Filtrelerinizle eşleşen son dinlenen istasyon yok.</string>
-    <string name="no_recent_stations">Son dinlenen istasyon yok</string>
-    <string name="no_added_stations_filtered">Filtrelerinizle eşleşen eklenmiş istasyon yok.</string>
+    <string name="about_author">Yazar</string>
+    <string name="about_author_name">Arman Maurya</string>
+    <string name="about_contributors">Katkıda Bulunanlar</string>
+    <string name="about_contribute_msg">İnternet Radyosu ilk günlerinde. Katkılarınızı bekliyoruz 💡</string>
+    <string name="about_cd_app_icon">Uygulama İkonu</string>
+    <string name="about_cd_linkedin">LinkedIn</string>
+    <string name="about_cd_github">GitHub</string>
+    <string name="about_cd_instagram">Instagram</string>
+
+    <!-- ========================================== -->
+    <!-- 7. HOME                                    -->
+    <!-- ========================================== -->
+    <string name="home_tab_browse">Keşfet</string>
+    <string name="home_tab_recent">Son Dinlenenler</string>
+    <string name="home_tab_library">Kütüphane</string>
+    <string name="home_tab_recordings">Kayıtlar</string>
+    <string name="home_filters_active">Filtreler Aktif</string>
+    <string name="home_use_filters">Filtre Kullan</string>
+    <string name="home_cd_settings">Ayarlar</string>
+    <string name="home_votes">Oylar</string>
+    <string name="home_clicks">Tıklamalar</string>
+    <string name="home_trend">Trend</string>
+    <string name="home_toggle_view">Görünümü Değiştir</string>
+    <string name="home_delete_station">İstasyonu Sil</string>
+    <string name="home_descending">Azalan</string>
+    <string name="home_ascending">Artan</string>
+    <string name="home_cd_descending">Azalan</string>
+    <string name="home_cd_ascending">Artan</string>
+    <string name="home_cd_select_tags">Etiketleri Seç</string>
+    <string name="home_cd_select_language">Dil Seç</string>
+    <string name="home_cd_select_country">Ülke Seç</string>
+    <string name="home_cd_back_to_folders">Klasörlere Dön</string>
+    <string name="home_cd_scroll_to_top">Başa Dön</string>
+    <string name="home_cd_tags">Etiketler</string>
+    <string name="home_cd_station_logo">%1$s logosu</string>
+    <string name="home_cd_favorite">Favori</string>
+    <string name="home_cd_more_options">Daha Fazla Seçenek</string>
+    <string name="home_no_recent_stations_filtered">Filtrelerinizle eşleşen son dinlenen istasyon yok.</string>
+    <string name="home_no_recent_stations">Son dinlenen istasyon yok</string>
+    <string name="home_no_stations_found_for">\"%1$s\" için istasyon bulunamadı</string>
+    <string name="home_no_library_stations_filter">Filtre ile kütüphane istasyonu bulunamadı</string>
+    <string name="home_no_library_stations_yet">Henüz kütüphane istasyonu yok</string>
+
+    <!-- ========================================== -->
+    <!-- 8. SELECT COUNTRY                          -->
+    <!-- ========================================== -->
+    <string name="select_country_search">Ülke ara...</string>
+    <string name="select_country_title">Ülke Seç</string>
+    <string name="select_country_all">Tüm Ülkeler</string>
+
+    <!-- ========================================== -->
+    <!-- 9. SELECT LANGUAGE                         -->
+    <!-- ========================================== -->
+    <string name="select_language_search">Dil ara...</string>
+    <string name="select_language_title">Dil Seç</string>
+    <string name="select_language_all">Tüm Diller</string>
+
+    <!-- ========================================== -->
+    <!-- 10. SELECT TAGS                            -->
+    <!-- ========================================== -->
+    <string name="select_tags_search">Etiket ara...</string>
+    <string name="select_tags_title">Etiket Seç</string>
+    <string name="select_tags_cd_clear_all">Tümünü temizle</string>
+    <string name="select_tags_cd_apply">Uygula</string>
+    <string name="select_tags_cd_remove_tag">Etiketi kaldır</string>
+    <string name="select_tags_discard_changes">Değişiklikler iptal edilsin mi?</string>
+    <string name="select_tags_discard_changes_message">Kaydedilmemiş etiket seçimleriniz var. Geri dönüp bunları iptal etmek istediğinizden emin misiniz?</string>
+
+    <!-- ========================================== -->
+    <!-- 11. EDIT STATION                           -->
+    <!-- ========================================== -->
+    <string name="edit_station_add_station">İstasyon Ekle</string>
+    <string name="edit_station_title">İstasyonu Düzenle</string>
+    <string name="edit_station_name_field">İsim</string>
+    <string name="edit_station_stream_url_field">Akış URL\'si</string>
+    <string name="edit_station_favicon_url_optional">Favicon URL (İsteğe Bağlı)</string>
+    <string name="edit_station_favicon_url_field">Favicon URL</string>
+    <string name="edit_station_country_field">Ülke</string>
+    <string name="edit_station_language_field">Dil</string>
+    <string name="edit_station_tags_optional">Etiketler (virgülle ayrılmış)</string>
+    <string name="edit_station_failed_fetch_original_data">Orijinal veriler alınamadı</string>
+    <string name="edit_station_unsaved_changes">Kaydedilmemiş Değişiklikler</string>
+    <string name="edit_station_unsaved_changes_message_exit">Kaydedilmemiş değişiklikleriniz var. Onları iptal edip çıkmak istediğinizden emin misiniz?</string>
+    <string name="edit_station_reset_title">İstasyonu Sıfırla</string>
+    <string name="edit_station_reset_message">Bu istasyonu orijinal verilerine sıfırlamak istediğinizden emin misiniz? Tüm düzenlemeleriniz kaybolacak.</string>
+    <string name="edit_station_fields_reset_message">Alanlar orijinal verilerine sıfırlandı</string>
+    <string name="edit_station_saved_message">Kaydedildi</string>
+    <string name="edit_station_cd_reset_to_original">Orijinale Sıfırla</string>
+
+    <!-- ========================================== -->
+    <!-- 12. PLAYER                                 -->
+    <!-- ========================================== -->
+    <string name="player_buffering">Ara belleğe alınıyor...</string>
+    <string name="player_no_track_data">Parça verisi yok</string>
+    <string name="player_station_info">İstasyon Bilgisi</string>
+    <string name="player_label_tags">Etiketler</string>
+    <string name="player_label_website">Web Sitesi</string>
+    <string name="player_sleep_timer_title">Uyku Zamanlayıcısı</string>
+    <string name="player_turn_off_timer">Zamanlayıcıyı Kapat</string>
+    <string name="player_set_sleep_timer">Uyku Zamanlayıcısını Ayarla</string>
+    <string name="player_start_button">Başlat</string>
+    <string name="player_timer_ends_in_msg">Zamanlayıcı %1$s dakika içinde bitiyor.</string>
+    <string name="player_recording_saved">Kayıt Kaydedildi!</string>
+    <string name="player_copied_track_to_clipboard">Parça panoya kopyalandı</string>
+    <string name="player_copied_to_clipboard">Panoya kopyalandı</string>
+    <string name="player_website_copied">Web sitesi kopyalandı</string>
+    <string name="player_stream_url_copied">Akış URL\'si kopyalandı</string>
+    <string name="player_favicon_url_copied">Favicon URL kopyalandı</string>
+    <string name="player_station_codec_bitrate">%1$s • %2$s kbps</string>
+    <string name="player_station_bitrate_only">%1$s kbps</string>
+    <string name="player_cd_pause">Duraklat</string>
+    <string name="player_cd_play">Oynat</string>
+    <string name="player_cd_previous">Önceki</string>
+    <string name="player_cd_next">Sonraki</string>
+    <string name="player_cd_toggle_favorite">Favoriyi Değiştir</string>
+    <string name="player_cd_collapse">Daralt</string>
+    <string name="player_cd_homepage">Ana Sayfa</string>
+    <string name="player_cd_record">Kaydet</string>
+    <string name="player_cd_copy_track_name">Parça adını kopyala</string>
+    <string name="player_cd_search_youtube">YouTube\'da ara</string>
+    <string name="player_cd_search_spotify">Spotify\'da ara</string>
+    <string name="player_cd_search_google">Google\'da ara</string>
+    <string name="player_no_tracks_played">Henüz parça çalınmadı</string>
+    <string name="player_tab_about">Hakkında</string>
+    <string name="player_tab_tracks">Parçalar</string>
 </resources>

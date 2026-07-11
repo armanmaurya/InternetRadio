@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings
 
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import android.content.Intent
 import android.text.format.DateUtils
 import android.widget.Toast
@@ -53,7 +55,7 @@ fun RecordingsContent(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No recordings found",
+                text = stringResource(R.string.general_no_recordings),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -132,7 +134,7 @@ fun RecordingsContent(
                     IconButton(onClick = { selectedFolder = null }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back to Folders",
+                            contentDescription = stringResource(R.string.home_cd_back_to_folders),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }

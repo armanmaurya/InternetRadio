@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -79,7 +81,7 @@ fun StationListCard(
             ) {
                 AsyncImage(
                     model = station.favicon.ifBlank { null },
-                    contentDescription = "${station.name} logo",
+                    contentDescription = stringResource(R.string.home_cd_station_logo, station.name),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
@@ -102,7 +104,7 @@ fun StationListCard(
                 if (isFavorite) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        contentDescription = "Favorite",
+                        contentDescription = stringResource(R.string.home_cd_favorite),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -141,7 +143,7 @@ fun StationListCard(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More Options",
+                            contentDescription = stringResource(R.string.home_cd_more_options),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -151,7 +153,7 @@ fun StationListCard(
                     ) {
                         if (onEditClick != null) {
                             DropdownMenuItem(
-                                text = { Text("Edit Station") },
+                                text = { Text(stringResource(R.string.edit_station_title)) },
                                 onClick = {
                                     showMenu = false
                                     onEditClick()
@@ -163,7 +165,7 @@ fun StationListCard(
                         }
                         if (onDeleteClick != null) {
                             DropdownMenuItem(
-                                text = { Text("Delete Station") },
+                                text = { Text(stringResource(R.string.home_delete_station)) },
                                 onClick = {
                                     showMenu = false
                                     onDeleteClick()

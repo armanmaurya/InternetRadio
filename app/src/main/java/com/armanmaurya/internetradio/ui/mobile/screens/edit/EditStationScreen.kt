@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.edit
 
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.border
@@ -36,10 +38,10 @@ fun EditStationScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Edit Station") },
+                    title = { Text(stringResource(R.string.edit_station_title)) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                         }
                     }
                 )
@@ -51,7 +53,7 @@ fun EditStationScreen(
                     .padding(paddingValues),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
-                Text("Station not found")
+                Text(stringResource(R.string.error_station_not_found))
             }
         }
     } else {
@@ -90,8 +92,8 @@ fun EditStationScreen(
         if (showExitWarningDialog) {
             AlertDialog(
                 onDismissRequest = { showExitWarningDialog = false },
-                title = { Text("Unsaved Changes") },
-                text = { Text("You have unsaved changes. Are you sure you want to discard them and exit?") },
+                title = { Text(stringResource(R.string.edit_station_unsaved_changes)) },
+                text = { Text(stringResource(R.string.edit_station_unsaved_changes_message_exit)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -99,12 +101,12 @@ fun EditStationScreen(
                             onNavigateBack()
                         }
                     ) {
-                        Text("Discard")
+                        Text(stringResource(R.string.general_discard))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showExitWarningDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.general_cancel))
                     }
                 }
             )
@@ -113,10 +115,10 @@ fun EditStationScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(if (isEditing) "Edit Station" else "Add Custom Station") },
+                    title = { Text(if (isEditing) stringResource(R.string.edit_station_title) else stringResource(R.string.edit_station_add_station)) },
                     navigationIcon = {
                         IconButton(onClick = handleBackPress) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                         }
                     },
                     actions = {
@@ -127,8 +129,8 @@ fun EditStationScreen(
                             if (showResetDialog) {
                                 AlertDialog(
                                     onDismissRequest = { showResetDialog = false },
-                                    title = { Text("Reset Station") },
-                                    text = { Text("Are you sure you want to reset this station to its original data? All your edits will be lost.") },
+                                    title = { Text(stringResource(R.string.edit_station_reset_title)) },
+                                    text = { Text(stringResource(R.string.edit_station_reset_message)) },
                                     confirmButton = {
                                         TextButton(
                                             onClick = {
@@ -143,19 +145,19 @@ fun EditStationScreen(
                                                         tags = freshStation.tags.joinToString(", ")
                                                         country = freshStation.country
                                                         language = freshStation.language
-                                                        Toast.makeText(context, "Fields reset to original data", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, context.getString(R.string.edit_station_fields_reset_message), Toast.LENGTH_SHORT).show()
                                                     } else {
-                                                        Toast.makeText(context, "Failed to fetch original data", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, context.getString(R.string.edit_station_failed_fetch_original_data), Toast.LENGTH_SHORT).show()
                                                     }
                                                 }
                                             }
                                         ) {
-                                            Text("Reset")
+                                            Text(stringResource(R.string.general_reset))
                                         }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { showResetDialog = false }) {
-                                            Text("Cancel")
+                                            Text(stringResource(R.string.general_cancel))
                                         }
                                     }
                                 )
@@ -170,7 +172,7 @@ fun EditStationScreen(
                                 IconButton(
                                     onClick = { showResetDialog = true }
                                 ) {
-                                    Icon(Icons.Default.Refresh, contentDescription = "Reset to Original")
+                                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.edit_station_cd_reset_to_original))
                                 }
                             }
                         }
@@ -196,13 +198,13 @@ fun EditStationScreen(
                                         language = language
                                     )
                                 }
-                                Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.edit_station_saved_message), Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             },
                             modifier = Modifier.padding(end = 16.dp),
                             enabled = name.isNotBlank() && url.isNotBlank() && hasUnsavedChanges
                         ) {
-                            Text(if (isEditing) "Save" else "Add")
+                            Text(if (isEditing) stringResource(R.string.general_save) else stringResource(R.string.general_add))
                         }
                     }
                 )
@@ -221,7 +223,7 @@ fun EditStationScreen(
                 TextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.edit_station_name_field)) },
                     modifier = Modifier.fillMaxWidth().then(
                         if (isPureBlack) Modifier.border(
                             1.dp,
@@ -241,7 +243,7 @@ fun EditStationScreen(
                 TextField(
                     value = url,
                     onValueChange = { url = it },
-                    label = { Text("Stream URL") },
+                    label = { Text(stringResource(R.string.edit_station_stream_url_field)) },
                     modifier = Modifier.fillMaxWidth().then(
                         if (isPureBlack) Modifier.border(
                             1.dp,
@@ -261,7 +263,7 @@ fun EditStationScreen(
                 TextField(
                     value = favicon,
                     onValueChange = { favicon = it },
-                    label = { Text("Favicon URL (Optional)") },
+                    label = { Text(stringResource(R.string.edit_station_favicon_url_optional)) },
                     modifier = Modifier.fillMaxWidth().then(
                         if (isPureBlack) Modifier.border(
                             1.dp,
@@ -285,7 +287,7 @@ fun EditStationScreen(
                     TextField(
                         value = country,
                         onValueChange = { country = it },
-                        label = { Text("Country") },
+                        label = { Text(stringResource(R.string.edit_station_country_field)) },
                         modifier = Modifier.weight(1f).then(
                             if (isPureBlack) Modifier.border(
                                 1.dp,
@@ -305,7 +307,7 @@ fun EditStationScreen(
                     TextField(
                         value = language,
                         onValueChange = { language = it },
-                        label = { Text("Language") },
+                        label = { Text(stringResource(R.string.edit_station_language_field)) },
                         modifier = Modifier.weight(1f).then(
                             if (isPureBlack) Modifier.border(
                                 1.dp,
@@ -326,7 +328,7 @@ fun EditStationScreen(
                 TextField(
                     value = tags,
                     onValueChange = { tags = it },
-                    label = { Text("Tags (comma separated)") },
+                    label = { Text(stringResource(R.string.edit_station_tags_optional)) },
                     modifier = Modifier.fillMaxWidth().then(
                         if (isPureBlack) Modifier.border(
                             1.dp,

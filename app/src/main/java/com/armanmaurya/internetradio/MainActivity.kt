@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity() {
 
                 val onCheckUpdates: () -> Unit = {
                     runOnUiThread {
-                        android.widget.Toast.makeText(this@MainActivity, "Checking for updates...", android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(this@MainActivity, getString(R.string.settings_checking_for_updates), android.widget.Toast.LENGTH_SHORT).show()
                     }
                     val vName = try {
                         packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity() {
                     mainViewModel.checkForUpdates(vName, force = true) { hasUpdate ->
                         if (!hasUpdate) {
                             runOnUiThread {
-                                android.widget.Toast.makeText(this@MainActivity, "No update available", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(this@MainActivity, getString(R.string.settings_no_update_available), android.widget.Toast.LENGTH_SHORT).show()
                             }
                         }
                     }

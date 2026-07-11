@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandHorizontally
@@ -87,11 +88,11 @@ fun RadioSearchBar(
                 onSearch = { onExpandedChange(false) },
                 expanded = isSearchExpanded,
                 onExpandedChange = onExpandedChange,
-                placeholder = { Text(stringResource(R.string.search)) },
+                placeholder = { Text(stringResource(R.string.general_search)) },
                 leadingIcon = {
                     if (isSearchExpanded) {
                         IconButton(onClick = { onExpandedChange(false) }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                         }
                     } else {
                         Icon(Icons.Default.Search, contentDescription = null)
@@ -103,7 +104,7 @@ fun RadioSearchBar(
                             onSearchCleared()
                             onExpandedChange(false)
                         }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear search")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_clear_search))
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -119,7 +120,7 @@ fun RadioSearchBar(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.LocalOffer,
-                                        contentDescription = "Select Tags",
+                                        contentDescription = stringResource(R.string.home_cd_select_tags),
                                         tint = if (selectedTags.isNotEmpty())
                                             MaterialTheme.colorScheme.primary
                                         else
@@ -131,7 +132,7 @@ fun RadioSearchBar(
                                 Box {
                                     Icon(
                                         imageVector = Icons.Default.Translate,
-                                        contentDescription = "Select Language",
+                                        contentDescription = stringResource(R.string.home_cd_select_language),
                                         tint = if (!selectedLanguage.isNullOrBlank())
                                             MaterialTheme.colorScheme.primary
                                         else
@@ -156,7 +157,7 @@ fun RadioSearchBar(
                                 Box {
                                     Icon(
                                         imageVector = Icons.Default.Public,
-                                        contentDescription = "Select Country",
+                                        contentDescription = stringResource(R.string.home_cd_select_country),
                                         tint = if (!selectedCountryCode.isNullOrBlank())
                                             MaterialTheme.colorScheme.primary
                                         else
@@ -184,7 +185,7 @@ fun RadioSearchBar(
                                 exit = shrinkHorizontally() + fadeOut()
                             ) {
                                 IconButton(onClick = onSettingsClick) {
-                                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+                                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.home_cd_settings))
                                 }
                             }
                         }

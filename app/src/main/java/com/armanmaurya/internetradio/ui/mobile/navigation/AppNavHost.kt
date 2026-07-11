@@ -133,7 +133,8 @@ fun AppNavHost(
             LanguageSelectScreen(
                 selectedLanguage = selectedLanguage,
                 onLanguageSelected = { language ->
-                    discoverViewModel.updateLanguage(language.name)
+                    val languageName = if (language.isoCode.isNullOrEmpty()) "All Languages" else language.name
+                    discoverViewModel.updateLanguage(languageName)
                     navController.popBackStack()
                 },
                 onBackClick = { navController.popBackStack() },

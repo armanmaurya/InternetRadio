@@ -1,8 +1,10 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.languages
 
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -75,6 +77,8 @@ fun LanguageSelectScreen(
         uiState.languages.sumOf { it.stationCount }
     }
 
+    val context = LocalContext.current
+
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
@@ -94,7 +98,7 @@ fun LanguageSelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text(stringResource(R.string.search_languages)) },
+                                placeholder = { Text(stringResource(R.string.select_language_search)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -105,7 +109,7 @@ fun LanguageSelectScreen(
                                 )
                             )
                         } else {
-                            Text(stringResource(R.string.select_language))
+                            Text(stringResource(R.string.select_language_title))
                         }
                     }
                 },
@@ -117,14 +121,14 @@ fun LanguageSelectScreen(
                             onBackClick()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = viewModel::toggleSearch) {
                         Icon(
                             imageVector = if (uiState.isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = if (uiState.isSearchActive) "Close search" else "Search"
+                            contentDescription = if (uiState.isSearchActive) stringResource(R.string.cd_close_search) else stringResource(R.string.cd_search)
                         )
                     }
                 }
@@ -142,7 +146,7 @@ fun LanguageSelectScreen(
                 }
             } else if (uiState.error != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.error ?: "Unknown error")
+                    Text(text = uiState.error ?: stringResource(R.string.error_unknown))
                 }
             } else {
                 LazyColumn(
@@ -151,9 +155,10 @@ fun LanguageSelectScreen(
                 ) {
                     item(key = "all_languages") {
                         LanguageItem(
-                            language = Language(name = "All Languages", isoCode = "", stationCount = totalStations),
+                            language = Language(name = stringResource(R.string.select_language_all), isoCode = "", stationCount = totalStations),
                             isSelected = selectedLanguage.isNullOrBlank(),
-                            onClick = { onLanguageSelected(Language(name = "All Languages", isoCode = "", stationCount = totalStations)) }
+                            onClick = { onLanguageSelected(Language(name = context.getString(R.string.select_language_all), isoCode = "", stationCount = totalStations)) },
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
                     itemsIndexed(filteredLanguages, key = { _, language -> language.name }) { _, language ->
@@ -186,7 +191,7 @@ private fun LanguageItem(
                 style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary) else MaterialTheme.typography.bodyLarge
             ) 
         },
-        supportingContent = { Text("${language.stationCount} stations") },
+        supportingContent = { Text(stringResource(R.string.general_station_count_msg, language.stationCount)) },
         trailingContent = { 
             if (isSelected) {
                 Icon(

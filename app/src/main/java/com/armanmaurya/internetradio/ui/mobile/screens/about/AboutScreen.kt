@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.about
 
+
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -80,7 +81,7 @@ fun AboutScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -115,7 +116,7 @@ fun AboutScreen(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Icon",
+                    contentDescription = stringResource(R.string.about_cd_app_icon),
                     modifier = Modifier.size(120.dp),
                     tint = Color.Unspecified
                 )
@@ -133,7 +134,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Version $versionName",
+                text = stringResource(R.string.version_format, versionName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -170,12 +171,12 @@ fun AboutScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Author",
+                        text = stringResource(R.string.about_author),
                         style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Arman Maurya",
+                        text = stringResource(R.string.about_author_name),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +187,7 @@ fun AboutScreen(
                         IconButton(onClick = { openUrl("https://www.linkedin.com/in/arman-maurya-2391aa263/") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_linkedin),
-                                contentDescription = "LinkedIn",
+                                contentDescription = stringResource(R.string.about_cd_linkedin),
                                 modifier = Modifier.size(32.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -194,7 +195,7 @@ fun AboutScreen(
                         IconButton(onClick = { openUrl("https://github.com/armanmaurya") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_github),
-                                contentDescription = "GitHub",
+                                contentDescription = stringResource(R.string.about_cd_github),
                                 modifier = Modifier.size(32.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -202,7 +203,7 @@ fun AboutScreen(
                         IconButton(onClick = { openUrl("https://www.instagram.com/param.cs/") }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_instagram),
-                                contentDescription = "Instagram",
+                                contentDescription = stringResource(R.string.about_cd_instagram),
                                 modifier = Modifier.size(32.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -234,12 +235,12 @@ fun AboutScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Contributors",
+                        text = stringResource(R.string.about_contributors),
                         style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Internet Radio is in its early days. Contributions are welcome 💡",
+                        text = stringResource(R.string.about_contribute_msg),
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.tags
 
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,8 +67,8 @@ fun TagSelectScreen(
     if (showUnsavedWarning) {
         AlertDialog(
             onDismissRequest = { showUnsavedWarning = false },
-            title = { Text(stringResource(R.string.discard_changes)) },
-            text = { Text(stringResource(R.string.discard_changes_message)) },
+            title = { Text(stringResource(R.string.select_tags_discard_changes)) },
+            text = { Text(stringResource(R.string.select_tags_discard_changes_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -75,14 +76,14 @@ fun TagSelectScreen(
                         onBackClick()
                     }
                 ) {
-                    Text(stringResource(R.string.discard))
+                    Text(stringResource(R.string.general_discard))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showUnsavedWarning = false }
                 ) {
-                    Text(stringResource(R.string.dialog_add_station_cancel))
+                    Text(stringResource(R.string.general_cancel))
                 }
             }
         )
@@ -133,7 +134,7 @@ fun TagSelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text(stringResource(R.string.search_tags)) },
+                                placeholder = { Text(stringResource(R.string.select_tags_search)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -144,7 +145,7 @@ fun TagSelectScreen(
                                 )
                             )
                         } else {
-                            Text(stringResource(R.string.select_tags))
+                            Text(stringResource(R.string.select_tags_title))
                         }
                     }
                 },
@@ -156,19 +157,19 @@ fun TagSelectScreen(
                             handleBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
                     if (uiState.selectedTags.isNotEmpty() && !uiState.isSearchActive) {
                         IconButton(onClick = viewModel::clearSelectedTags) {
-                            Icon(Icons.Default.ClearAll, contentDescription = "Clear all")
+                            Icon(Icons.Default.ClearAll, contentDescription = stringResource(R.string.select_tags_cd_clear_all))
                         }
                     }
                     IconButton(onClick = viewModel::toggleSearch) {
                         Icon(
                             imageVector = if (uiState.isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = if (uiState.isSearchActive) "Close search" else "Search"
+                            contentDescription = if (uiState.isSearchActive) stringResource(R.string.cd_close_search) else stringResource(R.string.cd_search)
                         )
                     }
                 }
@@ -178,7 +179,7 @@ fun TagSelectScreen(
             FloatingActionButton(
                 onClick = { onTagsSelected(uiState.selectedTags) }
             ) {
-                Icon(Icons.Default.Done, contentDescription = "Apply")
+                Icon(Icons.Default.Done, contentDescription = stringResource(R.string.select_tags_cd_apply))
             }
         }
     ) { innerPadding ->
@@ -210,7 +211,7 @@ fun TagSelectScreen(
                                 trailingIcon = {
                                     Icon(
                                         Icons.Default.Close,
-                                        contentDescription = "Remove tag",
+                                        contentDescription = stringResource(R.string.select_tags_cd_remove_tag),
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
@@ -227,7 +228,7 @@ fun TagSelectScreen(
                     }
                 } else if (uiState.error != null) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = uiState.error ?: "Unknown error")
+                        Text(text = uiState.error ?: stringResource(R.string.error_unknown))
                     }
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -242,7 +243,7 @@ fun TagSelectScreen(
                                             style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary) else MaterialTheme.typography.bodyLarge
                                         )
                                     },
-                                    supportingContent = { Text("${tag.stationCount} stations") },
+                                    supportingContent = { Text(stringResource(R.string.general_station_count_msg, tag.stationCount)) },
                                     trailingContent = {
                                         if (isSelected) {
                                             Icon(

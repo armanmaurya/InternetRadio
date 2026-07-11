@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.browse
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -141,7 +142,7 @@ fun BrowseContent(
                             .padding(top = 64.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(text = "Something went wrong. Please try again.")
+                        Text(text = stringResource(R.string.error_something_went_wrong))
                     }
                 }
             }
@@ -154,7 +155,7 @@ fun BrowseContent(
                             .padding(top = 64.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(text = "No stations found for \"${uiState.searchQuery}\"")
+                        Text(text = stringResource(R.string.home_no_stations_found_for, uiState.searchQuery))
                     }
                 }
             }
@@ -232,7 +233,7 @@ fun BrowseContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowUpward,
-                    contentDescription = "Scroll to top"
+                    contentDescription = stringResource(R.string.home_cd_scroll_to_top)
                 )
             }
         }
@@ -251,10 +252,10 @@ private fun SearchFilters(
     modifier: Modifier = Modifier
 ) {
     val orderOptions = listOf(
-        "votes" to stringResource(R.string.votes),
-        "clickcount" to stringResource(R.string.clicks),
-        "clicktrend" to stringResource(R.string.trend),
-        "name" to stringResource(R.string.name)
+        "votes" to stringResource(R.string.home_votes),
+        "clickcount" to stringResource(R.string.home_clicks),
+        "clicktrend" to stringResource(R.string.home_trend),
+        "name" to stringResource(R.string.general_name)
     )
     var orderExpanded by remember { mutableStateOf(false) }
 
@@ -266,7 +267,7 @@ private fun SearchFilters(
         IconButton(onClick = { onGridViewChange(!isGridView) }) {
             Icon(
                 imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                contentDescription = stringResource(R.string.toggle_view)
+                contentDescription = stringResource(R.string.home_toggle_view)
             )
         }
 
@@ -284,7 +285,7 @@ private fun SearchFilters(
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                contentDescription = if (reverse) stringResource(R.string.descending) else stringResource(R.string.ascending),
+                                contentDescription = if (reverse) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -322,7 +323,7 @@ private fun SearchFilters(
                                 if (order == value) {
                                     Icon(
                                         imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                        contentDescription = if (reverse) "Descending" else "Ascending",
+                                        contentDescription = if (reverse) stringResource(R.string.home_cd_descending) else stringResource(R.string.home_cd_ascending),
                                         modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.primary
                                     )

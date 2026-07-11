@@ -1,8 +1,10 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.countries
 
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -76,6 +78,7 @@ fun CountrySelectScreen(
     val totalStations = remember(uiState.countries) {
         uiState.countries.sumOf { it.stationCount }
     }
+    val context = LocalContext.current
 
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
@@ -96,7 +99,7 @@ fun CountrySelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text(stringResource(R.string.search_countries)) },
+                                placeholder = { Text(stringResource(R.string.select_country_search)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -107,7 +110,7 @@ fun CountrySelectScreen(
                                 )
                             )
                         } else {
-                            Text(stringResource(R.string.select_country))
+                            Text(stringResource(R.string.select_country_title))
                         }
                     }
                 },
@@ -119,14 +122,14 @@ fun CountrySelectScreen(
                             onBackClick()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = viewModel::toggleSearch) {
                         Icon(
                             imageVector = if (uiState.isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = if (uiState.isSearchActive) "Close search" else "Search"
+                            contentDescription = if (uiState.isSearchActive) stringResource(R.string.cd_close_search) else stringResource(R.string.cd_search)
                         )
                     }
                 }
@@ -144,7 +147,7 @@ fun CountrySelectScreen(
                 }
             } else if (uiState.error != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.error ?: "Unknown error")
+                    Text(text = uiState.error ?: stringResource(R.string.error_unknown))
                 }
             } else {
                 LazyColumn(
@@ -153,9 +156,9 @@ fun CountrySelectScreen(
                 ) {
                     item {
                         CountryItem(
-                            country = Country(name = "All Countries", isoCode = "", stationCount = totalStations),
+                            country = Country(name = stringResource(R.string.select_country_all), isoCode = "", stationCount = totalStations),
                             isSelected = selectedCountryCode.isNullOrBlank(),
-                            onClick = { onCountrySelected(Country(name = "All Countries", isoCode = "", stationCount = totalStations)) }
+                            onClick = { onCountrySelected(Country(name = context.getString(R.string.select_country_all), isoCode = "", stationCount = totalStations)) }
                         )
                     }
                     itemsIndexed(filteredCountries, key = { _, country -> country.isoCode }) { _, country ->
@@ -188,7 +191,7 @@ private fun CountryItem(
                 style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary) else MaterialTheme.typography.bodyLarge
             ) 
         },
-        supportingContent = { Text("${country.stationCount} stations") },
+        supportingContent = { Text(stringResource(R.string.general_station_count_msg, country.stationCount)) },
         trailingContent = { 
             if (isSelected) {
                 Icon(

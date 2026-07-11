@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recent
 
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -91,7 +92,7 @@ fun RecentContent(
                 IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
                     Icon(
                         imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = stringResource(R.string.toggle_view)
+                        contentDescription = stringResource(R.string.home_toggle_view)
                     )
                 }
 
@@ -100,7 +101,7 @@ fun RecentContent(
                     onClick = { viewModel.toggleFilter() },
                     label = { 
                         Text(
-                            text = if (useFilter) stringResource(R.string.filters_active) else stringResource(R.string.use_filters),
+                            text = if (useFilter) stringResource(R.string.home_filters_active) else stringResource(R.string.home_use_filters),
                             style = MaterialTheme.typography.labelMedium
                         ) 
                     },
@@ -115,7 +116,7 @@ fun RecentContent(
                         {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.clear),
+                                contentDescription = stringResource(R.string.general_clear),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -140,7 +141,7 @@ fun RecentContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (useFilter) stringResource(R.string.no_recent_stations_filtered) else stringResource(R.string.no_recent_stations),
+                        text = if (useFilter) stringResource(R.string.home_no_recent_stations_filtered) else stringResource(R.string.home_no_recent_stations),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -197,7 +198,7 @@ fun RecentContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = "Scroll to top"
+                            contentDescription = stringResource(R.string.home_cd_scroll_to_top)
                         )
                     }
                 }

@@ -91,10 +91,10 @@ fun BrowseScreen(
             ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     val orderOptions = listOf(
-                        "votes" to stringResource(R.string.votes),
-                        "clickcount" to stringResource(R.string.clicks),
-                        "clicktrend" to stringResource(R.string.trend),
-                        "name" to stringResource(R.string.name)
+                        "votes" to stringResource(R.string.home_votes),
+                        "clickcount" to stringResource(R.string.home_clicks),
+                        "clicktrend" to stringResource(R.string.home_trend),
+                        "name" to stringResource(R.string.general_name)
                     )
                     var orderExpanded by remember { mutableStateOf(false) }
 
@@ -123,7 +123,7 @@ fun BrowseScreen(
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = if (uiState.reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                    contentDescription = if (uiState.reverse) stringResource(R.string.descending) else stringResource(R.string.ascending),
+                                    contentDescription = if (uiState.reverse) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }

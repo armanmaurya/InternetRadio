@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.player
 
+import androidx.compose.ui.res.stringResource
+
 import android.text.format.DateUtils
 import android.widget.NumberPicker
 import androidx.compose.animation.*
@@ -125,7 +127,7 @@ fun PlayerSheetContent(
     var wasRecording by remember { mutableStateOf(false) }
     LaunchedEffect(isRecording) {
         if (wasRecording && !isRecording) {
-            android.widget.Toast.makeText(context, "Recording Saved!", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, context.getString(R.string.player_recording_saved), android.widget.Toast.LENGTH_SHORT).show()
         }
         wasRecording = isRecording
     }
@@ -315,7 +317,7 @@ fun PlayerSheetContent(
                         maxLines = 1,
                         modifier = Modifier.basicMarquee()
                     )
-                    val currentTrackText = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
+                    val currentTrackText = if (playbackState.isLoading) stringResource(R.string.player_buffering) else playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
                     Text(
                         text = currentTrackText,
                         style = MaterialTheme.typography.bodySmall,
@@ -329,7 +331,7 @@ fun PlayerSheetContent(
                                     onLongPress = {
                                         if (playbackState.currentTrack != null) {
                                             clipboardManager.setText(AnnotatedString(currentTrackText))
-                                            Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.player_copied_track_to_clipboard), Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 )
@@ -343,7 +345,7 @@ fun PlayerSheetContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous"
+                        contentDescription = stringResource(R.string.player_cd_previous)
                     )
                 }
 
@@ -360,14 +362,14 @@ fun PlayerSheetContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Next"
+                        contentDescription = stringResource(R.string.player_cd_next)
                     )
                 }
 
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = "Toggle Favorite",
+                        contentDescription = stringResource(R.string.player_cd_toggle_favorite),
                         tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                     )
                 }
@@ -399,7 +401,7 @@ fun PlayerSheetContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Collapse",
+                            contentDescription = stringResource(R.string.player_cd_collapse),
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -417,12 +419,12 @@ fun PlayerSheetContent(
                                     }
                                     uriHandler.openUri(url)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Invalid URL", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.error_invalid_url), Toast.LENGTH_SHORT).show()
                                 }
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Public,
-                                    contentDescription = "Homepage",
+                                    contentDescription = stringResource(R.string.player_cd_homepage),
                                     modifier = Modifier.size(28.dp),
                                     tint = LocalContentColor.current
                                 )
@@ -433,7 +435,7 @@ fun PlayerSheetContent(
                         IconButton(onClick = onToggleFavorite) {
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                contentDescription = "Toggle Favorite",
+                                contentDescription = stringResource(R.string.player_cd_toggle_favorite),
                                 modifier = Modifier.size(32.dp),
                                 tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                             )
@@ -441,9 +443,13 @@ fun PlayerSheetContent(
                     }
                     
                     if (station.bitrate > 0) {
-                        val codecText = if (station.codec.isNotBlank()) "${station.codec.uppercase()} • " else ""
+                        val bitrateText = if (station.codec.isNotBlank()) {
+                            stringResource(R.string.player_station_codec_bitrate, station.codec.uppercase(), station.bitrate.toString())
+                        } else {
+                            stringResource(R.string.player_station_bitrate_only, station.bitrate.toString())
+                        }
                         Text(
-                            text = "$codecText${station.bitrate} kbps",
+                            text = bitrateText,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
@@ -511,7 +517,7 @@ fun PlayerSheetContent(
                                     maxLines = 1,
                                     modifier = Modifier.basicMarquee()
                                 )
-                                val currentTrackText = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
+                                val currentTrackText = if (playbackState.isLoading) stringResource(R.string.player_buffering) else playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
                                 Text(
                                     text = currentTrackText,
                                     style = MaterialTheme.typography.bodySmall,
@@ -528,7 +534,7 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.SkipPrevious,
-                                    contentDescription = "Previous"
+                                    contentDescription = stringResource(R.string.player_cd_previous)
                                 )
                             }
 
@@ -545,14 +551,14 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.SkipNext,
-                                    contentDescription = "Next"
+                                    contentDescription = stringResource(R.string.player_cd_next)
                                 )
                             }
 
                             IconButton(onClick = onToggleFavorite) {
                                 Icon(
                                     imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = "Toggle Favorite",
+                                    contentDescription = stringResource(R.string.player_cd_toggle_favorite),
                                     tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                                 )
                             }
@@ -601,14 +607,16 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit Station",
+                                    contentDescription = stringResource(R.string.edit_station_title),
                                     tint = LocalContentColor.current
                                 )
                             }
                         }
                     }
 
-                    val displayTrack = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
+                    val bufferingText = stringResource(R.string.player_buffering)
+                    val noTrackDataText = stringResource(R.string.player_no_track_data)
+                    val displayTrack = if (playbackState.isLoading) bufferingText else playbackState.currentTrack ?: noTrackDataText
                     val isSearchExpanded = searchDialogTrack != null
 
                     // Wrap in Box with invisible placeholder to prevent layout shift when pill hides
@@ -656,7 +664,7 @@ fun PlayerSheetContent(
                                     )
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable {
-                                        if (displayTrack != "Buffering..." && displayTrack != "No track data") {
+                                        if (displayTrack != bufferingText && displayTrack != noTrackDataText) {
                                             searchDialogTrack = displayTrack
                                         }
                                     }
@@ -863,7 +871,7 @@ fun PlayerSheetContent(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Timer,
-                                contentDescription = "Sleep Timer",
+                                contentDescription = stringResource(R.string.player_sleep_timer_title),
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -877,7 +885,7 @@ fun PlayerSheetContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipPrevious,
-                            contentDescription = "Previous",
+                            contentDescription = stringResource(R.string.player_cd_previous),
                             modifier = Modifier.size(40.dp)
                         )
                     }
@@ -902,7 +910,7 @@ fun PlayerSheetContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipNext,
-                            contentDescription = "Next",
+                            contentDescription = stringResource(R.string.player_cd_next),
                             modifier = Modifier.size(40.dp)
                         )
                     }
@@ -922,7 +930,7 @@ fun PlayerSheetContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
-                            contentDescription = "Record",
+                            contentDescription = stringResource(R.string.player_cd_record),
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -1057,7 +1065,7 @@ fun PlayerSheetContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Tracks",
+                                    text = stringResource(R.string.player_tab_tracks),
                                     fontWeight = FontWeight.Bold,
                                     color = tab1TextColor
                                 )
@@ -1089,7 +1097,7 @@ fun PlayerSheetContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Recordings",
+                                    text = stringResource(R.string.home_tab_recordings),
                                     fontWeight = FontWeight.Bold,
                                     color = tab2TextColor
                                 )
@@ -1121,7 +1129,7 @@ fun PlayerSheetContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "About",
+                                    text = stringResource(R.string.player_tab_about),
                                     fontWeight = FontWeight.Bold,
                                     color = tab3TextColor
                                 )
@@ -1155,7 +1163,7 @@ fun PlayerSheetContent(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = "No tracks played yet",
+                                                text = stringResource(R.string.player_no_tracks_played),
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -1198,7 +1206,7 @@ fun PlayerSheetContent(
                                                         onClick = { isExpanded = !isExpanded },
                                                         onLongClick = {
                                                             clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                            Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.player_copied_track_to_clipboard), Toast.LENGTH_SHORT).show()
                                                         }
                                                     ),
                                                 headlineContent = {
@@ -1243,13 +1251,13 @@ fun PlayerSheetContent(
                                                     IconButton(
                                                         onClick = {
                                                             clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.player_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                                                             isExpanded = false
                                                         }
                                                     ) {
                                                         Icon(
                                                             imageVector = Icons.Default.ContentCopy,
-                                                            contentDescription = "Copy track name",
+                                                            contentDescription = stringResource(R.string.player_cd_copy_track_name),
                                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.size(32.dp)
                                                         )
@@ -1265,7 +1273,7 @@ fun PlayerSheetContent(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(id = R.drawable.ic_youtube),
-                                                            contentDescription = "Search on YouTube",
+                                                            contentDescription = stringResource(R.string.player_cd_search_youtube),
                                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.size(32.dp)
                                                         )
@@ -1286,7 +1294,7 @@ fun PlayerSheetContent(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(id = R.drawable.ic_spotify),
-                                                            contentDescription = "Search on Spotify",
+                                                            contentDescription = stringResource(R.string.player_cd_search_spotify),
                                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.size(32.dp)
                                                         )
@@ -1302,7 +1310,7 @@ fun PlayerSheetContent(
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(id = R.drawable.ic_google),
-                                                            contentDescription = "Search on Google",
+                                                            contentDescription = stringResource(R.string.player_cd_search_google),
                                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             modifier = Modifier.size(32.dp)
                                                         )
@@ -1329,7 +1337,7 @@ fun PlayerSheetContent(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = "No recordings yet",
+                                                text = stringResource(R.string.general_no_recordings),
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -1363,7 +1371,7 @@ fun PlayerSheetContent(
                                 item {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "Station Info",
+                                        text = stringResource(R.string.player_station_info),
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -1395,7 +1403,7 @@ fun PlayerSheetContent(
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                                         Icon(
                                                             imageVector = Icons.Default.Public,
-                                                            contentDescription = "Country",
+                                                            contentDescription = stringResource(R.string.edit_station_country_field),
                                                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             modifier = Modifier.size(18.dp)
                                                         )
@@ -1440,7 +1448,7 @@ fun PlayerSheetContent(
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                                         Icon(
                                                             imageVector = Icons.Default.Language,
-                                                            contentDescription = "Language",
+                                                            contentDescription = stringResource(R.string.edit_station_language_field),
                                                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             modifier = Modifier.size(18.dp)
                                                         )
@@ -1463,7 +1471,7 @@ fun PlayerSheetContent(
                                 if (station.tags.isNotEmpty()) {
                                     item {
                                         Text(
-                                            text = "Tags",
+                                            text = stringResource(R.string.player_label_tags),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
@@ -1500,7 +1508,7 @@ fun PlayerSheetContent(
                                 if (station.homepage.isNotBlank()) {
                                     item {
                                         Text(
-                                            text = "Website",
+                                            text = stringResource(R.string.player_label_website),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
@@ -1518,12 +1526,12 @@ fun PlayerSheetContent(
                                                         try {
                                                             context.startActivity(intent)
                                                         } catch (e: Exception) {
-                                                            Toast.makeText(context, "Cannot open website", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_website), Toast.LENGTH_SHORT).show()
                                                         }
                                                     },
                                                     onLongClick = {
                                                         clipboardManager.setText(AnnotatedString(station.homepage))
-                                                        Toast.makeText(context, "Website copied", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, context.getString(R.string.player_website_copied), Toast.LENGTH_SHORT).show()
                                                     }
                                                 )
                                                 .padding(top = 4.dp, bottom = 8.dp)
@@ -1534,7 +1542,7 @@ fun PlayerSheetContent(
                                 if (station.url.isNotBlank()) {
                                     item {
                                         Text(
-                                            text = "Stream URL",
+                                            text = stringResource(R.string.edit_station_stream_url_field),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
@@ -1552,12 +1560,12 @@ fun PlayerSheetContent(
                                                         try {
                                                             context.startActivity(intent)
                                                         } catch (e: Exception) {
-                                                            Toast.makeText(context, "Cannot open URL", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_url), Toast.LENGTH_SHORT).show()
                                                         }
                                                     },
                                                     onLongClick = {
                                                         clipboardManager.setText(AnnotatedString(station.url))
-                                                        Toast.makeText(context, "Stream URL copied", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, context.getString(R.string.player_stream_url_copied), Toast.LENGTH_SHORT).show()
                                                     }
                                                 )
                                                 .padding(top = 4.dp, bottom = 8.dp)
@@ -1568,7 +1576,7 @@ fun PlayerSheetContent(
                                 if (station.favicon.isNotBlank()) {
                                     item {
                                         Text(
-                                            text = "Favicon URL",
+                                            text = stringResource(R.string.edit_station_favicon_url_field),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
@@ -1586,12 +1594,12 @@ fun PlayerSheetContent(
                                                         try {
                                                             context.startActivity(intent)
                                                         } catch (e: Exception) {
-                                                            Toast.makeText(context, "Cannot open URL", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_url), Toast.LENGTH_SHORT).show()
                                                         }
                                                     },
                                                     onLongClick = {
                                                         clipboardManager.setText(AnnotatedString(station.favicon))
-                                                        Toast.makeText(context, "Favicon URL copied", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, context.getString(R.string.player_favicon_url_copied), Toast.LENGTH_SHORT).show()
                                                     }
                                                 )
                                                 .padding(top = 4.dp, bottom = 32.dp)
@@ -1680,12 +1688,12 @@ fun PlayerSheetContent(
                             IconButton(
                                 onClick = {
                                     clipboardManager.setText(AnnotatedString(trackToSearch))
-                                    Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.player_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                                 }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy track name",
+                                    contentDescription = stringResource(R.string.player_cd_copy_track_name),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -1708,7 +1716,7 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_youtube),
-                                    contentDescription = "Search on YouTube",
+                                    contentDescription = stringResource(R.string.player_cd_search_youtube),
                                     modifier = Modifier
                                         .sharedElement(
                                             sharedContentState = rememberSharedContentState(key = "youtube_icon"),
@@ -1738,7 +1746,7 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_spotify),
-                                    contentDescription = "Search on Spotify",
+                                    contentDescription = stringResource(R.string.player_cd_search_spotify),
                                     modifier = Modifier
                                         .sharedElement(
                                             sharedContentState = rememberSharedContentState(key = "spotify_icon"),
@@ -1763,7 +1771,7 @@ fun PlayerSheetContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_google),
-                                    contentDescription = "Search on Google",
+                                    contentDescription = stringResource(R.string.player_cd_search_google),
                                     modifier = Modifier
                                         .sharedElement(
                                             sharedContentState = rememberSharedContentState(key = "google_icon"),
@@ -1815,14 +1823,14 @@ fun SleepTimerDialog(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            title = { Text("Sleep Timer") },
+            title = { Text(stringResource(R.string.player_sleep_timer_title)) },
             text = {
                 val mins = (remaining / 60000).toInt() + 1
-                Text("Timer ends in $mins minutes.")
+                Text(stringResource(R.string.player_timer_ends_in_msg, mins.toString()))
             },
             confirmButton = {
                 TextButton(onClick = onDismissRequest) {
-                    Text("OK")
+                    Text(stringResource(R.string.general_ok))
                 }
             },
             dismissButton = {
@@ -1833,7 +1841,7 @@ fun SleepTimerDialog(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Turn Off Timer")
+                    Text(stringResource(R.string.player_turn_off_timer))
                 }
             }
         )
@@ -1846,7 +1854,7 @@ fun SleepTimerDialog(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            title = { Text("Set Sleep Timer") },
+            title = { Text(stringResource(R.string.player_set_sleep_timer)) },
             text = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1854,7 +1862,7 @@ fun SleepTimerDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Hours", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.general_hours), style = MaterialTheme.typography.labelMedium)
                         AndroidView(
                             factory = { context ->
                                 NumberPicker(context).apply {
@@ -1876,7 +1884,7 @@ fun SleepTimerDialog(
                     }
                     Text(":", style = MaterialTheme.typography.headlineMedium)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Minutes", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.general_minutes), style = MaterialTheme.typography.labelMedium)
                         AndroidView(
                             factory = { context ->
                                 NumberPicker(context).apply {
@@ -1906,12 +1914,12 @@ fun SleepTimerDialog(
                     }
                     onDismissRequest()
                 }) {
-                    Text("Start")
+                    Text(stringResource(R.string.player_start_button))
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismissRequest) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.general_cancel))
                 }
             }
         )

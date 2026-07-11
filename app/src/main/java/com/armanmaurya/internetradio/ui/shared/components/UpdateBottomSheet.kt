@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.shared.components
 
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,7 +90,7 @@ fun UpdateBottomSheet(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Later")
+                    Text(stringResource(id = R.string.general_later))
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
@@ -98,7 +100,7 @@ fun UpdateBottomSheet(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Update Now")
+                    Text(stringResource(id = R.string.general_update_now))
                 }
             }
             }

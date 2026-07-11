@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.settings
 
+
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
@@ -120,7 +121,7 @@ fun SettingsScreen(
                     null
                 }
             }
-            val versionName = packageInfo?.versionName ?: "Unknown"
+            val versionName = packageInfo?.versionName ?: stringResource(R.string.general_unknown)
             val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 packageInfo?.longVersionCode?.toString() ?: "0"
             } else {
@@ -150,7 +151,7 @@ private fun SettingsTopBar(onBackClick: () -> Unit) {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = stringResource(R.string.cd_back)
                 )
             }
         }
@@ -248,19 +249,19 @@ private fun GeneralSection(
             }
         }
 
-        val tabs = listOf("Browse", "Recent", "Library")
+        val tabs = listOf(stringResource(R.string.home_tab_browse), stringResource(R.string.home_tab_recent), stringResource(R.string.home_tab_library))
         
         ToggleItem(
-            title = "Auto play on start",
-            subtitle = "Play the last listened station when app starts",
+            title = stringResource(R.string.settings_auto_play),
+            subtitle = stringResource(R.string.settings_auto_play_desc),
             isEnabled = uiState.autoPlayOnStart,
             onToggle = onSetAutoPlayOnStart,
             icon = Icons.Default.PlayArrow
         )
 
         ExpandableItem(
-            title = "Default Tab on Startup",
-            subtitle = tabs.getOrNull(uiState.defaultTab) ?: "Browse",
+            title = stringResource(R.string.settings_default_tab),
+            subtitle = tabs.getOrNull(uiState.defaultTab) ?: stringResource(R.string.home_tab_browse),
             isExpanded = defaultTabExpanded,
             onToggle = onToggleDefaultTabExpanded,
             icon = Icons.Default.StarRate // or some other icon
@@ -275,7 +276,7 @@ private fun GeneralSection(
         }
 
         Item(
-            title = "Track History Limit",
+            title = stringResource(R.string.settings_track_history_limit),
             subtitle = "${uiState.trackHistoryLimit} tracks",
             onClick = onToggleHistoryLimitDialog,
             icon = Icons.Default.History
@@ -285,7 +286,7 @@ private fun GeneralSection(
             var inputLimit by remember { mutableStateOf(uiState.trackHistoryLimit.toString()) }
             AlertDialog(
                 onDismissRequest = onToggleHistoryLimitDialog,
-                title = { Text("Track History Limit") },
+                title = { Text(stringResource(R.string.settings_track_history_limit)) },
                 text = {
                     OutlinedTextField(
                         value = inputLimit,
@@ -294,7 +295,7 @@ private fun GeneralSection(
                                 inputLimit = newValue
                             }
                         },
-                        label = { Text("Number of tracks") },
+                        label = { Text(stringResource(R.string.settings_number_of_tracks)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
                     )
@@ -327,7 +328,7 @@ private fun AboutSection(
 ) {
     val context = LocalContext.current
 
-    Section(title = stringResource(R.string.settings_about_section)) {
+    Section(title = stringResource(R.string.about_title)) {
         Item(
             title = stringResource(R.string.settings_rate_review),
             onClick = {
@@ -344,12 +345,12 @@ private fun AboutSection(
             icon = Icons.Default.StarRate
         )
         Item(
-            title = stringResource(R.string.settings_about_us),
+            title = stringResource(R.string.about_us),
             onClick = onAboutClick,
             icon = Icons.Default.Info
         )
         Item(
-            title = "Check for updates",
+            title = stringResource(R.string.settings_check_updates),
             onClick = onCheckUpdatesClick,
             icon = Icons.Default.Update
         )
@@ -359,9 +360,10 @@ private fun AboutSection(
 @Composable
 private fun rememberAvailableLanguages(): List<Pair<String, String>> {
     val context = LocalContext.current
-    return remember {
+    val systemDefaultStr = stringResource(R.string.settings_system_default)
+    return remember(systemDefaultStr) {
         buildList {
-            add("System" to "System Default")
+            add("System" to systemDefaultStr)
             try {
                 val parser = context.resources.getXml(R.xml.locales_config)
                 var event = parser.next()
@@ -383,6 +385,7 @@ private fun rememberAvailableLanguages(): List<Pair<String, String>> {
     }
 }
 
+@Composable
 private fun String.getLanguageDisplayName(availableLanguages: List<Pair<String, String>>): String {
-    return availableLanguages.find { it.first == this }?.second ?: "System Default"
+    return availableLanguages.find { it.first == this }?.second ?: stringResource(R.string.settings_system_default)
 }

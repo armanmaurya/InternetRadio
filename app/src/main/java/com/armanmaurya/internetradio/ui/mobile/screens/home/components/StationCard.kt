@@ -1,5 +1,7 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -90,7 +92,7 @@ fun StationCard(
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = station.favicon.ifBlank { null },
-                contentDescription = "${station.name} logo",
+                contentDescription = stringResource(R.string.home_cd_station_logo, station.name),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
@@ -120,7 +122,7 @@ fun StationCard(
             if (isFavorite) {
                 Icon(
                     imageVector = Icons.Default.Bookmark,
-                    contentDescription = "Favorite",
+                    contentDescription = stringResource(R.string.home_cd_favorite),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -136,7 +138,7 @@ fun StationCard(
                     ) {
                         if (onEditClick != null) {
                             DropdownMenuItem(
-                                text = { Text("Edit Station") },
+                                text = { Text(stringResource(R.string.edit_station_title)) },
                                 onClick = {
                                     showMenu = false
                                     onEditClick()
@@ -148,7 +150,7 @@ fun StationCard(
                         }
                         if (onDeleteClick != null) {
                             DropdownMenuItem(
-                                text = { Text("Delete Station") },
+                                text = { Text(stringResource(R.string.home_delete_station)) },
                                 onClick = {
                                     showMenu = false
                                     onDeleteClick()
