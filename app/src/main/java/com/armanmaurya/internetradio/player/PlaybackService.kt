@@ -90,6 +90,7 @@ class PlaybackService : MediaLibraryService() {
         super.onCreate()
 
         val dataSourceFactory = DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
 
         val mediaSourceFactory = DefaultMediaSourceFactory(this)
