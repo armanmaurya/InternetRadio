@@ -307,7 +307,14 @@ fun PlayerSheetContent(
                 Spacer(modifier = Modifier.width(miniSize + 12.dp + cutoutLeftPadding))
 
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            enabled = progress < 0.1f,
+                            onClick = onExpand
+                        ),
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
@@ -328,6 +335,9 @@ fun PlayerSheetContent(
                             .basicMarquee()
                             .pointerInput(currentTrackText) {
                                 detectTapGestures(
+                                    onTap = {
+                                        if (progress < 0.1f) onExpand()
+                                    },
                                     onLongPress = {
                                         if (playbackState.currentTrack != null) {
                                             clipboardManager.setText(AnnotatedString(currentTrackText))
