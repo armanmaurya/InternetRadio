@@ -48,6 +48,7 @@ class AutoMediaLibraryCallback @Inject constructor(
     private val recentRepository: RecentRepository,
     private val stationRepository: StationRepository,
     private val settingsRepository: SettingsRepository,
+    private val playerController: PlayerController,
 ) : MediaLibrarySession.Callback {
 
     companion object {
@@ -146,7 +147,8 @@ class AutoMediaLibraryCallback @Inject constructor(
         browser: MediaSession.ControllerInfo,
         mediaId: String,
     ): ListenableFuture<LibraryResult<MediaItem>> {
-        val station = findStationByUuid(mediaId)
+        val realId = mediaId.substringAfter("|")
+        val station = findStationByUuid(realId)
             ?: return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
         return Futures.immediateFuture(LibraryResult.ofItem(station.toMediaItem(), null))
     }
@@ -267,7 +269,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         params: LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
         val results = searchResultsCache[query] ?: emptyList()
-        return Futures.immediateFuture(LibraryResult.ofItemList(results.map { it.toMediaItem() }, params))
+        return Futures.immediateFuture(LibraryResult.ofItemList(results.map { it.toMediaItem(query) }, params))
     }
 
     // ─── Playback request from car ────────────────────────────────────────────
@@ -287,10 +289,79 @@ class AutoMediaLibraryCallback @Inject constructor(
             if (item.localConfiguration?.uri != null) return@map item
 
             // Otherwise look up the station by UUID and reconstruct the MediaItem
-            val station = findStationByUuid(item.mediaId) ?: return@map item
+            val station = findStationByUuid(item.mediaId.substringAfter("|")) ?: return@map item
             station.toMediaItem()
         }
         return Futures.immediateFuture(resolved)
+    }
+
+    @OptIn(UnstableApi::class)
+    override fun onSetMediaItems(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        mediaItems: List<MediaItem>,
+        startIndex: Int,
+        startPositionMs: Long
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        if (mediaItems.size == 1) {
+            val requestedId = mediaItems.first().mediaId
+            val parentId = if (requestedId.contains("|")) requestedId.substringBefore("|") else null
+            
+            if (parentId != null) {
+                val future = com.google.common.util.concurrent.SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+                searchScope.launch {
+                    try {
+                        val stations = when (parentId) {
+                            AutoBrowseTree.LIBRARY -> libraryRepository.getAllStations().first()
+                            AutoBrowseTree.RECENT -> recentRepository.getAllRecent().first()
+                            AutoBrowseTree.BROWSE -> getBrowseStationsList()
+                            else -> searchResultsCache[parentId] ?: emptyList()
+                        }
+                        
+                        val realId = requestedId.substringAfter("|")
+                        var index = stations.indexOfFirst { it.stationUuid == realId }
+                        if (index == -1) index = 0
+                        
+                        // Sync with PlayerController so infinite scrolling works
+                        val prefs = settingsRepository.appPreferencesFlow.first()
+                        val source = when (parentId) {
+                            AutoBrowseTree.LIBRARY -> PlaybackSource.Library
+                            AutoBrowseTree.RECENT -> PlaybackSource.Recent
+                            AutoBrowseTree.BROWSE -> PlaybackSource.Browse(
+                                name = "", 
+                                countryCode = prefs.selectedCountryCode, 
+                                language = prefs.selectedLanguage,
+                                tagList = prefs.selectedTags.joinToString(","), 
+                                order = prefs.order, 
+                                reverse = prefs.reverse
+                            )
+                            else -> PlaybackSource.None
+                        }
+                        
+                        playerController.syncAndroidAutoContext(stations, index, source)
+                        
+                        // Return un-piped media items to the player
+                        val resolvedItems = stations.map { it.toMediaItem() }
+                        future.set(MediaSession.MediaItemsWithStartPosition(resolvedItems, index, startPositionMs))
+                    } catch (e: Exception) {
+                        val resolved = findStationByUuid(requestedId.substringAfter("|"))?.toMediaItem() ?: mediaItems.first()
+                        future.set(MediaSession.MediaItemsWithStartPosition(listOf(resolved), 0, startPositionMs))
+                    }
+                }
+                return future
+            }
+        }
+        
+        // Default behavior for unhandled cases
+        val future = com.google.common.util.concurrent.SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+        searchScope.launch {
+            val resolved = mediaItems.map { item ->
+                if (item.localConfiguration?.uri != null) item
+                else findStationByUuid(item.mediaId.substringAfter("|"))?.toMediaItem() ?: item
+            }
+            future.set(MediaSession.MediaItemsWithStartPosition(resolved, startIndex, startPositionMs))
+        }
+        return future
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
@@ -313,7 +384,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         ),
     )
 
-    private fun browseChildren(): List<MediaItem> = runBlocking {
+    private suspend fun getBrowseStationsList(): List<RadioStation> {
         val prefs = settingsRepository.appPreferencesFlow.first()
         
         val filteredStations = stationRepository.filterStations(
@@ -324,27 +395,31 @@ class AutoMediaLibraryCallback @Inject constructor(
             reverse = prefs.reverse,
             limit = 30,
             hideBroken = true
-        ).getOrElse { emptyList() }.map { it.toMediaItem() }
+        ).getOrElse { emptyList() }
 
-        // 2. Fallback to global top stations if the user's filters returned 0 results
-        if (filteredStations.isEmpty()) {
+        // Fallback to global top stations if the user's filters returned 0 results
+        return if (filteredStations.isEmpty()) {
             stationRepository.filterStations(
                 order = "votes",
                 reverse = true,
                 limit = 30,
                 hideBroken = true
-            ).getOrElse { emptyList() }.map { it.toMediaItem() }
+            ).getOrElse { emptyList() }
         } else {
             filteredStations
         }
     }
 
+    private fun browseChildren(): List<MediaItem> = runBlocking {
+        getBrowseStationsList().map { it.toMediaItem(AutoBrowseTree.BROWSE) }
+    }
+
     private fun recentChildren(): List<MediaItem> = runBlocking {
-        recentRepository.getAllRecent().first().map { it.toMediaItem() }
+        recentRepository.getAllRecent().first().map { it.toMediaItem(AutoBrowseTree.RECENT) }
     }
 
     private fun libraryChildren(): List<MediaItem> = runBlocking {
-        libraryRepository.getAllStations().first().map { it.toMediaItem() }
+        libraryRepository.getAllStations().first().map { it.toMediaItem(AutoBrowseTree.LIBRARY) }
     }
 
     private fun buildTabItem(id: String, title: String, subtitle: String): MediaItem =
@@ -391,7 +466,7 @@ class AutoMediaLibraryCallback @Inject constructor(
 private val APP_LOGO_URI: Uri =
     Uri.parse("android.resource://com.armanmaurya.internetradio/mipmap/ic_launcher")
 
-fun RadioStation.toMediaItem(): MediaItem {
+fun RadioStation.toMediaItem(parentId: String? = null): MediaItem {
     // Use the station favicon if present, otherwise fall back to the app logo so
     // Android Auto grid cards always show meaningful artwork instead of a
     // generic music-note placeholder.
@@ -399,8 +474,10 @@ fun RadioStation.toMediaItem(): MediaItem {
         ?.let { Uri.parse(it) }
         ?: APP_LOGO_URI
 
+    val id = if (parentId != null) "$parentId|$stationUuid" else stationUuid
+
     return MediaItem.Builder()
-        .setMediaId(stationUuid)
+        .setMediaId(id)
         .setUri(urlResolved)
         .setMediaMetadata(
             MediaMetadata.Builder()

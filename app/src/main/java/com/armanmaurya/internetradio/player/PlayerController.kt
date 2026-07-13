@@ -47,6 +47,22 @@ class PlayerController @Inject constructor(
     private var currentPlaybackSource: PlaybackSource = PlaybackSource.None
     private var isFetchingMore = false
 
+    /**
+     * Syncs the playback context from Android Auto.
+     * By updating the playback source to Browse/Library/Recent, the controller's
+     * existing onMediaItemTransition logic will dynamically fetch more items (pagination)
+     * as the user skips forward in Android Auto.
+     */
+    fun syncAndroidAutoContext(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource) {
+        currentPlaylist = stations
+        currentPlaybackSource = source
+        val station = stations.getOrNull(startIndex)
+        if (station != null) {
+            activeStation = station
+            _playbackState.update { it.copy(currentStation = station, currentTrack = null) }
+        }
+    }
+
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _playbackState.update { it.copy(isPlaying = isPlaying) }
@@ -88,8 +104,8 @@ class PlayerController @Inject constructor(
                 return
             }
 
-            val mediaId = mediaItem.mediaId
-            if (mediaId == activeStation?.stationUuid) {
+            val originalId = mediaItem.mediaId.substringAfter("|")
+            if (originalId == activeStation?.stationUuid) {
                 _playbackState.update { it.copy(currentStation = activeStation) }
                 return
             }
@@ -97,7 +113,7 @@ class PlayerController @Inject constructor(
             // Station has changed, stop previous recording
             recordingManager.stopRecording()
 
-            val tagStation = currentPlaylist.find { it.stationUuid == mediaId } 
+            val tagStation = currentPlaylist.find { it.stationUuid == originalId } 
                 ?: mediaItem.localConfiguration?.tag as? RadioStation
                 
             if (tagStation != null) {
