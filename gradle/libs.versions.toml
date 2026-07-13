@@ -2,6 +2,7 @@
 agp = "9.2.1"
 coilCompose = "3.5.0"
 coilNetworkOkhttp = "3.5.0"
+coilSvg = "3.5.0"
 converterGson = "3.0.0"
 coreKtx = "1.18.0"
 hiltAndroid = "2.59.2"
@@ -49,6 +50,7 @@ androidx-hilt-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigatio
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coilSvg" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
