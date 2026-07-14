@@ -32,7 +32,7 @@ class CoilBitmapLoader(private val context: Context) : BitmapLoader {
         scope.launch {
             try {
                 var targetUrl = uri.toString()
-                if (targetUrl.startsWith("content://com.armanmaurya.internetradio.svgproxy/")) {
+                if (targetUrl.startsWith("content://") && targetUrl.contains(".svgproxy/")) {
                     val base64 = uri.lastPathSegment
                     if (base64 != null) {
                         targetUrl = String(android.util.Base64.decode(base64, android.util.Base64.URL_SAFE))

@@ -44,6 +44,7 @@ object AutoBrowseTree {
 
 @Singleton
 class AutoMediaLibraryCallback @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val stationRepository: StationRepository,
@@ -150,7 +151,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         val realId = mediaId.substringAfter("|")
         val station = findStationByUuid(realId)
             ?: return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
-        return Futures.immediateFuture(LibraryResult.ofItem(station.toMediaItem(), null))
+        return Futures.immediateFuture(LibraryResult.ofItem(station.toMediaItem(context), null))
     }
 
     // ─── Children ────────────────────────────────────────────────────────────
@@ -269,7 +270,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         params: LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
         val results = searchResultsCache[query] ?: emptyList()
-        return Futures.immediateFuture(LibraryResult.ofItemList(results.map { it.toMediaItem(query) }, params))
+        return Futures.immediateFuture(LibraryResult.ofItemList(results.map { it.toMediaItem(context, query) }, params))
     }
 
     // ─── Playback request from car ────────────────────────────────────────────
@@ -290,7 +291,7 @@ class AutoMediaLibraryCallback @Inject constructor(
 
             // Otherwise look up the station by UUID and reconstruct the MediaItem
             val station = findStationByUuid(item.mediaId.substringAfter("|")) ?: return@map item
-            station.toMediaItem()
+            station.toMediaItem(context)
         }
         return Futures.immediateFuture(resolved)
     }
@@ -341,10 +342,10 @@ class AutoMediaLibraryCallback @Inject constructor(
                         playerController.syncAndroidAutoContext(stations, index, source)
                         
                         // Return un-piped media items to the player
-                        val resolvedItems = stations.map { it.toMediaItem() }
+                        val resolvedItems = stations.map { it.toMediaItem(context) }
                         future.set(MediaSession.MediaItemsWithStartPosition(resolvedItems, index, startPositionMs))
                     } catch (e: Exception) {
-                        val resolved = findStationByUuid(requestedId.substringAfter("|"))?.toMediaItem() ?: mediaItems.first()
+                        val resolved = findStationByUuid(requestedId.substringAfter("|"))?.toMediaItem(context) ?: mediaItems.first()
                         future.set(MediaSession.MediaItemsWithStartPosition(listOf(resolved), 0, startPositionMs))
                     }
                 }
@@ -357,7 +358,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         searchScope.launch {
             val resolved = mediaItems.map { item ->
                 if (item.localConfiguration?.uri != null) item
-                else findStationByUuid(item.mediaId.substringAfter("|"))?.toMediaItem() ?: item
+                else findStationByUuid(item.mediaId.substringAfter("|"))?.toMediaItem(context) ?: item
             }
             future.set(MediaSession.MediaItemsWithStartPosition(resolved, startIndex, startPositionMs))
         }
@@ -411,15 +412,15 @@ class AutoMediaLibraryCallback @Inject constructor(
     }
 
     private fun browseChildren(): List<MediaItem> = runBlocking {
-        getBrowseStationsList().map { it.toMediaItem(AutoBrowseTree.BROWSE) }
+        getBrowseStationsList().map { it.toMediaItem(context, AutoBrowseTree.BROWSE) }
     }
 
     private fun recentChildren(): List<MediaItem> = runBlocking {
-        recentRepository.getAllRecent().first().map { it.toMediaItem(AutoBrowseTree.RECENT) }
+        recentRepository.getAllRecent().first().map { it.toMediaItem(context, AutoBrowseTree.RECENT) }
     }
 
     private fun libraryChildren(): List<MediaItem> = runBlocking {
-        libraryRepository.getAllStations().first().map { it.toMediaItem(AutoBrowseTree.LIBRARY) }
+        libraryRepository.getAllStations().first().map { it.toMediaItem(context, AutoBrowseTree.LIBRARY) }
     }
 
     private fun buildTabItem(id: String, title: String, subtitle: String): MediaItem =
@@ -466,11 +467,11 @@ class AutoMediaLibraryCallback @Inject constructor(
 private val APP_LOGO_URI: Uri =
     Uri.parse("android.resource://com.armanmaurya.internetradio/mipmap/ic_launcher")
 
-fun RadioStation.toMediaItem(parentId: String? = null): MediaItem {
+fun RadioStation.toMediaItem(context: android.content.Context, parentId: String? = null): MediaItem {
     // Use the station favicon if present. If it's an SVG, proxy it through our SvgProxyProvider 
     // so Android Auto can receive it as a PNG stream. Otherwise fall back to the app logo.
     val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
-        SvgProxyProvider.createProxyUri(favicon)
+        SvgProxyProvider.createProxyUri(context, favicon)
     } else {
         favicon.takeIf { it.isNotBlank() }
     }

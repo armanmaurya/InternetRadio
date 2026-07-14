@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.armanmaurya.internetradio"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 11
         versionName = "0.6.8"
@@ -96,6 +96,10 @@ dependencies {
     implementation(libs.coil.svg)
     implementation(libs.logging.interceptor)
     implementation(libs.compose.markdown)
+    implementation(libs.fcast.sdk) {
+        exclude(group = "net.java.dev.jna")
+    }
+    implementation("net.java.dev.jna:jna:5.13.0@aar")
 
     implementation(libs.androidx.compose.material.icons.core)
 

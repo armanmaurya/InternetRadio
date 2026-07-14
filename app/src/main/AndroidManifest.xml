@@ -56,7 +56,7 @@
 
         <provider
             android:name=".player.SvgProxyProvider"
-            android:authorities="com.armanmaurya.internetradio.svgproxy"
+            android:authorities="${applicationId}.svgproxy"
             android:exported="true"
             android:grantUriPermissions="true" />
 

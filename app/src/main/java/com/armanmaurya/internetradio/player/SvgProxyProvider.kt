@@ -67,11 +67,10 @@ class SvgProxyProvider : ContentProvider() {
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0
     
     companion object {
-        const val AUTHORITY = "com.armanmaurya.internetradio.svgproxy"
-        
-        fun createProxyUri(svgUrl: String): String {
+        fun createProxyUri(context: android.content.Context, svgUrl: String): String {
+            val authority = "${context.packageName}.svgproxy"
             val encoded = Base64.encodeToString(svgUrl.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP)
-            return "content://$AUTHORITY/$encoded"
+            return "content://$authority/$encoded"
         }
     }
 }

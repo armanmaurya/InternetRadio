@@ -203,11 +203,25 @@ class MainActivity : AppCompatActivity() {
                             val recordingDuration by playerViewModel.recordingDuration.collectAsStateWithLifecycle()
                             val amplitude by playerViewModel.amplitude.collectAsStateWithLifecycle()
                             val retryCountdown by playerViewModel.retryCountdown.collectAsStateWithLifecycle()
+                            val discoveredCastDevices by playerViewModel.discoveredCastDevices.collectAsStateWithLifecycle()
+                            val connectedCastDevice by playerViewModel.connectedCastDevice.collectAsStateWithLifecycle()
+                            val castPlaybackState by playerViewModel.castPlaybackState.collectAsStateWithLifecycle()
+
+                            val effectivePlaybackState = if (connectedCastDevice != null) {
+                                val stateName = castPlaybackState?.toString()?.uppercase() ?: ""
+                                playbackState.copy(
+                                    isPlaying = stateName.contains("PLAY"),
+                                    isLoading = stateName.contains("BUFFER")
+                                )
+                            } else {
+                                playbackState
+                            }
+
                             val localContext = LocalContext.current
 
                             PlayerSheetContent(
                                 isWidescreen = isExpanded,
-                                playbackState = playbackState,
+                                playbackState = effectivePlaybackState,
                                 isFavorite = isFavorite,
                                 trackHistory = trackHistory,
                                 stationRecordings = stationRecordings,
@@ -232,7 +246,11 @@ class MainActivity : AppCompatActivity() {
                                 isRecording = isRecording,
                                 recordingDuration = recordingDuration,
                                 amplitude = amplitude,
-                                onToggleRecording = playerViewModel::toggleRecording
+                                onToggleRecording = playerViewModel::toggleRecording,
+                                discoveredCastDevices = discoveredCastDevices,
+                                connectedCastDevice = connectedCastDevice,
+                                onConnectCastDevice = playerViewModel::connectToCastDevice,
+                                onDisconnectCastDevice = playerViewModel::disconnectCastDevice
                             )
                         }
                     }

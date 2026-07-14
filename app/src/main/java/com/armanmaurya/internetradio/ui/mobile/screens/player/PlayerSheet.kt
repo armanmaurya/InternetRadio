@@ -110,6 +110,10 @@ fun PlayerSheetContent(
     recordingDuration: Long = 0L,
     amplitude: Float = 0f,
     onToggleRecording: () -> Unit,
+    discoveredCastDevices: List<org.fcast.sender_sdk.DeviceInfo> = emptyList(),
+    connectedCastDevice: org.fcast.sender_sdk.CastingDevice? = null,
+    onConnectCastDevice: (org.fcast.sender_sdk.DeviceInfo) -> Unit = {},
+    onDisconnectCastDevice: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val station = playbackState.currentStation ?: return
@@ -124,6 +128,23 @@ fun PlayerSheetContent(
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var searchDialogTrack by remember { mutableStateOf<String?>(null) }
+    var showCastDialog by remember { mutableStateOf(false) }
+
+    if (showCastDialog) {
+        com.armanmaurya.internetradio.ui.shared.components.CastDeviceDialog(
+            devices = discoveredCastDevices,
+            connectedDevice = connectedCastDevice,
+            onConnect = {
+                onConnectCastDevice(it)
+                showCastDialog = false
+            },
+            onDisconnect = {
+                onDisconnectCastDevice()
+                showCastDialog = false
+            },
+            onDismiss = { showCastDialog = false }
+        )
+    }
     
     var wasRecording by remember { mutableStateOf(false) }
     LaunchedEffect(isRecording) {
@@ -131,6 +152,12 @@ fun PlayerSheetContent(
             android.widget.Toast.makeText(context, context.getString(R.string.player_recording_saved), android.widget.Toast.LENGTH_SHORT).show()
         }
         wasRecording = isRecording
+    }
+    
+    LaunchedEffect(connectedCastDevice) {
+        if (connectedCastDevice != null) {
+            android.widget.Toast.makeText(context, "Connected", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -427,27 +454,14 @@ fun PlayerSheetContent(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (station.homepage.isNotBlank()) {
-                            IconButton(onClick = {
-                                try {
-                                    var url = station.homepage
-                                    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                                        url = "http://$url"
-                                    }
-                                    uriHandler.openUri(url)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, context.getString(R.string.error_invalid_url), Toast.LENGTH_SHORT).show()
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Public,
-                                    contentDescription = stringResource(R.string.player_cd_homepage),
-                                    modifier = Modifier.size(28.dp),
-                                    tint = LocalContentColor.current
-                                )
-                            }
+                        IconButton(onClick = { showCastDialog = true }) {
+                            Icon(
+                                imageVector = if (connectedCastDevice != null) Icons.Default.CastConnected else Icons.Default.Cast,
+                                contentDescription = "Cast",
+                                modifier = Modifier.size(28.dp),
+                                tint = if (connectedCastDevice != null) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                            )
                         }
-
 
                         IconButton(onClick = onToggleFavorite) {
                             Icon(

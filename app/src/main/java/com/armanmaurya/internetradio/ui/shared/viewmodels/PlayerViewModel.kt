@@ -10,9 +10,11 @@ import com.armanmaurya.internetradio.data.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.player.PlayerController
 import com.armanmaurya.internetradio.player.RecordingManager
+import com.armanmaurya.internetradio.player.SvgProxyProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -22,10 +24,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import org.fcast.sender_sdk.DeviceInfo
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val playerController: PlayerController,
+    private val castController: com.armanmaurya.internetradio.player.CastController,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val stationRepository: com.armanmaurya.internetradio.data.repository.StationRepository,
@@ -44,6 +49,10 @@ class PlayerViewModel @Inject constructor(
     val recordingDuration = recordingManager.recordingDuration
     val amplitude = recordingManager.amplitude
 
+    val discoveredCastDevices = castController.discoveredDevices
+    val connectedCastDevice = castController.connectedDevice
+    val castPlaybackState = castController.playbackState
+
     init {
         playbackState
             .onEach { state ->
@@ -60,6 +69,25 @@ class PlayerViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+
+        kotlinx.coroutines.flow.combine(
+            playbackState.map { it.currentStation }.distinctUntilChanged { old, new -> old?.stationUuid == new?.stationUuid },
+            connectedCastDevice
+        ) { station, device ->
+            if (station != null && device != null) {
+                val proxyFavicon = if (station.favicon.endsWith(".svg", true)) {
+                    SvgProxyProvider.createProxyUri(context, station.favicon)
+                } else {
+                    station.favicon
+                }
+                castController.load(
+                    url = station.urlResolved,
+                    contentType = "audio/mpeg",
+                    title = station.name,
+                    thumbnailUrl = proxyFavicon
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun handlePlaybackFailure() {
@@ -149,7 +177,12 @@ class PlayerViewModel @Inject constructor(
 
     fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None) {
         val station = stations[startIndex]
-        playerController.play(stations, startIndex, source)
+        playerController.play(
+            stations = stations,
+            startIndex = startIndex,
+            source = source,
+            playWhenReady = connectedCastDevice.value == null
+        )
         viewModelScope.launch {
             recentRepository.addRecentStation(station)
             stationRepository.registerClick(station.stationUuid)
@@ -165,10 +198,23 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun togglePlayPause() {
-        playerController.togglePlayPause()
+        if (connectedCastDevice.value != null) {
+            val state = castPlaybackState.value
+            val stateName = state.toString().uppercase()
+            if (stateName.contains("PLAY") || stateName.contains("BUFFER")) {
+                castController.pause()
+            } else {
+                castController.play()
+            }
+        } else {
+            playerController.togglePlayPause()
+        }
     }
 
     fun stop() {
+        if (connectedCastDevice.value != null) {
+            castController.stop()
+        }
         playerController.stop()
     }
 
@@ -178,5 +224,18 @@ class PlayerViewModel @Inject constructor(
 
     fun cancelSleepTimer() {
         playerController.cancelSleepTimer()
+    }
+
+    fun connectToCastDevice(deviceInfo: DeviceInfo) {
+        castController.connectToDevice(deviceInfo)
+        playerController.pause()
+    }
+
+    fun disconnectCastDevice() {
+        castController.disconnect()
+        val station = playbackState.value.currentStation
+        if (station != null) {
+            playerController.play(listOf(station), 0)
+        }
     }
 }

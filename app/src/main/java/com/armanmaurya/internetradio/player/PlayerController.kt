@@ -228,7 +228,7 @@ class PlayerController @Inject constructor(
         }, MoreExecutors.directExecutor())
     }
 
-    fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None) {
+    fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None, playWhenReady: Boolean = true) {
         val player = controller ?: return
         if (stations.isEmpty() || startIndex !in stations.indices) return
         
@@ -240,7 +240,7 @@ class PlayerController @Inject constructor(
             if (player.playbackState == Player.STATE_IDLE) {
                 player.prepare()
             }
-            player.play()
+            if (playWhenReady) player.play() else player.pause()
             return
         }
 
@@ -250,7 +250,7 @@ class PlayerController @Inject constructor(
         val mediaItems = stations.map { it.toMediaItem() }
         player.setMediaItems(mediaItems, startIndex, 0L)
         player.prepare()
-        player.play()
+        if (playWhenReady) player.play() else player.pause()
     }
     
     fun updateCurrentStation(updatedStation: RadioStation) {
@@ -296,6 +296,13 @@ class PlayerController @Inject constructor(
             if (player.hasPreviousMediaItem()) {
                 player.seekToPreviousMediaItem()
             }
+        }
+    }
+
+    fun pause() {
+        val player = controller ?: return
+        if (player.isPlaying || player.playWhenReady) {
+            player.pause()
         }
     }
 
@@ -345,7 +352,7 @@ class PlayerController @Inject constructor(
     
     private fun RadioStation.toMediaItem(): MediaItem {
         val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
-            SvgProxyProvider.createProxyUri(favicon)
+            SvgProxyProvider.createProxyUri(context, favicon)
         } else {
             favicon.takeIf { it.isNotBlank() }
         }

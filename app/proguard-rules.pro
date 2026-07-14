@@ -23,3 +23,11 @@
 -keep class com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity { *; }
 -keep class com.armanmaurya.internetradio.data.model.LibraryBackup { *; }
 -keep class com.armanmaurya.internetradio.data.model.ConflictStrategy { *; }
+
+# JNA rules for FCast SDK
+-keep class com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.Structure { *; }
+-keep class * implements com.sun.jna.Callback { *; }
+-keep class org.fcast.** { *; }
+-keepclassmembers class org.fcast.** { *; }
+-dontwarn com.sun.jna.**
