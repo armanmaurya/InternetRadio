@@ -206,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                             val discoveredCastDevices by playerViewModel.discoveredCastDevices.collectAsStateWithLifecycle()
                             val connectedCastDevice by playerViewModel.connectedCastDevice.collectAsStateWithLifecycle()
                             val castPlaybackState by playerViewModel.castPlaybackState.collectAsStateWithLifecycle()
+                            val castVolume by playerViewModel.castVolume.collectAsStateWithLifecycle()
 
                             val effectivePlaybackState = if (connectedCastDevice != null) {
                                 val stateName = castPlaybackState?.toString()?.uppercase() ?: ""
@@ -248,6 +249,8 @@ class MainActivity : AppCompatActivity() {
                                 amplitude = amplitude,
                                 onToggleRecording = playerViewModel::toggleRecording,
                                 discoveredCastDevices = discoveredCastDevices,
+                                castVolume = castVolume.toFloat(),
+                                onCastVolumeChange = playerViewModel::setCastVolume,
                                 connectedCastDevice = connectedCastDevice,
                                 onConnectCastDevice = playerViewModel::connectToCastDevice,
                                 onDisconnectCastDevice = playerViewModel::disconnectCastDevice

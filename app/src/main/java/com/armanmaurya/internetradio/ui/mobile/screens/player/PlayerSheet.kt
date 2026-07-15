@@ -112,6 +112,8 @@ fun PlayerSheetContent(
     onToggleRecording: () -> Unit,
     discoveredCastDevices: List<org.fcast.sender_sdk.DeviceInfo> = emptyList(),
     connectedCastDevice: org.fcast.sender_sdk.CastingDevice? = null,
+    castVolume: Float = 1f,
+    onCastVolumeChange: (Float) -> Unit = {},
     onConnectCastDevice: (org.fcast.sender_sdk.DeviceInfo) -> Unit = {},
     onDisconnectCastDevice: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -134,6 +136,8 @@ fun PlayerSheetContent(
         com.armanmaurya.internetradio.ui.shared.components.CastDeviceDialog(
             devices = discoveredCastDevices,
             connectedDevice = connectedCastDevice,
+            volume = castVolume,
+            onVolumeChange = onCastVolumeChange,
             onConnect = {
                 onConnectCastDevice(it)
                 showCastDialog = false

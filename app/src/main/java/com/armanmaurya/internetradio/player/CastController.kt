@@ -151,7 +151,8 @@ class CastController @Inject constructor(
     }
     
     fun setVolume(volume: Double) {
-        // _connectedDevice.value?.setVolume(volume)
+        _connectedDevice.value?.changeVolume(volume)
+        _volume.value = volume
     }
 
     private fun createDeviceEventHandler(device: CastingDevice) = object : DeviceEventHandler {

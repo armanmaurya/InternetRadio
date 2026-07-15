@@ -52,6 +52,7 @@ class PlayerViewModel @Inject constructor(
     val discoveredCastDevices = castController.discoveredDevices
     val connectedCastDevice = castController.connectedDevice
     val castPlaybackState = castController.playbackState
+    val castVolume = castController.volume
 
     init {
         playbackState
@@ -259,5 +260,9 @@ class PlayerViewModel @Inject constructor(
         if (station != null) {
             playerController.play(listOf(station), 0)
         }
+    }
+
+    fun setCastVolume(volume: Float) {
+        castController.setVolume(volume.toDouble())
     }
 }
