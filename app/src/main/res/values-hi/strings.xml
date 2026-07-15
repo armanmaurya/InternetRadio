@@ -229,4 +229,14 @@
     <string name="player_tab_tracks">ट्रैक</string>
     <string name="player_retrying_in">%1$ds में पुनः प्रयास...</string>
     <string name="player_retrying_connection">कनेक्शन पुनः प्रयास कर रहा है...</string>
+
+    <!-- ========================================== -->
+    <!-- 13. CAST DIALOG                            -->
+    <!-- ========================================== -->
+    <string name="cast_connected_to">से कनेक्ट है</string>
+    <string name="cast_to_device">डिवाइस पर कास्ट करें</string>
+    <string name="cast_available_devices">उपलब्ध डिवाइस</string>
+    <string name="cast_no_devices_found">नेटवर्क पर कोई डिवाइस नहीं मिला।</string>
+    <string name="cast_disconnect">डिस्कनेक्ट करें</string>
+    <string name="cast_close">बंद करें</string>
 </resources>

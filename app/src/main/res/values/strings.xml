@@ -229,4 +229,14 @@
     <string name="player_tab_tracks">Tracks</string>
     <string name="player_retrying_in">Retrying in %1$ds...</string>
     <string name="player_retrying_connection">Retrying connection...</string>
+
+    <!-- ========================================== -->
+    <!-- 13. CAST DIALOG                            -->
+    <!-- ========================================== -->
+    <string name="cast_connected_to">Connected to</string>
+    <string name="cast_to_device">Cast to device</string>
+    <string name="cast_available_devices">Available Devices</string>
+    <string name="cast_no_devices_found">No devices found on the network.</string>
+    <string name="cast_disconnect">Disconnect</string>
+    <string name="cast_close">Close</string>
 </resources>

@@ -22,7 +22,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.armanmaurya.internetradio.R
 import androidx.compose.ui.unit.dp
 import org.fcast.sender_sdk.CastingDevice
 import org.fcast.sender_sdk.DeviceInfo
@@ -38,7 +40,7 @@ fun CastDeviceDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { 
-            Text(if (connectedDevice != null) "Connected to" else "Cast to device") 
+            Text(if (connectedDevice != null) stringResource(R.string.cast_connected_to) else stringResource(R.string.cast_to_device)) 
         },
         text = {
             if (connectedDevice != null) {
@@ -63,13 +65,13 @@ fun CastDeviceDialog(
                 // Show available devices list
                 Column {
                     Text(
-                        "Available Devices",
+                        stringResource(R.string.cast_available_devices),
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     if (devices.isEmpty()) {
                         Text(
-                            "No devices found on the network.",
+                            stringResource(R.string.cast_no_devices_found),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 16.dp)
@@ -105,18 +107,18 @@ fun CastDeviceDialog(
                     onDisconnect() 
                     onDismiss()
                 }) {
-                    Text("Disconnect", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.cast_disconnect), color = MaterialTheme.colorScheme.error)
                 }
             } else {
                 TextButton(onClick = onDismiss) {
-                    Text("Close")
+                    Text(stringResource(R.string.cast_close))
                 }
             }
         },
         dismissButton = {
             if (connectedDevice != null) {
                 TextButton(onClick = onDismiss) {
-                    Text("Close")
+                    Text(stringResource(R.string.cast_close))
                 }
             }
         }
