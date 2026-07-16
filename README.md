@@ -66,6 +66,17 @@ To build InternetRadio from source, ensure you have the latest version of Androi
 3. **Wait for Gradle sync** to complete.
 4. **Run the app** on a physical device or emulator.
 
+## Troubleshooting
+
+If FCast is not discovering or connecting to your device on desktop Linux, your firewall may be blocking the required ports. This is a known issue with **UFW** and similar firewall tools. To allow FCast connections, run:
+
+```bash
+sudo ufw allow 46899/tcp
+sudo ufw allow 46899/udp
+```
+
+---
+
 ## Contributing
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.

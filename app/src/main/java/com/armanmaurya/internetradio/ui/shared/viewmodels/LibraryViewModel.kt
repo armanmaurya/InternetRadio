@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,6 +37,16 @@ class LibraryViewModel @Inject constructor(
         .map { it.isGridViewFavorites }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val sortOption: StateFlow<com.armanmaurya.internetradio.data.model.LibrarySortOption> = settingsRepository.appPreferencesFlow
+        .map { it.librarySortOption }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.armanmaurya.internetradio.data.model.LibrarySortOption.RECENTLY_ADDED)
+
+    fun setSortOption(option: com.armanmaurya.internetradio.data.model.LibrarySortOption) {
+        viewModelScope.launch {
+            settingsRepository.setLibrarySortOption(option)
+        }
+    }
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
@@ -42,11 +54,25 @@ class LibraryViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val stations: StateFlow<List<RadioStation>?> = combine(
-        libraryRepository.getAllStations(),
+        settingsRepository.appPreferencesFlow
+            .map { it.librarySortOption }
+            .distinctUntilChanged()
+            .flatMapLatest { sortOpt ->
+                when (sortOpt) {
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.NAME_A_Z -> libraryRepository.getStationsByName()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.NAME_Z_A -> libraryRepository.getStationsByNameDescending()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.RECENTLY_PLAYED -> libraryRepository.getStationsByRecentlyPlayed()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.LEAST_RECENTLY_PLAYED -> libraryRepository.getStationsByLeastRecentlyPlayed()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.CUSTOM -> libraryRepository.getStationsByCustomOrder()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.RECENTLY_ADDED -> libraryRepository.getAllStations()
+                    com.armanmaurya.internetradio.data.model.LibrarySortOption.OLDEST_ADDED -> libraryRepository.getStationsByOldestAdded()
+                }
+            },
         settingsRepository.appPreferencesFlow,
         _searchQuery
-    ) { stationsList, preferences, query ->
+    ) { stationsList: List<RadioStation>, preferences: com.armanmaurya.internetradio.data.model.AppPreferences, query: String ->
         if (preferences.useFilterOnFavorites) {
             val hasQuery = query.isNotBlank()
             val hasCountryFilter = !preferences.selectedCountryCode.isNullOrBlank()
@@ -159,6 +185,16 @@ class LibraryViewModel @Inject constructor(
                 countryCode = state,
                 language = language
             )
+        }
+    }
+
+    fun updateStationsOrder(orderedStations: List<RadioStation>) {
+        viewModelScope.launch {
+            val entities = libraryRepository.getAllStationEntities()
+            val updatedEntities = orderedStations.mapIndexedNotNull { index, station ->
+                entities.find { it.stationUuid == station.stationUuid }?.copy(orderIndex = index)
+            }
+            libraryRepository.updateStations(updatedEntities)
         }
     }
 }

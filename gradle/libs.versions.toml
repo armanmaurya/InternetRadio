@@ -32,6 +32,7 @@ tvMaterial = "1.0.0"
 composeMarkdown = "0.5.2"
 fcast = "0.4.0"
 jna = "5.13.0"
+reorderable = "3.1.0"
 
 [libraries]
 androidx-car-app = { group = "androidx.car.app", name = "app", version.ref = "carApp" }
@@ -80,6 +81,7 @@ androidx-tv-foundation = { group = "androidx.tv", name = "tv-foundation", versio
 androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 fcast-sdk = { module = "org.futo.gitlab.videostreaming.fcast-sdk-jitpack:sender-sdk-minimal", version.ref = "fcast" }
+calvin-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

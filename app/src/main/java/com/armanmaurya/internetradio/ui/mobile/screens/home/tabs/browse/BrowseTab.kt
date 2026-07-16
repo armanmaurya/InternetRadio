@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -56,8 +58,8 @@ import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationListCard
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.IconButton
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
 
@@ -265,45 +267,46 @@ private fun SearchFilters(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = { onGridViewChange(!isGridView) }) {
-            Icon(
-                imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                contentDescription = stringResource(R.string.home_toggle_view)
-            )
+            androidx.compose.animation.AnimatedContent(
+                targetState = isGridView,
+                label = "view_toggle"
+            ) { isGrid ->
+                Icon(
+                    imageVector = if (isGrid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.ViewModule,
+                    contentDescription = stringResource(R.string.home_toggle_view),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box {
-                FilterChip(
-                    selected = false,
-                    onClick = { orderExpanded = true },
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = orderOptions.find { it.first == order }?.second ?: order,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                contentDescription = if (reverse) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Color.Transparent,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                    border = null
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable { orderExpanded = true }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
+                        contentDescription = "Sort Options",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = orderOptions.find { it.first == order }?.second ?: order,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                        contentDescription = if (reverse) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 DropdownMenu(
                     expanded = orderExpanded,
                     onDismissRequest = { orderExpanded = false }

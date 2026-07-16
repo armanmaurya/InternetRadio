@@ -15,6 +15,35 @@ interface LibraryStationDao {
     @Query("SELECT * FROM library_stations ORDER BY addedAt DESC")
     fun getAllStations(): Flow<List<LibraryStationEntity>>
 
+    @Query("SELECT * FROM library_stations ORDER BY addedAt ASC")
+    fun getStationsByOldestAdded(): Flow<List<LibraryStationEntity>>
+    
+    @Query("SELECT * FROM library_stations ORDER BY name ASC")
+    fun getStationsByName(): Flow<List<LibraryStationEntity>>
+
+    @Query("SELECT * FROM library_stations ORDER BY name DESC")
+    fun getStationsByNameDescending(): Flow<List<LibraryStationEntity>>
+
+    @Query("""
+        SELECT library_stations.* FROM library_stations 
+        LEFT JOIN recent_stations ON library_stations.stationUuid = recent_stations.stationUuid 
+        ORDER BY coalesce(recent_stations.lastPlayedAt, 0) DESC, library_stations.addedAt DESC
+    """)
+    fun getStationsByRecentlyPlayed(): Flow<List<LibraryStationEntity>>
+
+    @Query("""
+        SELECT library_stations.* FROM library_stations 
+        LEFT JOIN recent_stations ON library_stations.stationUuid = recent_stations.stationUuid 
+        ORDER BY coalesce(recent_stations.lastPlayedAt, 0) ASC, library_stations.addedAt ASC
+    """)
+    fun getStationsByLeastRecentlyPlayed(): Flow<List<LibraryStationEntity>>
+
+    @Query("SELECT * FROM library_stations ORDER BY orderIndex ASC")
+    fun getStationsByCustomOrder(): Flow<List<LibraryStationEntity>>
+
+    @Update
+    suspend fun updateStations(stations: List<LibraryStationEntity>)
+
     @Query("SELECT * FROM library_stations ORDER BY addedAt DESC")
     suspend fun getAllStationEntities(): List<LibraryStationEntity>
 

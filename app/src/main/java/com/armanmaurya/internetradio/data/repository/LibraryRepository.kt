@@ -21,6 +21,46 @@ class LibraryRepository @Inject constructor(
         }
     }
 
+    fun getStationsByOldestAdded(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByOldestAdded().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getStationsByName(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByName().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getStationsByNameDescending(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByNameDescending().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getStationsByRecentlyPlayed(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByRecentlyPlayed().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getStationsByLeastRecentlyPlayed(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByLeastRecentlyPlayed().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getStationsByCustomOrder(): Flow<List<RadioStation>> {
+        return libraryStationDao.getStationsByCustomOrder().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    suspend fun updateStations(stations: List<LibraryStationEntity>) {
+        libraryStationDao.updateStations(stations)
+    }
+
     fun isStationInLibrary(stationUuid: String): Flow<Boolean> {
         return libraryStationDao.isStationInLibrary(stationUuid).map { it != 0 }
     }

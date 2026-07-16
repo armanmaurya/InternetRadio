@@ -21,11 +21,12 @@ import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
         RecentStationEntity::class,
         TrackHistoryEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2, spec = RadioDatabase.Migration1To2Spec::class),
-        AutoMigration(from = 2, to = 3)
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 4, to = 5, spec = RadioDatabase.Migration4To5Spec::class)
     ]
 )
 @TypeConverters(Converters::class)
@@ -35,6 +36,19 @@ abstract class RadioDatabase : RoomDatabase() {
     @DeleteTable(tableName = "languages")
     @DeleteTable(tableName = "tags")
     class Migration1To2Spec : AutoMigrationSpec
+
+    class Migration4To5Spec : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            val cursor = db.query("SELECT stationUuid FROM library_stations ORDER BY addedAt DESC")
+            var index = 0
+            while (cursor.moveToNext()) {
+                val uuid = cursor.getString(0)
+                db.execSQL("UPDATE library_stations SET orderIndex = $index WHERE stationUuid = '$uuid'")
+                index++
+            }
+            cursor.close()
+        }
+    }
 
     abstract val libraryStationDao: LibraryStationDao
     abstract val recentStationDao: RecentStationDao

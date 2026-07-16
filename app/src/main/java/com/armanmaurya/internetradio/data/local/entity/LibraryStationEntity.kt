@@ -18,7 +18,10 @@ data class LibraryStationEntity(
     val codec: String = "unknown",
     val bitrate: Int = 0,
     val isCustom: Boolean = false,
-    val addedAt: Long = System.currentTimeMillis()
+    val addedAt: Long = System.currentTimeMillis(),
+    
+    @androidx.room.ColumnInfo(defaultValue = "0")
+    val orderIndex: Int = 0
 )
 
 fun LibraryStationEntity.toDomain() = RadioStation(

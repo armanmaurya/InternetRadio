@@ -10,14 +10,16 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material.icons.filled.ArrowUpward
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -90,45 +92,47 @@ fun RecentContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = stringResource(R.string.home_toggle_view)
-                    )
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = isGridView,
+                        label = "view_toggle"
+                    ) { isGrid ->
+                        Icon(
+                            imageVector = if (isGrid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.ViewModule,
+                            contentDescription = stringResource(R.string.home_toggle_view),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
-                FilterChip(
-                    selected = useFilter,
-                    onClick = { viewModel.toggleFilter() },
-                    label = { 
-                        Text(
-                            text = if (useFilter) stringResource(R.string.home_filters_active) else stringResource(R.string.home_use_filters),
-                            style = MaterialTheme.typography.labelMedium
-                        ) 
-                    },
-                    leadingIcon = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable { viewModel.toggleFilter() }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = if (useFilter) stringResource(R.string.home_filters_active) else stringResource(R.string.home_use_filters),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (useFilter) {
+                        Spacer(modifier = Modifier.width(4.dp))
                         Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.general_clear),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                    },
-                    trailingIcon = if (useFilter) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.general_clear),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    } else null,
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Color.Transparent,
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    border = null
-                )
+                    }
+                }
             }
         }
 

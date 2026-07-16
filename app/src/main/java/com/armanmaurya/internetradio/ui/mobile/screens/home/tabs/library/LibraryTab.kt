@@ -10,13 +10,19 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -38,8 +44,13 @@ import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCa
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationListCard
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
+import com.armanmaurya.internetradio.data.model.LibrarySortOption
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyGridState
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.material.icons.filled.DragIndicator
+
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun LibraryContent(
     onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit,
@@ -57,6 +68,8 @@ fun LibraryContent(
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
+    val sortOption by viewModel.sortOption.collectAsStateWithLifecycle()
+    var showSortMenu by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
     val isLoading = stations == null
     Crossfade(
@@ -69,10 +82,33 @@ fun LibraryContent(
                 CircularProgressIndicator()
             }
         } else {
-            val currentStations = stations ?: emptyList()
+            var currentStations by androidx.compose.runtime.remember(stations) { 
+                androidx.compose.runtime.mutableStateOf(stations ?: emptyList()) 
+            }
             val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
             val showScrollToTop by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
             val coroutineScope = rememberCoroutineScope()
+            val reorderableState = rememberReorderableLazyGridState(gridState) { from, to ->
+                if (sortOption == LibrarySortOption.CUSTOM) {
+                    currentStations = currentStations.toMutableList().apply {
+                        val fromIndex = indexOfFirst { it.stationUuid == from.key }
+                        val toIndex = indexOfFirst { it.stationUuid == to.key }
+                        if (fromIndex != -1 && toIndex != -1) {
+                            add(toIndex, removeAt(fromIndex))
+                        }
+                    }
+                }
+            }
+            
+            // Wait for drag completion to update database
+            LaunchedEffect(reorderableState.isAnyItemDragging) {
+                if (!reorderableState.isAnyItemDragging && sortOption == LibrarySortOption.CUSTOM) {
+                    // Update database only when dragging is completely done
+                    // Since moveStation takes indices, we'd need to update based on the full list.
+                    // Instead, let's add a new function updateStationsOrder to ViewModel.
+                    viewModel.updateStationsOrder(currentStations)
+                }
+            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
@@ -95,46 +131,150 @@ fun LibraryContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
-                    Icon(
-                        imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = stringResource(R.string.home_toggle_view)
-                    )
-                }
-
-                FilterChip(
-                    selected = useFilter,
-                    onClick = { viewModel.toggleFilter() },
-                    label = { 
-                        Text(
-                            text = if (useFilter) stringResource(R.string.home_filters_active) else stringResource(R.string.home_use_filters),
-                            style = MaterialTheme.typography.labelMedium
-                        ) 
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    trailingIcon = if (useFilter) {
-                        {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
+                        androidx.compose.animation.AnimatedContent(
+                            targetState = isGridView,
+                            label = "view_toggle"
+                        ) { isGrid ->
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.general_clear),
-                                modifier = Modifier.size(18.dp)
+                                imageVector = if (isGrid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.ViewModule,
+                                contentDescription = stringResource(R.string.home_toggle_view),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                    } else null,
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Color.Transparent,
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    border = null
-                )
+                    }
+                    Box {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically, 
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .clickable { showSortMenu = true }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Sort,
+                                contentDescription = "Sort Options",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            val sortText = when (sortOption) {
+                                LibrarySortOption.NAME_A_Z, LibrarySortOption.NAME_Z_A -> "Name"
+                                LibrarySortOption.RECENTLY_ADDED, LibrarySortOption.OLDEST_ADDED -> "Added"
+                                LibrarySortOption.RECENTLY_PLAYED, LibrarySortOption.LEAST_RECENTLY_PLAYED -> "Played"
+                                LibrarySortOption.CUSTOM -> "Custom"
+                            }
+                            Text(
+                                text = sortText,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            
+                            val sortIcon = when (sortOption) {
+                                LibrarySortOption.NAME_A_Z, LibrarySortOption.RECENTLY_ADDED, LibrarySortOption.RECENTLY_PLAYED -> Icons.Default.ArrowDownward
+                                LibrarySortOption.NAME_Z_A, LibrarySortOption.OLDEST_ADDED, LibrarySortOption.LEAST_RECENTLY_PLAYED -> Icons.Default.ArrowUpward
+                                else -> null
+                            }
+                            if (sortIcon != null) {
+                                Spacer(Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = sortIcon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Played") },
+                                onClick = { 
+                                    if (sortOption == LibrarySortOption.RECENTLY_PLAYED) {
+                                        viewModel.setSortOption(LibrarySortOption.LEAST_RECENTLY_PLAYED)
+                                    } else {
+                                        viewModel.setSortOption(LibrarySortOption.RECENTLY_PLAYED)
+                                    }
+                                    showSortMenu = false
+                                },
+                                trailingIcon = {
+                                    if (sortOption == LibrarySortOption.RECENTLY_PLAYED) Icon(Icons.Default.ArrowDownward, "Descending")
+                                    else if (sortOption == LibrarySortOption.LEAST_RECENTLY_PLAYED) Icon(Icons.Default.ArrowUpward, "Ascending")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Added") },
+                                onClick = { 
+                                    if (sortOption == LibrarySortOption.RECENTLY_ADDED) {
+                                        viewModel.setSortOption(LibrarySortOption.OLDEST_ADDED)
+                                    } else {
+                                        viewModel.setSortOption(LibrarySortOption.RECENTLY_ADDED)
+                                    }
+                                    showSortMenu = false
+                                },
+                                trailingIcon = {
+                                    if (sortOption == LibrarySortOption.RECENTLY_ADDED) Icon(Icons.Default.ArrowDownward, "Descending")
+                                    else if (sortOption == LibrarySortOption.OLDEST_ADDED) Icon(Icons.Default.ArrowUpward, "Ascending")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Name") },
+                                onClick = { 
+                                    if (sortOption == LibrarySortOption.NAME_A_Z) {
+                                        viewModel.setSortOption(LibrarySortOption.NAME_Z_A)
+                                    } else {
+                                        viewModel.setSortOption(LibrarySortOption.NAME_A_Z)
+                                    }
+                                    showSortMenu = false
+                                },
+                                trailingIcon = {
+                                    if (sortOption == LibrarySortOption.NAME_A_Z) Icon(Icons.Default.ArrowDownward, "A-Z")
+                                    else if (sortOption == LibrarySortOption.NAME_Z_A) Icon(Icons.Default.ArrowUpward, "Z-A")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Custom") },
+                                onClick = { 
+                                    viewModel.setSortOption(LibrarySortOption.CUSTOM)
+                                    showSortMenu = false
+                                },
+                                trailingIcon = if (sortOption == LibrarySortOption.CUSTOM) { { Icon(Icons.Default.Check, "Active") } } else null
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable { viewModel.toggleFilter() }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = if (useFilter) stringResource(R.string.home_filters_active) else stringResource(R.string.home_use_filters),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (useFilter) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.general_clear),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
 
@@ -163,30 +303,32 @@ fun LibraryContent(
                 items = currentStations,
                 key = { _, it -> it.stationUuid }
             ) { index, station ->
-                if (isGridView) {
-                    StationCard(
-                        station = station,
-                        onClick = { onStationClick(currentStations, index, PlaybackSource.Library) },
-                        onDeleteClick = { viewModel.removeStation(station.stationUuid) },
-                        onEditClick = { onEditStation(station.stationUuid) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateItem(),
-                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
-                        isPlaybackActive = isPlaybackActive
-                    )
-                } else {
-                    StationListCard(
-                        station = station,
-                        onClick = { onStationClick(currentStations, index, PlaybackSource.Library) },
-                        onDeleteClick = { viewModel.removeStation(station.stationUuid) },
-                        onEditClick = { onEditStation(station.stationUuid) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateItem(),
-                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
-                        isPlaybackActive = isPlaybackActive
-                    )
+                ReorderableItem(reorderableState, key = station.stationUuid) { isDragging ->
+                    val dragModifier = if (sortOption == LibrarySortOption.CUSTOM) Modifier.draggableHandle() else Modifier
+                    
+                    Box(modifier = Modifier.animateItem()) {
+                        if (isGridView) {
+                            StationCard(
+                                station = station,
+                                onClick = { onStationClick(currentStations, index, PlaybackSource.Library) },
+                                onDeleteClick = { viewModel.removeStation(station.stationUuid) },
+                                onEditClick = { onEditStation(station.stationUuid) },
+                                modifier = Modifier.fillMaxWidth().then(dragModifier),
+                                isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                                isPlaybackActive = isPlaybackActive
+                            )
+                        } else {
+                            StationListCard(
+                                station = station,
+                                onClick = { onStationClick(currentStations, index, PlaybackSource.Library) },
+                                onDeleteClick = { viewModel.removeStation(station.stationUuid) },
+                                onEditClick = { onEditStation(station.stationUuid) },
+                                modifier = Modifier.fillMaxWidth().then(dragModifier),
+                                isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                                isPlaybackActive = isPlaybackActive
+                            )
+                        }
+                    }
                 }
             }
         }

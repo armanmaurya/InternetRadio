@@ -57,6 +57,7 @@ class SettingsRepository @Inject constructor(
         val MAX_RETRY_DURATION = androidx.datastore.preferences.core.longPreferencesKey("max_retry_duration")
         val CONFLICT_STRATEGY = stringPreferencesKey("conflict_strategy")
         val STOP_ON_AUDIO_BECOMING_NOISY = booleanPreferencesKey("stop_on_audio_becoming_noisy")
+        val LIBRARY_SORT_OPTION = stringPreferencesKey("library_sort_option")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -95,6 +96,8 @@ class SettingsRepository @Inject constructor(
             val maxRetryDuration = preferences[PreferencesKeys.MAX_RETRY_DURATION] ?: 300_000L
             val conflictStrategyName = preferences[PreferencesKeys.CONFLICT_STRATEGY]
             val conflictStrategy = ConflictStrategy.entries.find { it.name == conflictStrategyName } ?: ConflictStrategy.SKIP
+            val librarySortOptionName = preferences[PreferencesKeys.LIBRARY_SORT_OPTION]
+            val librarySortOption = com.armanmaurya.internetradio.data.model.LibrarySortOption.entries.find { it.name == librarySortOptionName } ?: com.armanmaurya.internetradio.data.model.LibrarySortOption.RECENTLY_ADDED
 
             AppPreferences(
                 themeMode = themeMode, 
@@ -120,7 +123,8 @@ class SettingsRepository @Inject constructor(
                 autoPlayOnStart = autoPlayOnStart,
                 lastUpdateCheckTime = lastUpdateCheckTime,
                 maxRetryDuration = maxRetryDuration,
-                conflictStrategy = conflictStrategy
+                conflictStrategy = conflictStrategy,
+                librarySortOption = librarySortOption
             )
         }
 
@@ -271,6 +275,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setConflictStrategy(strategy: ConflictStrategy) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.CONFLICT_STRATEGY] = strategy.name
+        }
+    }
+
+    suspend fun setLibrarySortOption(option: com.armanmaurya.internetradio.data.model.LibrarySortOption) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LIBRARY_SORT_OPTION] = option.name
         }
     }
 }
