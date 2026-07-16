@@ -519,7 +519,7 @@ fun PlayerSheetContent(
                                 .fillMaxWidth()
                                 .height(
                                     lerp(
-                                        84.dp + baseExpandedSize - 20.dp,
+                                        52.dp + baseExpandedSize, // 84dp (Thumbnail Y) + size + 24dp (gap) - 56dp (Header Box) = 52dp + size
                                         72.dp, // Matches Row height
                                         historyProgress
                                     )
@@ -601,15 +601,14 @@ fun PlayerSheetContent(
                     }
                 }
 
-                // Scrollable Player UI wrapper
+                // Player UI wrapper
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight((1f - historyProgress).coerceAtLeast(0.001f))
-                        .alpha(1f - historyProgress)
-                        .verticalScroll(rememberScrollState()),
+                        .alpha(1f - historyProgress),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Top
                 ) {
                     // Main controls content
                     Column(
@@ -648,6 +647,8 @@ fun PlayerSheetContent(
                             }
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     val bufferingText = stringResource(R.string.player_buffering)
                     val noTrackDataText = stringResource(R.string.player_no_track_data)
@@ -872,8 +873,8 @@ fun PlayerSheetContent(
                     */
                 } // End of Main controls column
 
-                // Spacer above controls
-                Spacer(modifier = Modifier.height(32.dp))
+                // Spacer above controls to push them down
+                Spacer(modifier = Modifier.weight(1f))
 
                 // Controls Row
                 Row(
@@ -884,13 +885,13 @@ fun PlayerSheetContent(
                         .padding(bottom = 16.dp)
                         .collapseHeight(historyProgress)
                         .alpha(1f - historyProgress),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FilledIconButton(
+                    FilledTonalIconButton(
                         onClick = { showSleepTimerDialog = true },
-                        modifier = Modifier.size(48.dp),
-                        shape = CircleShape
+                        modifier = Modifier.weight(1f).height(64.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         if (playbackState.sleepTimerEndTime != null) {
                             Box(contentAlignment = Alignment.Center) {
@@ -921,20 +922,20 @@ fun PlayerSheetContent(
                     FilledIconButton(
                         onClick = onPrevious,
                         enabled = playbackState.hasPrevious,
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape
+                        modifier = Modifier.weight(1f).height(64.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipPrevious,
                             contentDescription = stringResource(R.string.player_cd_previous),
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
 
                     FilledIconButton(
                         onClick = onTogglePlayPause,
-                        modifier = Modifier.size(80.dp),
-                        shape = CircleShape
+                        modifier = Modifier.weight(1.6f).height(80.dp),
+                        shape = RoundedCornerShape(28.dp)
                     ) {
                         Icon(
                             imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -946,40 +947,33 @@ fun PlayerSheetContent(
                     FilledIconButton(
                         onClick = onNext,
                         enabled = playbackState.hasNext,
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape
+                        modifier = Modifier.weight(1f).height(64.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipNext,
                             contentDescription = stringResource(R.string.player_cd_next),
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
 
-                    FilledIconButton(
+                    FilledTonalIconButton(
                         onClick = onToggleRecording,
-                        modifier = Modifier.size(48.dp),
-                        shape = CircleShape,
-                        colors = if (isRecording) {
-                            androidx.compose.material3.IconButtonDefaults.filledIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        } else {
-                            androidx.compose.material3.IconButtonDefaults.filledIconButtonColors()
-                        }
+                        modifier = Modifier.weight(1f).height(64.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = stringResource(R.string.player_cd_record),
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(28.dp),
+                            tint = if (isRecording) MaterialTheme.colorScheme.error else LocalContentColor.current
                         )
                     }
                 }
 
-                // Spacer below controls
-                Spacer(modifier = Modifier.height(32.dp))
-                } // End of Scrollable Player UI wrapper
+                // Spacer below controls to center them
+                Spacer(modifier = Modifier.weight(1f))
+                } // End of Player UI wrapper
 
                 // Bottom Tabs (sits naturally below everything else, moves up as above content collapses)
                 Row(
@@ -1655,9 +1649,9 @@ fun PlayerSheetContent(
                         }
                     }
                 }
-                }
             }
         }
+    }
 
             // DIALOG: visible when expanded — same sharedBounds key as pill = true container transform
             AnimatedVisibility(

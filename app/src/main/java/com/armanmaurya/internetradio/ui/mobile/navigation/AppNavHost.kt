@@ -21,6 +21,8 @@ import androidx.navigation.NavType
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 
@@ -40,27 +42,27 @@ fun AppNavHost(
         modifier = modifier,
         enterTransition = {
             slideInHorizontally(
-                initialOffsetX = { it },
+                initialOffsetX = { (it * 0.1f).toInt() },
                 animationSpec = tween(300)
-            )
+            ) + fadeIn(animationSpec = tween(300))
         },
         exitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { -it },
+                targetOffsetX = { -(it * 0.1f).toInt() },
                 animationSpec = tween(300)
-            )
+            ) + fadeOut(animationSpec = tween(300))
         },
         popEnterTransition = {
             slideInHorizontally(
-                initialOffsetX = { -it },
+                initialOffsetX = { -(it * 0.1f).toInt() },
                 animationSpec = tween(300)
-            )
+            ) + fadeIn(animationSpec = tween(300))
         },
         popExitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { it },
+                targetOffsetX = { (it * 0.1f).toInt() },
                 animationSpec = tween(300)
-            )
+            ) + fadeOut(animationSpec = tween(300))
         }
     ) {
         composable(AppDestination.Discover.route) {

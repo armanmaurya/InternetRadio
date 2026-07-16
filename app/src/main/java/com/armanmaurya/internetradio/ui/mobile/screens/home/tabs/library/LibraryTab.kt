@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
@@ -26,8 +27,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -47,6 +53,7 @@ import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.data.model.LibrarySortOption
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.browse.SortPopupContent
 
 import androidx.compose.material.icons.filled.DragIndicator
 
@@ -185,63 +192,78 @@ fun LibraryContent(
                                 )
                             }
                         }
-                        DropdownMenu(
-                            expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Played") },
-                                onClick = { 
-                                    if (sortOption == LibrarySortOption.RECENTLY_PLAYED) {
-                                        viewModel.setSortOption(LibrarySortOption.LEAST_RECENTLY_PLAYED)
-                                    } else {
-                                        viewModel.setSortOption(LibrarySortOption.RECENTLY_PLAYED)
+                        val transitionState = remember { MutableTransitionState(false) }
+                        transitionState.targetState = showSortMenu
+                        
+                        if (transitionState.currentState || transitionState.targetState) {
+                            SortPopupContent(
+                                transitionState = transitionState,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                Surface(
+                                    shape = MaterialTheme.shapes.extraSmall,
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    tonalElevation = 3.dp,
+                                    shadowElevation = 3.dp,
+                                    modifier = Modifier.padding(top = 40.dp, end = 16.dp)
+                                ) {
+                                    Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+                                        DropdownMenuItem(
+                                            text = { Text("Played") },
+                                            onClick = { 
+                                                if (sortOption == LibrarySortOption.RECENTLY_PLAYED) {
+                                                    viewModel.setSortOption(LibrarySortOption.LEAST_RECENTLY_PLAYED)
+                                                } else {
+                                                    viewModel.setSortOption(LibrarySortOption.RECENTLY_PLAYED)
+                                                }
+                                                showSortMenu = false
+                                            },
+                                            trailingIcon = {
+                                                if (sortOption == LibrarySortOption.RECENTLY_PLAYED) Icon(Icons.Default.ArrowDownward, "Descending")
+                                                else if (sortOption == LibrarySortOption.LEAST_RECENTLY_PLAYED) Icon(Icons.Default.ArrowUpward, "Ascending")
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Added") },
+                                            onClick = { 
+                                                if (sortOption == LibrarySortOption.RECENTLY_ADDED) {
+                                                    viewModel.setSortOption(LibrarySortOption.OLDEST_ADDED)
+                                                } else {
+                                                    viewModel.setSortOption(LibrarySortOption.RECENTLY_ADDED)
+                                                }
+                                                showSortMenu = false
+                                            },
+                                            trailingIcon = {
+                                                if (sortOption == LibrarySortOption.RECENTLY_ADDED) Icon(Icons.Default.ArrowDownward, "Descending")
+                                                else if (sortOption == LibrarySortOption.OLDEST_ADDED) Icon(Icons.Default.ArrowUpward, "Ascending")
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Name") },
+                                            onClick = { 
+                                                if (sortOption == LibrarySortOption.NAME_A_Z) {
+                                                    viewModel.setSortOption(LibrarySortOption.NAME_Z_A)
+                                                } else {
+                                                    viewModel.setSortOption(LibrarySortOption.NAME_A_Z)
+                                                }
+                                                showSortMenu = false
+                                            },
+                                            trailingIcon = {
+                                                if (sortOption == LibrarySortOption.NAME_A_Z) Icon(Icons.Default.ArrowDownward, "A-Z")
+                                                else if (sortOption == LibrarySortOption.NAME_Z_A) Icon(Icons.Default.ArrowUpward, "Z-A")
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Custom") },
+                                            onClick = { 
+                                                viewModel.setSortOption(LibrarySortOption.CUSTOM)
+                                                showSortMenu = false
+                                            },
+                                            trailingIcon = if (sortOption == LibrarySortOption.CUSTOM) { { Icon(Icons.Default.Check, "Active") } } else null
+                                        )
                                     }
-                                    showSortMenu = false
-                                },
-                                trailingIcon = {
-                                    if (sortOption == LibrarySortOption.RECENTLY_PLAYED) Icon(Icons.Default.ArrowDownward, "Descending")
-                                    else if (sortOption == LibrarySortOption.LEAST_RECENTLY_PLAYED) Icon(Icons.Default.ArrowUpward, "Ascending")
                                 }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Added") },
-                                onClick = { 
-                                    if (sortOption == LibrarySortOption.RECENTLY_ADDED) {
-                                        viewModel.setSortOption(LibrarySortOption.OLDEST_ADDED)
-                                    } else {
-                                        viewModel.setSortOption(LibrarySortOption.RECENTLY_ADDED)
-                                    }
-                                    showSortMenu = false
-                                },
-                                trailingIcon = {
-                                    if (sortOption == LibrarySortOption.RECENTLY_ADDED) Icon(Icons.Default.ArrowDownward, "Descending")
-                                    else if (sortOption == LibrarySortOption.OLDEST_ADDED) Icon(Icons.Default.ArrowUpward, "Ascending")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Name") },
-                                onClick = { 
-                                    if (sortOption == LibrarySortOption.NAME_A_Z) {
-                                        viewModel.setSortOption(LibrarySortOption.NAME_Z_A)
-                                    } else {
-                                        viewModel.setSortOption(LibrarySortOption.NAME_A_Z)
-                                    }
-                                    showSortMenu = false
-                                },
-                                trailingIcon = {
-                                    if (sortOption == LibrarySortOption.NAME_A_Z) Icon(Icons.Default.ArrowDownward, "A-Z")
-                                    else if (sortOption == LibrarySortOption.NAME_Z_A) Icon(Icons.Default.ArrowUpward, "Z-A")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Custom") },
-                                onClick = { 
-                                    viewModel.setSortOption(LibrarySortOption.CUSTOM)
-                                    showSortMenu = false
-                                },
-                                trailingIcon = if (sortOption == LibrarySortOption.CUSTOM) { { Icon(Icons.Default.Check, "Active") } } else null
-                            )
+                            }
                         }
                     }
                 }

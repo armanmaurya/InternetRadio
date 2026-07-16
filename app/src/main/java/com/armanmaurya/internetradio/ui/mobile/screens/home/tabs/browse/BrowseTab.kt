@@ -41,8 +41,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -307,35 +315,71 @@ private fun SearchFilters(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                DropdownMenu(
-                    expanded = orderExpanded,
-                    onDismissRequest = { orderExpanded = false }
-                ) {
-                    orderOptions.forEach { (value, label) ->
-                        DropdownMenuItem(
-                            text = { Text(label) },
-                            onClick = {
-                                if (order == value) {
-                                    onReverseChange(!reverse)
-                                } else {
-                                    onOrderChange(value)
-                                }
-                                orderExpanded = false
-                            },
-                            trailingIcon = {
-                                if (order == value) {
-                                    Icon(
-                                        imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                        contentDescription = if (reverse) stringResource(R.string.home_cd_descending) else stringResource(R.string.home_cd_ascending),
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
+                val transitionState = remember { MutableTransitionState(false) }
+                transitionState.targetState = orderExpanded
+
+                if (transitionState.currentState || transitionState.targetState) {
+                    SortPopupContent(
+                        transitionState = transitionState,
+                        onDismissRequest = { orderExpanded = false }
+                    ) {
+                        Surface(
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 3.dp,
+                            shadowElevation = 3.dp,
+                            modifier = Modifier.padding(top = 40.dp, end = 16.dp)
+                        ) {
+                            Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+                                orderOptions.forEach { (value, label) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            if (order == value) {
+                                                onReverseChange(!reverse)
+                                            } else {
+                                                onOrderChange(value)
+                                            }
+                                            orderExpanded = false
+                                        },
+                                        trailingIcon = {
+                                            if (order == value) {
+                                                Icon(
+                                                    imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                                    contentDescription = if (reverse) stringResource(R.string.home_cd_descending) else stringResource(R.string.home_cd_ascending),
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
                                     )
                                 }
                             }
-                        )
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun SortPopupContent(
+    transitionState: MutableTransitionState<Boolean>,
+    onDismissRequest: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Popup(
+        alignment = Alignment.TopEnd,
+        onDismissRequest = onDismissRequest,
+        properties = PopupProperties(focusable = true)
+    ) {
+        AnimatedVisibility(
+            visibleState = transitionState,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
+        ) {
+            content()
         }
     }
 }
