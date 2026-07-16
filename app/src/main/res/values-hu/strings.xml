@@ -1,0 +1,230 @@
+<resources>
+    <!-- ========================================== -->
+    <!-- 1. APP DEFINITION                          -->
+    <!-- ========================================== -->
+    <string name="app_name">Internet Radio</string>
+    <string name="version_format">Verzió %1$s</string>
+
+    <!-- ========================================== -->
+    <!-- 2. GENERAL ACTIONS                         -->
+    <!-- ========================================== -->
+    <string name="general_search">Keresés</string>
+    <string name="general_clear">Törlés</string>
+    <string name="general_later">Később</string>
+    <string name="general_update_now">Frissítés most</string>
+    <string name="general_cancel">Mégsem</string>
+    <string name="general_ok">OK</string>
+    <string name="general_reset">Visszaállítás</string>
+    <string name="general_discard">Elvetés</string>
+    <string name="general_save">Mentés</string>
+    <string name="general_add">Hozzáadás</string>
+    <string name="cd_back">Vissza</string>
+    <string name="cd_close_search">Keresés bezárása</string>
+    <string name="cd_search">Keresés</string>
+    <string name="cd_clear_search">Keresés törlése</string>
+
+    <!-- ========================================== -->
+    <!-- 3. GENERAL LABELS                          -->
+    <!-- ========================================== -->
+    <string name="general_name">Név</string>
+    <string name="general_hours">Órák</string>
+    <string name="general_minutes">Percek</string>
+    <string name="general_unknown">Ismeretlen</string>
+    <string name="general_station_count_msg">%1$d állomás</string>
+    <string name="general_no_recordings">Nincsenek felvételek</string>
+
+    <!-- ========================================== -->
+    <!-- 4. ERRORS                                  -->
+    <!-- ========================================== -->
+    <string name="error_unknown">Ismeretlen hiba</string>
+    <string name="error_something_went_wrong">Hiba történt. Kérjük, próbálja újra.</string>
+    <string name="error_station_not_found">Az állomás nem található</string>
+    <string name="error_invalid_url">Érvénytelen URL</string>
+    <string name="error_cannot_open_website">Nem lehet megnyitni a weboldalt</string>
+    <string name="error_cannot_open_url">Nem lehet megnyitni az URL-t</string>
+
+    <!-- ========================================== -->
+    <!-- 5. SETTINGS                                -->
+    <!-- ========================================== -->
+    <string name="settings_title">Beállítások</string>
+    <string name="settings_appearance_section">Megjelenés</string>
+    <string name="settings_dynamic_theme_title">Dinamikus szín</string>
+    <string name="settings_dynamic_theme_subtitle">Háttérkép színeinek használata (Android 12+)</string>
+    <string name="settings_theme_title">Téma</string>
+    <string name="settings_theme_light">Világos</string>
+    <string name="settings_theme_dark">Sötét</string>
+    <string name="settings_pure_black_title">Tiszta fekete</string>
+    <string name="settings_pure_black_subtitle">Tiszta fekete háttér használata sötét módban</string>
+    <string name="settings_general_section">Általános</string>
+    <string name="settings_language_title">Nyelv</string>
+    <string name="settings_auto_play">Automatikus lejátszás indításkor</string>
+    <string name="settings_auto_play_desc">Az utoljára hallgatott állomás lejátszása az alkalmazás indításakor</string>
+    <string name="settings_default_tab">Alapértelmezett lap indításkor</string>
+    <string name="settings_player_section">Lejátszó</string>
+    <string name="settings_max_retry_duration">Maximális újrapróbálkozási időtartam</string>
+    <string name="settings_retry_1_min">1 perc</string>
+    <string name="settings_retry_5_min">5 perc</string>
+    <string name="settings_retry_15_min">15 perc</string>
+    <string name="settings_retry_30_min">30 perc</string>
+    <string name="settings_retry_indefinitely">Korlátlan ideig</string>
+    <string name="settings_check_updates">Frissítések keresése</string>
+    <string name="settings_rate_review">Értékelés &amp; Vélemény</string>
+    <string name="settings_track_history_limit">Lejátszási előzmények korlátja</string>
+    <string name="settings_system_default">Rendszer alapértelmezett</string>
+    <string name="settings_number_of_tracks">Számok száma</string>
+    <string name="settings_checking_for_updates">Frissítések keresése...</string>
+    <string name="settings_no_update_available">Nincs elérhető frissítés</string>
+    <string name="settings_theme_system">Rrendszer alapértelmezett</string>
+
+    <!-- ========================================== -->
+    <!-- 6b. BACKUP & RESTORE                       -->
+    <!-- ========================================== -->
+    <string name="settings_backup_section">Biztonsági mentés és visszaállítás</string>
+    <string name="settings_conflict_title">Ütközés esetén</string>
+    <string name="settings_conflict_skip">Meglévő kihagyása</string>
+    <string name="settings_conflict_skip_desc">A jelenlegi verzió megtartása</string>
+    <string name="settings_conflict_overwrite">Meglévő felülírása</string>
+    <string name="settings_conflict_overwrite_desc">Mindig a biztonsági mentés verziójának használata</string>
+    <string name="settings_conflict_keep_newer">Újabb megtartása</string>
+    <string name="settings_conflict_keep_newer_desc">később hozzáadott megtartása</string>
+    <string name="settings_export_title">Könyvtár exportálása</string>
+    <string name="settings_export_subtitle">Állomások mentése fájlba</string>
+    <string name="settings_import_title">Könyvtár importálása</string>
+    <string name="settings_import_subtitle">Állomások visszaállítása biztonsági mentésből</string>
+
+    <!-- ========================================== -->
+    <!-- 6. ABOUT                                   -->
+    <!-- ========================================== -->
+    <string name="about_title">Névjegy</string>
+    <string name="about_us">Rólunk</string>
+    <string name="about_app_description">Egy egyszerű internetes rádiólejátszó, amellyel több ezer rádióállomást fedezhetsz fel és hallgathatsz a világ minden tájáról..</string>
+    <string name="about_view_contributors">Közreműködők</string>
+    <string name="about_view_github">Megtekintés GitHubon</string>
+    <string name="about_author">Szerző</string>
+    <string name="about_author_name">Arman Maurya</string>
+    <string name="about_contributors">Közreműködők</string>
+    <string name="about_contribute_msg">Az internetes rádió még gyerekcipőben jár. Szívesen fogadunk közreműködéseket. 💡</string>
+    <string name="about_cd_app_icon">Alkalmazás ikon</string>
+    <string name="about_cd_linkedin">LinkedIn</string>
+    <string name="about_cd_github">GitHub</string>
+    <string name="about_cd_instagram">Instagram</string>
+
+    <!-- ========================================== -->
+    <!-- 7. HOME                                    -->
+    <!-- ========================================== -->
+    <string name="home_tab_browse">Böngészés</string>
+    <string name="home_tab_recent">Legutóbbiak</string>
+    <string name="home_tab_library">Könyvtár</string>
+    <string name="home_tab_recordings">Felvételek</string>
+    <string name="home_filters_active">Szűrők aktívak</string>
+    <string name="home_use_filters">Szűrők használata</string>
+    <string name="home_cd_settings">Beállítások</string>
+    <string name="home_votes">Szavazatok</string>
+    <string name="home_clicks">Kattintások</string>
+    <string name="home_trend">Trend</string>
+    <string name="home_toggle_view">Nézet váltása</string>
+    <string name="home_delete_station">Állomás törlése</string>
+    <string name="home_descending">Csökkenő</string>
+    <string name="home_ascending">Növekvő</string>
+    <string name="home_cd_descending">Csökkenő</string>
+    <string name="home_cd_ascending">Növekvő</string>
+    <string name="home_cd_select_tags">Címkék kiválasztása</string>
+    <string name="home_cd_select_language">Nyelv kiválasztása</string>
+    <string name="home_cd_select_country">Ország kiválasztása</string>
+    <string name="home_cd_back_to_folders">Vissza a mappákhoz</string>
+    <string name="home_cd_scroll_to_top">Görgessen a tetejére</string>
+    <string name="home_cd_tags">Címkék</string>
+    <string name="home_cd_station_logo">%1$s logó</string>
+    <string name="home_cd_favorite">Kedvenc</string>
+    <string name="home_cd_more_options">További lehetőségek</string>
+    <string name="home_no_recent_stations_filtered">Nincs a szűrőknek megfelelő nemrég lejátszott állomás.</string>
+    <string name="home_no_recent_stations">Nincsenek nemrég lejátszott állomások</string>
+    <string name="home_no_stations_found_for">Nem találhatók állomások erre \"%1$s\"</string>
+    <string name="home_no_library_stations_filter">Nincs a szűrőnek megfelelő könyvtári állomás</string>
+    <string name="home_no_library_stations_yet">Még nincsenek a könyvtárban állomások</string>
+
+    <!-- ========================================== -->
+    <!-- 8. SELECT COUNTRY                          -->
+    <!-- ========================================== -->
+    <string name="select_country_search">Ország keresése</string>
+    <string name="select_country_title">Ország kiválasztása</string>
+    <string name="select_country_all">Összes ország</string>
+
+    <!-- ========================================== -->
+    <!-- 9. SELECT LANGUAGE                         -->
+    <!-- ========================================== -->
+    <string name="select_language_search">Nyelv keresése</string>
+    <string name="select_language_title">Select Language</string>
+    <string name="select_language_all">Összes nyelv</string>
+
+    <!-- ========================================== -->
+    <!-- 10. SELECT TAGS                            -->
+    <!-- ========================================== -->
+    <string name="select_tags_search">Cíimkék keresése</string>
+    <string name="select_tags_title">Címkék kiválasztása</string>
+    <string name="select_tags_cd_clear_all">Összes törlése</string>
+    <string name="select_tags_cd_apply">Alkalmaz</string>
+    <string name="select_tags_cd_remove_tag">Címke törlése</string>
+    <string name="select_tags_discard_changes">Változtatások elvetése?</string>
+    <string name="select_tags_discard_changes_message">Nem mentett címkekiválasztásaid vannak. Biztosan visszalépsz és elveted őket?</string>
+
+    <!-- ========================================== -->
+    <!-- 11. EDIT STATION                           -->
+    <!-- ========================================== -->
+    <string name="edit_station_add_station">Állomás hozzáadása</string>
+    <string name="edit_station_title">Állomás szerkesztése</string>
+    <string name="edit_station_name_field">Név</string>
+    <string name="edit_station_stream_url_field">Stream URL-je</string>
+    <string name="edit_station_favicon_url_optional">Favicon URL-je(Opcionális)</string>
+    <string name="edit_station_favicon_url_field">Favicon URL-je</string>
+    <string name="edit_station_country_field">Ország</string>
+    <string name="edit_station_language_field">Nyelv</string>
+    <string name="edit_station_tags_optional">Címkék (vesszővel elválasztva)</string>
+    <string name="edit_station_failed_fetch_original_data">Nem sikerült lekérni az eredeti adatokat</string>
+    <string name="edit_station_unsaved_changes">Nem mentett változtatások</string>
+    <string name="edit_station_unsaved_changes_message_exit">Vannak mentetlen módosításai. Biztosan elveti őket és kilép??</string>
+    <string name="edit_station_reset_title">Állomás visszaállítása</string>
+    <string name="edit_station_reset_message">Biztosan visszaállítja az állomás eredeti adatait? Minden szerkesztés elveszik.</string>
+    <string name="edit_station_fields_reset_message">Mezők visszaállítva az eredeti adatokra</string>
+    <string name="edit_station_saved_message">Mentve</string>
+    <string name="edit_station_cd_reset_to_original">Eredeti állapot visszaállítása</string>
+
+    <!-- ========================================== -->
+    <!-- 12. PLAYER                                 -->
+    <!-- ========================================== -->
+    <string name="player_buffering">Pufferelés</string>
+    <string name="player_no_track_data">Nincs zeneszáminformáció</string>
+    <string name="player_station_info">Állomásinformációk</string>
+    <string name="player_label_tags">Címkék</string>
+    <string name="player_label_website">Weboldal</string>
+    <string name="player_sleep_timer_title">Elalváskapcsoló</string>
+    <string name="player_turn_off_timer">Kikapcsolási időzítő</string>
+    <string name="player_set_sleep_timer">Alvásidőzítő beállítása</string>
+    <string name="player_start_button">Lejátszás</string>
+    <string name="player_timer_ends_in_msg">Az időzítő %1$s perc múlva lejár.</string>
+    <string name="player_recording_saved">Felvétel mentve!</string>
+    <string name="player_copied_track_to_clipboard">Szám másolva a vágólapra</string>
+    <string name="player_copied_to_clipboard">Vágólapra másolva</string>
+    <string name="player_website_copied">Weboldal másolva</string>
+    <string name="player_stream_url_copied">Stream URL a vágólapra másolva</string>
+    <string name="player_favicon_url_copied">Favicon URL a vágólapra másolva</string>
+    <string name="player_station_codec_bitrate">%1$s • %2$s kbps</string>
+    <string name="player_station_bitrate_only">%1$s kbps</string>
+    <string name="player_cd_pause">Szünet</string>
+    <string name="player_cd_play">Lejátszás</string>
+    <string name="player_cd_previous">Előző</string>
+    <string name="player_cd_next">Következő</string>
+    <string name="player_cd_toggle_favorite">Kedvencekhez adás / eltávolítás</string>
+    <string name="player_cd_collapse">Összecsukás</string>
+    <string name="player_cd_homepage">Kezdőlap</string>
+    <string name="player_cd_record">Felvétel</string>
+    <string name="player_cd_copy_track_name">Szám címének másolása</string>
+    <string name="player_cd_search_youtube">Keresés a YouTube-on</string>
+    <string name="player_cd_search_spotify">Keresés a Spotify-on</string>
+    <string name="player_cd_search_google">Keresés a Google-ben</string>
+    <string name="player_no_tracks_played">Még nincs lejátszott szám</string>
+    <string name="player_tab_about">Névjegy</string>
+    <string name="player_tab_tracks">Számok</string>
+    <string name="player_retrying_in">Újrapróbálkozás %1$ds mp múlva</string>
+    <string name="player_retrying_connection">Kapcsolódás újra...</string>
+</resources>
