@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material.icons.filled.ArrowUpward
 import kotlinx.coroutines.launch
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
@@ -110,6 +111,7 @@ fun RecentContent(
                         .clip(MaterialTheme.shapes.small)
                         .clickable { viewModel.toggleFilter() }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .animateContentSize()
                 ) {
                     Icon(
                         imageVector = Icons.Default.FilterList,
@@ -188,8 +190,8 @@ fun RecentContent(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(bottom = 16.dp + contentPadding.calculateBottomPadding(), end = 16.dp),
-                    enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn(),
-                    exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut()
+                    enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn() + androidx.compose.animation.slideIn(initialOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) }),
+                    exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOut(targetOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) })
                 ) {
                     androidx.compose.material3.SmallFloatingActionButton(
                         onClick = {

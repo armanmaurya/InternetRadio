@@ -262,6 +262,15 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setGridViewBrowse(isGrid) }
     }
 
+    fun retry() {
+        val state = _uiState.value
+        if (state.isSearchActive) {
+            searchStations(state.searchQuery)
+        } else {
+            loadStations(state.selectedCountryCode, state.selectedLanguage, state.selectedTags)
+        }
+    }
+
     /** Called by HomeScreen to forward the search query from HomeViewModel */
     fun onSearchQueryChange(query: String) {
         _uiState.update {

@@ -201,19 +201,7 @@ fun HomeScreen(
                 }
             }
         },
-        floatingActionButton = {
-            if (pagerState.currentPage == 2) {
-                FloatingActionButton(
-                    onClick = { onEditStation(null) },
-                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.edit_station_add_station)
-                    )
-                }
-            }
-        },
+
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
         val pagerContent = @Composable {

@@ -45,11 +45,7 @@ class RecordingManager @Inject constructor(
     val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
 
     fun updateAmplitude(rms: Float) {
-        if (_isRecording.value) {
-            _amplitude.value = rms
-        } else if (_amplitude.value > 0f) {
-            _amplitude.value = 0f
-        }
+        _amplitude.value = rms
     }
 
     private var outputStream: OutputStream? = null

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.animation.AnimatedVisibility
@@ -32,6 +34,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,7 +65,7 @@ import androidx.compose.material.icons.filled.DragIndicator
 @Composable
 fun LibraryContent(
     onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit,
-    onEditStation: (String) -> Unit,
+    onEditStation: (String?) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: LibraryViewModel = hiltViewModel(),
@@ -94,6 +98,25 @@ fun LibraryContent(
             }
             val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
             val showScrollToTop by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+            
+            var previousIndex by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
+            var previousScrollOffset by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
+            var isAddFabVisible by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+
+            LaunchedEffect(gridState) {
+                androidx.compose.runtime.snapshotFlow { gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset }
+                    .collect { (index, offset) ->
+                        if (index > previousIndex || (index == previousIndex && offset > previousScrollOffset + 50)) {
+                            isAddFabVisible = false
+                            previousIndex = index
+                            previousScrollOffset = offset
+                        } else if (index < previousIndex || (index == previousIndex && offset < previousScrollOffset - 50)) {
+                            isAddFabVisible = true
+                            previousIndex = index
+                            previousScrollOffset = offset
+                        }
+                    }
+            }
             val coroutineScope = rememberCoroutineScope()
             val reorderableState = rememberReorderableLazyGridState(gridState) { from, to ->
                 if (sortOption == LibrarySortOption.CUSTOM) {
@@ -274,6 +297,7 @@ fun LibraryContent(
                         .clip(MaterialTheme.shapes.small)
                         .clickable { viewModel.toggleFilter() }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .animateContentSize()
                 ) {
                     Icon(
                         imageVector = Icons.Default.FilterList,
@@ -357,12 +381,32 @@ fun LibraryContent(
         } // LazyVerticalGrid closes
         
         AnimatedVisibility(
+            visible = isAddFabVisible,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp + contentPadding.calculateBottomPadding(), end = 16.dp),
+            enter = scaleIn() + fadeIn() + slideIn(initialOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) }),
+            exit = scaleOut() + fadeOut() + slideOut(targetOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) })
+        ) {
+            FloatingActionButton(
+                onClick = { onEditStation(null) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.edit_station_add_station)
+                )
+            }
+        }
+
+        AnimatedVisibility(
             visible = showScrollToTop,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 16.dp + contentPadding.calculateBottomPadding() + 72.dp, end = 16.dp),
-            enter = scaleIn() + fadeIn(),
-            exit = scaleOut() + fadeOut()
+            enter = scaleIn() + fadeIn() + slideIn(initialOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) }),
+            exit = scaleOut() + fadeOut() + slideOut(targetOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) })
         ) {
             SmallFloatingActionButton(
                 onClick = {

@@ -793,43 +793,53 @@ fun PlayerSheetContent(
                         }
                     }
 
-                    // Recording UI Pill
-                    AnimatedVisibility(
-                        visible = isRecording,
-                        enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
-                        exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .padding(start = 0.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                    // Waveform UI Pill
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = if (isRecording) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f) 
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(
+                                    start = 0.dp,
+                                    end = if (isRecording) 16.dp else 0.dp,
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Waveform
+                            ScrollingWaveform(
+                                amplitude = if (playbackState.isPlaying) amplitude else 0f,
+                                modifier = Modifier.weight(1f),
+                                barColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                emptyColor = if (isRecording) MaterialTheme.colorScheme.error.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            )
+                            AnimatedVisibility(
+                                visible = isRecording,
+                                enter = androidx.compose.animation.expandHorizontally(expandFrom = Alignment.Start) + androidx.compose.animation.fadeIn(),
+                                exit = androidx.compose.animation.shrinkHorizontally(shrinkTowards = Alignment.Start) + androidx.compose.animation.fadeOut()
                             ) {
-                                // Waveform
-                                ScrollingWaveform(
-                                    amplitude = amplitude,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                // Timer text
-                                val formattedDuration = String.format(
-                                    Locale.getDefault(),
-                                    "%02d:%02d",
-                                    recordingDuration / 60,
-                                    recordingDuration % 60
-                                )
-                                Text(
-                                    text = formattedDuration,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.error
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    // Timer text
+                                    val formattedDuration = String.format(
+                                        Locale.getDefault(),
+                                        "%02d:%02d",
+                                        recordingDuration / 60,
+                                        recordingDuration % 60
+                                    )
+                                    Text(
+                                        text = formattedDuration,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             }
                         }
                     }
@@ -890,7 +900,7 @@ fun PlayerSheetContent(
                 ) {
                     FilledTonalIconButton(
                         onClick = { showSleepTimerDialog = true },
-                        modifier = Modifier.weight(1f).height(64.dp),
+                        modifier = Modifier.weight(0.7f).height(64.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         if (playbackState.sleepTimerEndTime != null) {
@@ -922,8 +932,8 @@ fun PlayerSheetContent(
                     FilledIconButton(
                         onClick = onPrevious,
                         enabled = playbackState.hasPrevious,
-                        modifier = Modifier.weight(1f).height(64.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipPrevious,
@@ -934,8 +944,8 @@ fun PlayerSheetContent(
 
                     FilledIconButton(
                         onClick = onTogglePlayPause,
-                        modifier = Modifier.weight(1.6f).height(80.dp),
-                        shape = RoundedCornerShape(28.dp)
+                        modifier = Modifier.weight(2f).height(64.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(
                             imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -947,8 +957,8 @@ fun PlayerSheetContent(
                     FilledIconButton(
                         onClick = onNext,
                         enabled = playbackState.hasNext,
-                        modifier = Modifier.weight(1f).height(64.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape
                     ) {
                         Icon(
                             imageVector = Icons.Default.SkipNext,
@@ -959,7 +969,7 @@ fun PlayerSheetContent(
 
                     FilledTonalIconButton(
                         onClick = onToggleRecording,
-                        modifier = Modifier.weight(1f).height(64.dp),
+                        modifier = Modifier.weight(0.7f).height(64.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(

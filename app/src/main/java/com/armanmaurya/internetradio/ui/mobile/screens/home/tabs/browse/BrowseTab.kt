@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -146,13 +148,18 @@ fun BrowseContent(
 
             uiState.error != null -> {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 64.dp),
-                        contentAlignment = Alignment.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(text = stringResource(R.string.error_something_went_wrong))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { viewModel.retry() }) {
+                            Text(text = stringResource(R.string.action_retry))
+                        }
                     }
                 }
             }
@@ -229,8 +236,8 @@ fun BrowseContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 16.dp + contentPadding.calculateBottomPadding(), end = 16.dp),
-            enter = scaleIn() + fadeIn(),
-            exit = scaleOut() + fadeOut()
+            enter = scaleIn() + fadeIn() + androidx.compose.animation.slideIn(initialOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) }),
+            exit = scaleOut() + fadeOut() + androidx.compose.animation.slideOut(targetOffset = { androidx.compose.ui.unit.IntOffset(it.width, it.height) })
         ) {
             SmallFloatingActionButton(
                 onClick = {

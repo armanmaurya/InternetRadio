@@ -67,11 +67,19 @@ fun StationCard(
         )
     }
 
-    val subtitleText = remember(station.country, station.language) {
+    val subtitleText = remember(station.country, station.language, station.codec, station.bitrate) {
         buildString {
             if (station.country.isNotBlank()) append(station.country)
             if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
             if (station.language.isNotBlank()) append(station.language)
+            
+            val hasPrevious = station.country.isNotBlank() || station.language.isNotBlank()
+            if (hasPrevious && (station.codec.isNotBlank() || station.bitrate > 0)) {
+                append(" | ")
+            }
+            if (station.codec.isNotBlank()) append(station.codec)
+            if (station.codec.isNotBlank() && station.bitrate > 0) append(" ")
+            if (station.bitrate > 0) append("${station.bitrate} kbps")
         }
     }
 
