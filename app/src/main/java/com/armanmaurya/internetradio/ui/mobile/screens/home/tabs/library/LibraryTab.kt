@@ -326,7 +326,7 @@ fun LibraryContent(
                 key = { _, it -> it.stationUuid }
             ) { index, station ->
                 ReorderableItem(reorderableState, key = station.stationUuid) { isDragging ->
-                    val dragModifier = if (sortOption == LibrarySortOption.CUSTOM) Modifier.draggableHandle() else Modifier
+                    val dragModifier = if (sortOption == LibrarySortOption.CUSTOM) Modifier.longPressDraggableHandle() else Modifier
                     
                     Box(modifier = Modifier.animateItem()) {
                         if (isGridView) {

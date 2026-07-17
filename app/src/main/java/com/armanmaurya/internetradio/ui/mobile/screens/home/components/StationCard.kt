@@ -78,14 +78,7 @@ fun StationCard(
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {
-                    if (onDeleteClick != null || onEditClick != null) {
-                        showMenu = true
-                    }
-                }
-            ),
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         border = if (isCurrentlyPlaying) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
     ) {
@@ -125,13 +118,20 @@ fun StationCard(
                     contentDescription = stringResource(R.string.home_cd_favorite),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.TopStart)
                         .padding(8.dp)
                 )
             }
 
             if (onDeleteClick != null || onEditClick != null) {
-                Box(modifier = Modifier.align(Alignment.Center)) {
+                Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.home_cd_more_options),
+                            tint = Color.White
+                        )
+                    }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
