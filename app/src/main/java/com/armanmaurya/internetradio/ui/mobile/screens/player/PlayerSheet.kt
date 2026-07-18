@@ -1,9 +1,14 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.player
 
 import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.SleepTimerDialog
 
-import android.text.format.DateUtils
-import android.widget.NumberPicker
+import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.history.HistoryTab
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.TrackPill
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.TrackDialog
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.Controls
+import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.recordings.RecordingsTab
+import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.about.AboutTab
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
@@ -13,13 +18,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -33,8 +33,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
@@ -50,16 +48,13 @@ import androidx.compose.ui.unit.lerp
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
@@ -72,12 +67,6 @@ import kotlin.math.roundToInt
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.BoundsTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
-import androidx.compose.ui.zIndex
 
 fun Modifier.collapseHeight(progress: Float) = this.layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
@@ -661,137 +650,14 @@ fun PlayerSheetContent(
                     }
                     val isSearchExpanded = searchDialogTrack != null
 
-                    // Wrap in Box with invisible placeholder to prevent layout shift when pill hides
-                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                        // Invisible placeholder — keeps the space reserved always
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .alpha(0f)
-                                .padding(start = 12.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = displayTrack,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                modifier = Modifier.weight(1f).padding(vertical = 4.dp)
-                            )
-                            Spacer(modifier = Modifier.size(36.dp))
-                            Spacer(modifier = Modifier.size(36.dp))
-                        }
-
-                        // PILL: visible when dialog is closed
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = !isSearchExpanded,
-                            enter = fadeIn(tween(300)),
-                            exit = fadeOut(tween(300))
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .sharedBounds(
-                                        sharedContentState = rememberSharedContentState(key = "search_container"),
-                                        animatedVisibilityScope = this,
-                                        enter = fadeIn(tween(300)),
-                                        exit = fadeOut(tween(300)),
-                                        boundsTransform = { _, _ ->
-                                            tween(durationMillis = 350)
-                                        },
-                                        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(12.dp))
-                                    )
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
-                                        if (displayTrack != bufferingText && displayTrack != noTrackDataText) {
-                                            searchDialogTrack = displayTrack
-                                        }
-                                    }
-                                    .padding(start = 12.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = displayTrack,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    textAlign = TextAlign.Start,
-                                    maxLines = 1,
-                                    modifier = Modifier
-                                        .sharedElement(
-                                            sharedContentState = rememberSharedContentState(key = "track_text"),
-                                            animatedVisibilityScope = this@AnimatedVisibility,
-                                            boundsTransform = { _, _ ->
-                                                tween(durationMillis = 350)
-                                            }
-                                        )
-                                        .weight(1f)
-                                        .padding(vertical = 4.dp)
-                                        .basicMarquee()
-                                )
-                                // Decorative icons — no click, the whole pill row handles tap
-                                Box(
-                                    modifier = Modifier.size(36.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_youtube),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .sharedElement(
-                                                sharedContentState = rememberSharedContentState(key = "youtube_icon"),
-                                                animatedVisibilityScope = this@AnimatedVisibility,
-                                                boundsTransform = { _, _ ->
-                                                    tween(durationMillis = 350)
-                                                }
-                                            )
-                                            .size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Box(
-                                    modifier = Modifier.size(36.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_spotify),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .sharedElement(
-                                                sharedContentState = rememberSharedContentState(key = "spotify_icon"),
-                                                animatedVisibilityScope = this@AnimatedVisibility,
-                                                boundsTransform = { _, _ ->
-                                                    tween(durationMillis = 350)
-                                                }
-                                            )
-                                            .size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Box(
-                                    modifier = Modifier.size(36.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_google),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .sharedElement(
-                                                sharedContentState = rememberSharedContentState(key = "google_icon"),
-                                                animatedVisibilityScope = this@AnimatedVisibility,
-                                                boundsTransform = { _, _ ->
-                                                    tween(durationMillis = 350)
-                                                }
-                                            )
-                                            .size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    val canSearch = displayTrack != bufferingText && displayTrack != noTrackDataText
+                    
+                    TrackPill(
+                        displayTrack = displayTrack,
+                        canSearch = canSearch,
+                        isSearchExpanded = isSearchExpanded,
+                        onOpenSearch = { track -> searchDialogTrack = track }
+                    )
 
                     // Waveform UI Pill
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -843,146 +709,28 @@ fun PlayerSheetContent(
                             }
                         }
                     }
-
-                    /*
-                    val countryLanguageText = buildString {
-                        if (station.country.isNotBlank()) append(station.country)
-                        if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
-                        if (station.language.isNotBlank()) append(station.language)
-                    }
-
-                    if (station.tags.isNotEmpty() || countryLanguageText.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(32.dp))
-                        
-                        if (countryLanguageText.isNotBlank()) {
-                            Text(
-                                text = countryLanguageText,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
-                            if (station.tags.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                        }
-                        
-                        if (station.tags.isNotEmpty()) {
-                            Text(
-                                text = station.tags.joinToString(" · "),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState()),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                    */
                 } // End of Main controls column
 
                 // Spacer above controls to push them down
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Controls Row
-                Row(
-                    modifier = Modifier
-                        .widthIn(max = 480.dp)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .collapseHeight(historyProgress)
-                        .alpha(1f - historyProgress),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FilledTonalIconButton(
-                        onClick = { showSleepTimerDialog = true },
-                        modifier = Modifier.weight(0.7f).height(64.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        if (playbackState.sleepTimerEndTime != null) {
-                            Box(contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(
-                                    progress = { sleepTimerProgress },
-                                    modifier = Modifier.size(28.dp),
-                                    color = LocalContentColor.current,
-                                    strokeWidth = 2.dp,
-                                    strokeCap = StrokeCap.Round
-                                )
-                                val mins = (remainingTime / 60000).toInt() + 1
-                                Text(
-                                    text = mins.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = LocalContentColor.current
-                                )
-                            }
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Timer,
-                                contentDescription = stringResource(R.string.player_sleep_timer_title),
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-
-                    FilledIconButton(
-                        onClick = onPrevious,
-                        enabled = playbackState.hasPrevious,
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SkipPrevious,
-                            contentDescription = stringResource(R.string.player_cd_previous),
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-
-                    FilledIconButton(
-                        onClick = onTogglePlayPause,
-                        modifier = Modifier.weight(2f).height(64.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-
-                    FilledIconButton(
-                        onClick = onNext,
-                        enabled = playbackState.hasNext,
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SkipNext,
-                            contentDescription = stringResource(R.string.player_cd_next),
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-
-                    FilledTonalIconButton(
-                        onClick = onToggleRecording,
-                        modifier = Modifier.weight(0.7f).height(64.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = if (isRecording) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = stringResource(R.string.player_cd_record),
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
+                Controls(
+                    historyProgress = historyProgress,
+                    sleepTimerEndTime = playbackState.sleepTimerEndTime,
+                    remainingTime = remainingTime,
+                    sleepTimerProgress = sleepTimerProgress,
+                    hasPrevious = playbackState.hasPrevious,
+                    hasNext = playbackState.hasNext,
+                    isPlaying = playbackState.isPlaying,
+                    isLoading = playbackState.isLoading,
+                    isRecording = isRecording,
+                    onOpenSleepTimer = { showSleepTimerDialog = true },
+                    onPrevious = onPrevious,
+                    onTogglePlayPause = onTogglePlayPause,
+                    onNext = onNext,
+                    onToggleRecording = onToggleRecording
+                )
 
                 // Spacer below controls to center them
                 Spacer(modifier = Modifier.weight(1f))
@@ -1186,7 +934,7 @@ fun PlayerSheetContent(
                     }
                 }
 
-                // Track History & Recordings Panel Content
+                // Tab Panel Content
                 if (historyProgress > 0f) {
                     @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
                     androidx.compose.foundation.pager.HorizontalPager(
@@ -1197,468 +945,23 @@ fun PlayerSheetContent(
                             .alpha(historyProgress)
                     ) { page ->
                         if (page == 0) {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp)
-                                    .nestedScroll(nestedScrollConnection)
-                            ) {
-                                if (trackHistory.isEmpty()) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.player_no_tracks_played),
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    items(trackHistory.size) { index ->
-                                        val track = trackHistory[index]
-                                        val time = DateUtils.getRelativeTimeSpanString(
-                                            track.timestamp,
-                                            System.currentTimeMillis(),
-                                            DateUtils.MINUTE_IN_MILLIS,
-                                            DateUtils.FORMAT_ABBREV_RELATIVE
-                                        ).toString()
-                                        
-                                        var isExpanded by remember { mutableStateOf(false) }
-                                        
-                                        val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
-                                        @OptIn(ExperimentalFoundationApi::class)
-                                        Column(
-                                            modifier = Modifier
-                                                .padding(vertical = 4.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(
-                                                    if (isPureBlack) androidx.compose.ui.graphics.Color.Black 
-                                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                                )
-                                                .then(
-                                                    if (isPureBlack) Modifier.border(
-                                                        1.dp,
-                                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                        RoundedCornerShape(12.dp)
-                                                    ) else Modifier
-                                                )
-                                                .animateContentSize()
-                                        ) {
-                                            ListItem(
-                                                modifier = Modifier
-                                                    .combinedClickable(
-                                                        onClick = { isExpanded = !isExpanded },
-                                                        onLongClick = {
-                                                            clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                            Toast.makeText(context, context.getString(R.string.player_copied_track_to_clipboard), Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    ),
-                                                headlineContent = {
-                                                    Text(
-                                                        text = track.trackTitle,
-                                                        style = MaterialTheme.typography.bodyLarge,
-                                                        maxLines = 1,
-                                                        modifier = Modifier.basicMarquee()
-                                                    )
-                                                },
-                                                trailingContent = {
-                                                    Text(
-                                                        text = time,
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                },
-                                                leadingContent = {
-                                                    Icon(
-                                                        imageVector = Icons.Default.MusicNote,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.primary
-                                                    )
-                                                },
-                                                colors = ListItemDefaults.colors(
-                                                    containerColor = androidx.compose.ui.graphics.Color.Transparent
-                                                )
-                                            )
-                                            
-                                            AnimatedVisibility(
-                                                visible = isExpanded,
-                                                enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
-                                                exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                                                    horizontalArrangement = Arrangement.SpaceEvenly,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    IconButton(
-                                                        onClick = {
-                                                            clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                            Toast.makeText(context, context.getString(R.string.player_copied_to_clipboard), Toast.LENGTH_SHORT).show()
-                                                            isExpanded = false
-                                                        }
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.ContentCopy,
-                                                            contentDescription = stringResource(R.string.player_cd_copy_track_name),
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            modifier = Modifier.size(32.dp)
-                                                        )
-                                                    }
-                                                    
-                                                    IconButton(
-                                                        onClick = {
-                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
-                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/results?search_query=$query"))
-                                                            context.startActivity(intent)
-                                                            isExpanded = false
-                                                        }
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(id = R.drawable.ic_youtube),
-                                                            contentDescription = stringResource(R.string.player_cd_search_youtube),
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            modifier = Modifier.size(32.dp)
-                                                        )
-                                                    }
-                                                    
-                                                    IconButton(
-                                                        onClick = {
-                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
-                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("spotify:search:$query"))
-                                                            try {
-                                                                context.startActivity(intent)
-                                                            } catch (e: Exception) {
-                                                                val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://open.spotify.com/search/$query"))
-                                                                context.startActivity(webIntent)
-                                                            }
-                                                            isExpanded = false
-                                                        }
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(id = R.drawable.ic_spotify),
-                                                            contentDescription = stringResource(R.string.player_cd_search_spotify),
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            modifier = Modifier.size(32.dp)
-                                                        )
-                                                    }
-                                                    
-                                                    IconButton(
-                                                        onClick = {
-                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
-                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=$query"))
-                                                            context.startActivity(intent)
-                                                            isExpanded = false
-                                                        }
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(id = R.drawable.ic_google),
-                                                            contentDescription = stringResource(R.string.player_cd_search_google),
-                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            modifier = Modifier.size(32.dp)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            HistoryTab(
+                                trackHistory = trackHistory,
+                                listState = listState,
+                                nestedScrollConnection = nestedScrollConnection
+                            )
                         } else if (page == 1) {
-                            var expandedRecording by remember { mutableStateOf<com.armanmaurya.internetradio.data.repository.RecordingFile?>(null) }
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp)
-                                    .nestedScroll(nestedScrollConnection)
-                            ) {
-                                if (stationRecordings.isEmpty()) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier.fillParentMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.general_no_recordings),
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    items(stationRecordings.size) { index ->
-                                        val recording = stationRecordings[index]
-                                        val isExpanded = expandedRecording?.uri == recording.uri
-                                        
-                                        com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem(
-                                            recording = recording,
-                                            isExpanded = isExpanded,
-                                            onClick = {
-                                                expandedRecording = if (isExpanded) null else recording
-                                            }
-                                        )
-                                    }
-                                }
-                            }
+                            RecordingsTab(
+                                stationRecordings = stationRecordings,
+                                listState = listState,
+                                nestedScrollConnection = nestedScrollConnection
+                            )
                         } else if (page == 2) {
-                            val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 24.dp)
-                                    .nestedScroll(nestedScrollConnection),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                item {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = stringResource(R.string.player_station_info),
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                
-                                if (station.country.isNotBlank() || station.language.isNotBlank()) {
-                                    item {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            if (station.country.isNotBlank()) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                        .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
-                                                        .then(
-                                                            if (isPureBlack) Modifier.border(
-                                                                1.dp,
-                                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                                RoundedCornerShape(12.dp)
-                                                            ) else Modifier
-                                                        )
-                                                        .padding(vertical = 12.dp),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Public,
-                                                            contentDescription = stringResource(R.string.edit_station_country_field),
-                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                            modifier = Modifier.size(18.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(6.dp))
-                                                        Text(
-                                                            text = station.country,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            maxLines = 1,
-                                                            modifier = Modifier.basicMarquee()
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            
-                                            if (station.country.isNotBlank() && station.language.isNotBlank()) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(20.dp)
-                                                        .height(if (isPureBlack) 1.dp else 4.dp)
-                                                        .background(if (isPureBlack) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primaryContainer)
-                                                )
-                                            }
-                                            
-                                            if (station.language.isNotBlank()) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                        .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
-                                                        .then(
-                                                            if (isPureBlack) Modifier.border(
-                                                                1.dp,
-                                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                                RoundedCornerShape(12.dp)
-                                                            ) else Modifier
-                                                        )
-                                                        .padding(vertical = 12.dp),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Language,
-                                                            contentDescription = stringResource(R.string.edit_station_language_field),
-                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                            modifier = Modifier.size(18.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(6.dp))
-                                                        Text(
-                                                            text = station.language,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            maxLines = 1,
-                                                            modifier = Modifier.basicMarquee()
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                if (station.tags.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            text = stringResource(R.string.player_label_tags),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        )
-                                        
-                                        @OptIn(ExperimentalLayoutApi::class)
-                                        FlowRow(
-                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            station.tags.forEach { tag ->
-                                                SuggestionChip(
-                                                    onClick = { },
-                                                    label = { Text(tag) },
-                                                    colors = SuggestionChipDefaults.suggestionChipColors(
-                                                        containerColor = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.secondaryContainer,
-                                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                    ),
-                                                    border = if (isPureBlack) SuggestionChipDefaults.suggestionChipBorder(
-                                                        enabled = true,
-                                                        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                        borderWidth = 1.dp
-                                                    ) else null
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                                
-
-                                
-                                if (station.homepage.isNotBlank()) {
-                                    item {
-                                        Text(
-                                            text = stringResource(R.string.player_label_website),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        )
-                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-                                        Text(
-                                            text = station.homepage,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .combinedClickable(
-                                                    onClick = {
-                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.homepage))
-                                                        try {
-                                                            context.startActivity(intent)
-                                                        } catch (e: Exception) {
-                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_website), Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    },
-                                                    onLongClick = {
-                                                        clipboardManager.setText(AnnotatedString(station.homepage))
-                                                        Toast.makeText(context, context.getString(R.string.player_website_copied), Toast.LENGTH_SHORT).show()
-                                                    }
-                                                )
-                                                .padding(top = 4.dp, bottom = 8.dp)
-                                        )
-                                    }
-                                }
-                                
-                                if (station.url.isNotBlank()) {
-                                    item {
-                                        Text(
-                                            text = stringResource(R.string.edit_station_stream_url_field),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        )
-                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-                                        Text(
-                                            text = station.url,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .combinedClickable(
-                                                    onClick = {
-                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.url))
-                                                        try {
-                                                            context.startActivity(intent)
-                                                        } catch (e: Exception) {
-                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_url), Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    },
-                                                    onLongClick = {
-                                                        clipboardManager.setText(AnnotatedString(station.url))
-                                                        Toast.makeText(context, context.getString(R.string.player_stream_url_copied), Toast.LENGTH_SHORT).show()
-                                                    }
-                                                )
-                                                .padding(top = 4.dp, bottom = 8.dp)
-                                        )
-                                    }
-                                }
-                                
-                                if (station.favicon.isNotBlank()) {
-                                    item {
-                                        Text(
-                                            text = stringResource(R.string.edit_station_favicon_url_field),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        )
-                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-                                        Text(
-                                            text = station.favicon,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .combinedClickable(
-                                                    onClick = {
-                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.favicon))
-                                                        try {
-                                                            context.startActivity(intent)
-                                                        } catch (e: Exception) {
-                                                            Toast.makeText(context, context.getString(R.string.error_cannot_open_url), Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    },
-                                                    onLongClick = {
-                                                        clipboardManager.setText(AnnotatedString(station.favicon))
-                                                        Toast.makeText(context, context.getString(R.string.player_favicon_url_copied), Toast.LENGTH_SHORT).show()
-                                                    }
-                                                )
-                                                .padding(top = 4.dp, bottom = 32.dp)
-                                        )
-                                    }
-                                }
-                                
-                                item {
-                                    Spacer(modifier = Modifier.height(64.dp))
-                                }
-                            }
+                            AboutTab(
+                                station = station,
+                                listState = listState,
+                                nestedScrollConnection = nestedScrollConnection
+                            )
                         }
                     }
                 }
@@ -1666,178 +969,13 @@ fun PlayerSheetContent(
         }
     }
 
-            // DIALOG: visible when expanded — same sharedBounds key as pill = true container transform
-            AnimatedVisibility(
-                visible = searchDialogTrack != null,
-                enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(300)),
-                modifier = Modifier.zIndex(100f)
-            ) {
-                val trackToSearch = searchDialogTrack ?: ""
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.55f))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { searchDialogTrack = null }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        modifier = Modifier
-                        .sharedBounds(
-                                sharedContentState = rememberSharedContentState(key = "search_container"),
-                                animatedVisibilityScope = this@AnimatedVisibility,
-                                enter = fadeIn(tween(300)),
-                                exit = fadeOut(tween(300)),
-                                boundsTransform = { _, _ ->
-                                    tween(durationMillis = 350)
-                                },
-                                clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
-                            )
-                            .widthIn(max = 480.dp)
-                            .fillMaxWidth(0.88f)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(28.dp)
-                            )
-                            .clip(RoundedCornerShape(28.dp))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {}
-                            )
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = trackToSearch,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                modifier = Modifier
-                                    .sharedElement(
-                                        sharedContentState = rememberSharedContentState(key = "track_text"),
-                                        animatedVisibilityScope = this@AnimatedVisibility,
-                                        boundsTransform = { _, _ ->
-                                            tween(durationMillis = 350)
-                                        }
-                                    )
-                                    .weight(1f)
-                                    .basicMarquee()
-                            )
-                            IconButton(
-                                onClick = {
-                                    clipboardManager.setText(AnnotatedString(trackToSearch))
-                                    Toast.makeText(context, context.getString(R.string.player_copied_to_clipboard), Toast.LENGTH_SHORT).show()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = stringResource(R.string.player_cd_copy_track_name),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/results?search_query=$query"))
-                                    context.startActivity(intent)
-                                    searchDialogTrack = null
-                                },
-                                modifier = Modifier.size(80.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_youtube),
-                                    contentDescription = stringResource(R.string.player_cd_search_youtube),
-                                    modifier = Modifier
-                                        .sharedElement(
-                                            sharedContentState = rememberSharedContentState(key = "youtube_icon"),
-                                            animatedVisibilityScope = this@AnimatedVisibility,
-                                            boundsTransform = { _, _ ->
-                                                tween(durationMillis = 350)
-                                            }
-                                        )
-                                        .size(56.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            
-                            IconButton(
-                                onClick = {
-                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("spotify:search:$query"))
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://open.spotify.com/search/$query"))
-                                        context.startActivity(webIntent)
-                                    }
-                                    searchDialogTrack = null
-                                },
-                                modifier = Modifier.size(80.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_spotify),
-                                    contentDescription = stringResource(R.string.player_cd_search_spotify),
-                                    modifier = Modifier
-                                        .sharedElement(
-                                            sharedContentState = rememberSharedContentState(key = "spotify_icon"),
-                                            animatedVisibilityScope = this@AnimatedVisibility,
-                                            boundsTransform = { _, _ ->
-                                                tween(durationMillis = 350)
-                                            }
-                                        )
-                                        .size(56.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            
-                            IconButton(
-                                onClick = {
-                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=$query"))
-                                    context.startActivity(intent)
-                                    searchDialogTrack = null
-                                },
-                                modifier = Modifier.size(80.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_google),
-                                    contentDescription = stringResource(R.string.player_cd_search_google),
-                                    modifier = Modifier
-                                        .sharedElement(
-                                            sharedContentState = rememberSharedContentState(key = "google_icon"),
-                                            animatedVisibilityScope = this@AnimatedVisibility,
-                                            boundsTransform = { _, _ ->
-                                                tween(durationMillis = 350)
-                                            }
-                                        )
-                                        .size(56.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // DIALOG: visible when expanded — same sharedBounds key as pill = true container transform
+        TrackDialog(
+            searchDialogTrack = searchDialogTrack,
+            onDismissRequest = { searchDialogTrack = null }
+        )
     }
+}
 
 
     if (showSleepTimerDialog) {
@@ -1850,126 +988,4 @@ fun PlayerSheetContent(
     }
 }
 
-@Composable
-fun SleepTimerDialog(
-    activeTimerEndTime: Long?,
-    onDismissRequest: () -> Unit,
-    onSetTimer: (Long) -> Unit,
-    onCancelTimer: () -> Unit
-) {
-    if (activeTimerEndTime != null) {
-        var remaining by remember { mutableLongStateOf(activeTimerEndTime - System.currentTimeMillis()) }
-        LaunchedEffect(activeTimerEndTime) {
-            while (true) {
-                remaining = activeTimerEndTime - System.currentTimeMillis()
-                delay(1000)
-            }
-        }
-        
-        AlertDialog(
-            onDismissRequest = onDismissRequest,
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            title = { Text(stringResource(R.string.player_sleep_timer_title)) },
-            text = {
-                val mins = (remaining / 60000).toInt() + 1
-                Text(stringResource(R.string.player_timer_ends_in_msg, mins.toString()))
-            },
-            confirmButton = {
-                TextButton(onClick = onDismissRequest) {
-                    Text(stringResource(R.string.general_ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        onCancelTimer()
-                        onDismissRequest()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(stringResource(R.string.player_turn_off_timer))
-                }
-            }
-        )
-    } else {
-        var hours by remember { mutableIntStateOf(0) }
-        var minutes by remember { mutableIntStateOf(15) }
-        val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
-        AlertDialog(
-            onDismissRequest = onDismissRequest,
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            title = { Text(stringResource(R.string.player_set_sleep_timer)) },
-            text = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.general_hours), style = MaterialTheme.typography.labelMedium)
-                        AndroidView(
-                            factory = { context ->
-                                NumberPicker(context).apply {
-                                    minValue = 0
-                                    maxValue = 23
-                                    value = hours
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                        this.textColor = textColor
-                                    }
-                                    setOnValueChangedListener { _, _, newVal ->
-                                        hours = newVal
-                                    }
-                                }
-                            },
-                            update = { view ->
-                                view.value = hours
-                            }
-                        )
-                    }
-                    Text(":", style = MaterialTheme.typography.headlineMedium)
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.general_minutes), style = MaterialTheme.typography.labelMedium)
-                        AndroidView(
-                            factory = { context ->
-                                NumberPicker(context).apply {
-                                    minValue = 0
-                                    maxValue = 59
-                                    value = minutes
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                        this.textColor = textColor
-                                    }
-                                    setOnValueChangedListener { _, _, newVal ->
-                                        minutes = newVal
-                                    }
-                                }
-                            },
-                            update = { view ->
-                                view.value = minutes
-                            }
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val durationMillis = (hours * 60 * 60 * 1000L) + (minutes * 60 * 1000L)
-                    if (durationMillis > 0) {
-                        onSetTimer(durationMillis)
-                    }
-                    onDismissRequest()
-                }) {
-                    Text(stringResource(R.string.player_start_button))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissRequest) {
-                    Text(stringResource(R.string.general_cancel))
-                }
-            }
-        )
-    }
-}
+
