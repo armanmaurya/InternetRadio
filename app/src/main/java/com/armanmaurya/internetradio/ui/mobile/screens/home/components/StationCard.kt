@@ -33,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -108,6 +110,24 @@ fun StationCard(
                     .fillMaxSize()
                     .background(gradientBrush)
             )
+
+            // Top-Right Corner Gradient for Icon Visibility
+            if (onDeleteClick != null || onEditClick != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawWithCache {
+                            val radialGradient = Brush.radialGradient(
+                                colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent),
+                                center = Offset(size.width, 0f),
+                                radius = size.width * 0.4f
+                            )
+                            onDrawBehind {
+                                drawRect(radialGradient)
+                            }
+                        }
+                )
+            }
 
             if (isCurrentlyPlaying) {
                 Box(

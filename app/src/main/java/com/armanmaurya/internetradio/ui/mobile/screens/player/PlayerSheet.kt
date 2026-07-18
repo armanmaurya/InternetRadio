@@ -970,13 +970,16 @@ fun PlayerSheetContent(
                     FilledTonalIconButton(
                         onClick = onToggleRecording,
                         modifier = Modifier.weight(0.7f).height(64.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(20.dp),
+                        colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = if (isRecording) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = stringResource(R.string.player_cd_record),
-                            modifier = Modifier.size(28.dp),
-                            tint = if (isRecording) MaterialTheme.colorScheme.error else LocalContentColor.current
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
