@@ -55,6 +55,7 @@ fun RadioSearchBar(
     onLanguageClick: () -> Unit,
     onTagClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSearch: (String) -> Unit = {},
     selectedCountryCode: String?,
     selectedLanguage: String?,
     selectedTags: Set<String>,
@@ -85,7 +86,10 @@ fun RadioSearchBar(
                 } else Modifier,
                 query = query,
                 onQueryChange = onQueryChange,
-                onSearch = { onExpandedChange(false) },
+                onSearch = { 
+                    onSearch(it)
+                    onExpandedChange(false)
+                },
                 expanded = isSearchExpanded,
                 onExpandedChange = onExpandedChange,
                 placeholder = { Text(stringResource(R.string.general_search)) },

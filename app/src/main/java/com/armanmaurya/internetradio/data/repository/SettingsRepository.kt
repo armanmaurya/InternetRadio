@@ -46,6 +46,7 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
         val RESUME_STATION = stringPreferencesKey("resume_station")
+        val AUTO_ROUTE_TO_BROWSE_ON_SEARCH = booleanPreferencesKey("auto_route_to_browse_on_search")
         val IS_GRID_VIEW_BROWSE = booleanPreferencesKey("is_grid_view_browse")
         val IS_GRID_VIEW_RECENT = booleanPreferencesKey("is_grid_view_recent")
         val IS_GRID_VIEW_FAVORITES = booleanPreferencesKey("is_grid_view_favorites")
@@ -85,6 +86,7 @@ class SettingsRepository @Inject constructor(
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
             val resumeStation = preferences[PreferencesKeys.RESUME_STATION]
+            val autoRouteToBrowseOnSearch = preferences[PreferencesKeys.AUTO_ROUTE_TO_BROWSE_ON_SEARCH] ?: true
             val isGridViewBrowse = preferences[PreferencesKeys.IS_GRID_VIEW_BROWSE] ?: true
             val isGridViewRecent = preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] ?: true
             val isGridViewFavorites = preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] ?: true
@@ -114,6 +116,7 @@ class SettingsRepository @Inject constructor(
                 useFilterOnFavorites = useFilterOnFavorites,
                 useFilterOnAdded = useFilterOnAdded,
                 resumeStation = resumeStation,
+                autoRouteToBrowseOnSearch = autoRouteToBrowseOnSearch,
                 isGridViewBrowse = isGridViewBrowse,
                 isGridViewRecent = isGridViewRecent,
                 isGridViewFavorites = isGridViewFavorites,
@@ -130,6 +133,10 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setUseFilterOnRecent(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_RECENT] = enabled }
+    }
+
+    suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.AUTO_ROUTE_TO_BROWSE_ON_SEARCH] = enabled }
     }
 
     suspend fun setAutoPlayOnStart(enabled: Boolean) {

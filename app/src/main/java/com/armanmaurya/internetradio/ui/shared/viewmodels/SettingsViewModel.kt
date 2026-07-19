@@ -65,6 +65,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setAutoRouteToBrowseOnSearch(enabled)
+        }
+    }
+
     fun setAutoPlayOnStart(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoPlayOnStart(enabled)

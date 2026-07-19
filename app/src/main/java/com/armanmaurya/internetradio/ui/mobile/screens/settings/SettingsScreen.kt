@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.automirrored.filled.CallMerge
@@ -133,7 +134,8 @@ fun SettingsScreen(
                 onSetLanguage = viewModel::setAppLanguage,
                 defaultTabExpanded = defaultTabExpanded,
                 onToggleDefaultTabExpanded = { defaultTabExpanded = !defaultTabExpanded },
-                onSetDefaultTab = viewModel::setDefaultTab
+                onSetDefaultTab = viewModel::setDefaultTab,
+                onSetAutoRouteToBrowseOnSearch = viewModel::setAutoRouteToBrowseOnSearch
             )
             PlayerSection(
                 uiState = uiState,
@@ -265,7 +267,8 @@ private fun GeneralSection(
     onSetLanguage: (String) -> Unit,
     defaultTabExpanded: Boolean,
     onToggleDefaultTabExpanded: () -> Unit,
-    onSetDefaultTab: (Int) -> Unit
+    onSetDefaultTab: (Int) -> Unit,
+    onSetAutoRouteToBrowseOnSearch: (Boolean) -> Unit
 ) {
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val activeLanguageCode = if (currentLocales.isEmpty) {
@@ -308,6 +311,14 @@ private fun GeneralSection(
                 )
             }
         }
+
+        ToggleItem(
+            title = stringResource(R.string.settings_auto_route_search_title),
+            subtitle = stringResource(R.string.settings_auto_route_search_subtitle),
+            isEnabled = uiState.autoRouteToBrowseOnSearch,
+            onToggle = onSetAutoRouteToBrowseOnSearch,
+            icon = Icons.Default.Search
+        )
     }
 }
 

@@ -176,6 +176,7 @@ fun HomeScreen(
                 onLanguageClick = onLanguageClick,
                 onTagClick = onTagClick,
                 onSettingsClick = onSettingsClick,
+                onSearch = { if (uiState.autoRouteToBrowseOnSearch) viewModel.onTabSelected(0) },
                 selectedCountryCode = uiState.selectedCountryCode,
                 selectedLanguage = uiState.selectedLanguage,
                 selectedTags = uiState.selectedTags
@@ -194,6 +195,9 @@ fun HomeScreen(
                                 .clickable {
                                     viewModel.onSearchQueryChange(station.name)
                                     isSearchExpanded = false
+                                    if (uiState.autoRouteToBrowseOnSearch) {
+                                        viewModel.onTabSelected(0)
+                                    }
                                 }
                         )
                     }
@@ -422,6 +426,7 @@ fun HomeScreen(
                             onLanguageClick = onLanguageClick,
                             onTagClick = onTagClick,
                             onSettingsClick = onSettingsClick,
+                            onSearch = { if (uiState.autoRouteToBrowseOnSearch) viewModel.onTabSelected(0) },
                             selectedCountryCode = uiState.selectedCountryCode,
                             selectedLanguage = uiState.selectedLanguage,
                             selectedTags = uiState.selectedTags,
@@ -441,6 +446,9 @@ fun HomeScreen(
                                             .clickable {
                                                 viewModel.onSearchQueryChange(station.name)
                                                 isSearchExpanded = false
+                                                if (uiState.autoRouteToBrowseOnSearch) {
+                                                    viewModel.onTabSelected(0)
+                                                }
                                             }
                                     )
                                 }

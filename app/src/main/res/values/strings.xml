@@ -57,6 +57,8 @@
     <string name="settings_pure_black_subtitle">Use pure black background in dark mode</string>
     <string name="settings_general_section">General</string>
     <string name="settings_language_title">Language</string>
+    <string name="settings_auto_route_search_title">Auto-route on Search</string>
+    <string name="settings_auto_route_search_subtitle">Automatically switch to the Browse tab when searching</string>
     <string name="settings_auto_play">Auto play on start</string>
     <string name="settings_auto_play_desc">Play the last listened station when app starts</string>
     <string name="settings_default_tab">Default Tab on Startup</string>
