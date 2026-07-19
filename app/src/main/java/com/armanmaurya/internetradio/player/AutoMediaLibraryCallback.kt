@@ -275,6 +275,34 @@ class AutoMediaLibraryCallback @Inject constructor(
 
     // ─── Playback request from car ────────────────────────────────────────────
 
+    @OptIn(UnstableApi::class)
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        val future = com.google.common.util.concurrent.SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+        searchScope.launch {
+            try {
+                val prefs = settingsRepository.appPreferencesFlow.first()
+                if (!prefs.autoPlayOnStart) {
+                    future.setException(UnsupportedOperationException("Auto Play on Start is disabled"))
+                    return@launch
+                }
+
+                val station = recentRepository.getAllRecent().first().firstOrNull()
+                if (station != null) {
+                    val mediaItem = station.toMediaItem(context)
+                    future.set(MediaSession.MediaItemsWithStartPosition(listOf(mediaItem), 0, 0L))
+                } else {
+                    future.setException(UnsupportedOperationException("No recent station found"))
+                }
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
+    }
+
     /**
      * The car host sends a MediaItem that may only have a mediaId (no URI).
      * We resolve the full item with stream URI from our local cache so ExoPlayer

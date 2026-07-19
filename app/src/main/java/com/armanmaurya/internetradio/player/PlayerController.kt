@@ -194,16 +194,16 @@ class PlayerController @Inject constructor(
                         val station = recentRepository.getAllRecent().first().firstOrNull()
                         if (station != null) {
                             try {
-                                currentPlaylist = listOf(station)
-                                activeStation = station
-                                _playbackState.update { state ->
-                                    state.copy(
-                                        isPlaying = autoPlay,
-                                        currentStation = station
-                                    )
-                                }
-                                it.setMediaItem(station.toMediaItem())
                                 if (autoPlay) {
+                                    currentPlaylist = listOf(station)
+                                    activeStation = station
+                                    _playbackState.update { state ->
+                                        state.copy(
+                                            isPlaying = true,
+                                            currentStation = station
+                                        )
+                                    }
+                                    it.setMediaItem(station.toMediaItem())
                                     it.prepare()
                                     it.play()
                                 }
