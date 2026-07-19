@@ -45,7 +45,6 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_RECENT = booleanPreferencesKey("use_filter_on_recent")
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
-        val RESUME_STATION = stringPreferencesKey("resume_station")
         val AUTO_ROUTE_TO_BROWSE_ON_SEARCH = booleanPreferencesKey("auto_route_to_browse_on_search")
         val IS_GRID_VIEW_BROWSE = booleanPreferencesKey("is_grid_view_browse")
         val IS_GRID_VIEW_RECENT = booleanPreferencesKey("is_grid_view_recent")
@@ -85,7 +84,6 @@ class SettingsRepository @Inject constructor(
             val useFilterOnRecent = preferences[PreferencesKeys.USE_FILTER_ON_RECENT] ?: false
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
-            val resumeStation = preferences[PreferencesKeys.RESUME_STATION]
             val autoRouteToBrowseOnSearch = preferences[PreferencesKeys.AUTO_ROUTE_TO_BROWSE_ON_SEARCH] ?: true
             val isGridViewBrowse = preferences[PreferencesKeys.IS_GRID_VIEW_BROWSE] ?: true
             val isGridViewRecent = preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] ?: true
@@ -115,7 +113,6 @@ class SettingsRepository @Inject constructor(
                 useFilterOnRecent = useFilterOnRecent,
                 useFilterOnFavorites = useFilterOnFavorites,
                 useFilterOnAdded = useFilterOnAdded,
-                resumeStation = resumeStation,
                 autoRouteToBrowseOnSearch = autoRouteToBrowseOnSearch,
                 isGridViewBrowse = isGridViewBrowse,
                 isGridViewRecent = isGridViewRecent,
@@ -153,16 +150,6 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setUseFilterOnAdded(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.USE_FILTER_ON_ADDED] = enabled }
-    }
-
-    suspend fun setResumeStation(stationJson: String?) {
-        context.dataStore.edit { preferences ->
-            if (stationJson == null) {
-                preferences.remove(PreferencesKeys.RESUME_STATION)
-            } else {
-                preferences[PreferencesKeys.RESUME_STATION] = stationJson
-            }
-        }
     }
 
     suspend fun setThemeMode(themeMode: AppTheme) {

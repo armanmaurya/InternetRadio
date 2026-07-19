@@ -11,7 +11,7 @@ import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.gson.Gson
+import com.armanmaurya.internetradio.data.repository.RecentRepository
 import com.armanmaurya.internetradio.data.repository.StationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +32,7 @@ class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val stationRepository: StationRepository,
+    private val recentRepository: RecentRepository,
     private val recordingManager: RecordingManager
 ) {
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -66,16 +67,6 @@ class PlayerController @Inject constructor(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _playbackState.update { it.copy(isPlaying = isPlaying) }
-            scope.launch {
-                if (isPlaying) {
-                    activeStation?.let { station ->
-                        val stationJson = Gson().toJson(station)
-                        settingsRepository.setResumeStation(stationJson)
-                    }
-                } else {
-                    settingsRepository.setResumeStation(null)
-                }
-            }
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -119,6 +110,7 @@ class PlayerController @Inject constructor(
             if (tagStation != null) {
                 activeStation = tagStation
                 _playbackState.update { it.copy(currentStation = activeStation, currentTrack = null) }
+                scope.launch { recentRepository.addRecentStation(tagStation) }
             }
             
             // Check if we need to load more
@@ -198,25 +190,22 @@ class PlayerController @Inject constructor(
                     
                     scope.launch {
                         val prefs = settingsRepository.appPreferencesFlow.first()
-                        val resumeStationJson = prefs.resumeStation
                         val autoPlay = prefs.autoPlayOnStart
-                        if (resumeStationJson != null) {
+                        val station = recentRepository.getAllRecent().first().firstOrNull()
+                        if (station != null) {
                             try {
-                                val station = Gson().fromJson(resumeStationJson, RadioStation::class.java)
-                                if (station != null) {
-                                    currentPlaylist = listOf(station)
-                                    activeStation = station
-                                    _playbackState.update { state ->
-                                        state.copy(
-                                            isPlaying = autoPlay,
-                                            currentStation = station
-                                        )
-                                    }
-                                    it.setMediaItem(station.toMediaItem())
-                                    if (autoPlay) {
-                                        it.prepare()
-                                        it.play()
-                                    }
+                                currentPlaylist = listOf(station)
+                                activeStation = station
+                                _playbackState.update { state ->
+                                    state.copy(
+                                        isPlaying = autoPlay,
+                                        currentStation = station
+                                    )
+                                }
+                                it.setMediaItem(station.toMediaItem())
+                                if (autoPlay) {
+                                    it.prepare()
+                                    it.play()
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
