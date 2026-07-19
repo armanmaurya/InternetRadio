@@ -146,6 +146,8 @@
     <string name="home_no_stations_found_for">No stations found for \"%1$s\"</string>
     <string name="home_no_library_stations_filter">No library stations found with filter</string>
     <string name="home_no_library_stations_yet">No library stations yet</string>
+    <string name="home_clear_recent_title">Clear recent history?</string>
+    <string name="home_clear_recent_message">Are you sure you want to clear all your recent stations? This action cannot be undone.</string>
 
     <!-- ========================================== -->
     <!-- 8. SELECT COUNTRY                          -->

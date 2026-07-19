@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +46,7 @@ fun StationListCard(
     modifier: Modifier = Modifier,
     onDeleteClick: (() -> Unit)? = null,
     onEditClick: (() -> Unit)? = null,
+    onRemoveFromRecentClick: (() -> Unit)? = null,
     isCurrentlyPlaying: Boolean = false,
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
@@ -145,7 +147,7 @@ fun StationListCard(
                 )
             }
 
-            if (onEditClick != null || onDeleteClick != null) {
+            if (onDeleteClick != null || onEditClick != null || onRemoveFromRecentClick != null) {
                 var showMenu by remember { mutableStateOf(false) }
                 Box {
                     IconButton(onClick = { showMenu = true }) {
@@ -180,6 +182,18 @@ fun StationListCard(
                                 },
                                 leadingIcon = {
                                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                }
+                            )
+                        }
+                        if (onRemoveFromRecentClick != null) {
+                            DropdownMenuItem(
+                                text = { Text("Remove from recent") },
+                                onClick = {
+                                    showMenu = false
+                                    onRemoveFromRecentClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.History, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                                 }
                             )
                         }

@@ -16,7 +16,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.DeleteSweep
 import kotlinx.coroutines.launch
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -55,6 +57,8 @@ fun RecentContent(
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
+    var showClearDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
     val isLoading = recentStations == null
     Crossfade(
         targetState = isLoading,
@@ -92,16 +96,34 @@ fun RecentContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
-                    androidx.compose.animation.AnimatedContent(
-                        targetState = isGridView,
-                        label = "view_toggle"
-                    ) { isGrid ->
-                        Icon(
-                            imageVector = if (isGrid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.ViewModule,
-                            contentDescription = stringResource(R.string.home_toggle_view),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
+                        androidx.compose.animation.AnimatedContent(
+                            targetState = isGridView,
+                            label = "view_toggle"
+                        ) { isGrid ->
+                            Icon(
+                                imageVector = if (isGrid) Icons.AutoMirrored.Filled.ViewList else Icons.Filled.ViewModule,
+                                contentDescription = stringResource(R.string.home_toggle_view),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    if (currentStations.isNotEmpty()) {
+                        androidx.compose.material3.TextButton(
+                            onClick = { showClearDialog = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.general_clear),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
 
@@ -137,7 +159,6 @@ fun RecentContent(
                 }
             }
         }
-
         if (currentStations.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
@@ -167,7 +188,8 @@ fun RecentContent(
                             .animateItem(),
                         isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                         isPlaybackActive = isPlaybackActive,
-                        isFavorite = libraryStationUuids.contains(station.stationUuid)
+                        isFavorite = libraryStationUuids.contains(station.stationUuid),
+                        onRemoveFromRecentClick = { viewModel.removeRecent(station.stationUuid) }
                     )
                 } else {
                     StationListCard(
@@ -178,7 +200,8 @@ fun RecentContent(
                             .animateItem(),
                         isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                         isPlaybackActive = isPlaybackActive,
-                        isFavorite = libraryStationUuids.contains(station.stationUuid)
+                        isFavorite = libraryStationUuids.contains(station.stationUuid),
+                        onRemoveFromRecentClick = { viewModel.removeRecent(station.stationUuid) }
                     )
                 }
             }
@@ -210,5 +233,28 @@ fun RecentContent(
                 }
             }
         }
+    }
+
+    if (showClearDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text(stringResource(R.string.home_clear_recent_title)) },
+            text = { Text(stringResource(R.string.home_clear_recent_message)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        viewModel.clearAllRecent()
+                        showClearDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.general_clear))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showClearDialog = false }) {
+                    Text(stringResource(R.string.general_cancel))
+                }
+            }
+        )
     }
 }

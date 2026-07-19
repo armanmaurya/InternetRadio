@@ -90,4 +90,16 @@ class RecentViewModel @Inject constructor(
     fun onGridViewChange(isGrid: Boolean) {
         viewModelScope.launch { settingsRepository.setGridViewRecent(isGrid) }
     }
+
+    fun removeRecent(stationUuid: String) {
+        viewModelScope.launch {
+            recentRepository.removeRecent(stationUuid)
+        }
+    }
+
+    fun clearAllRecent() {
+        viewModelScope.launch {
+            recentRepository.clearAllRecent()
+        }
+    }
 }

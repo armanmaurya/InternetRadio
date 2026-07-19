@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -53,6 +54,7 @@ fun StationCard(
     modifier: Modifier = Modifier,
     onDeleteClick: (() -> Unit)? = null,
     onEditClick: (() -> Unit)? = null,
+    onRemoveFromRecentClick: (() -> Unit)? = null,
     isCurrentlyPlaying: Boolean = false,
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
@@ -151,7 +153,7 @@ fun StationCard(
                 )
             }
 
-            if (onDeleteClick != null || onEditClick != null) {
+            if (onDeleteClick != null || onEditClick != null || onRemoveFromRecentClick != null) {
                 Box(modifier = Modifier.align(Alignment.TopEnd)) {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
@@ -185,6 +187,18 @@ fun StationCard(
                                 },
                                 leadingIcon = {
                                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                }
+                            )
+                        }
+                        if (onRemoveFromRecentClick != null) {
+                            DropdownMenuItem(
+                                text = { Text("Remove from recent") },
+                                onClick = {
+                                    showMenu = false
+                                    onRemoveFromRecentClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.History, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                                 }
                             )
                         }
