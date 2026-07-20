@@ -87,13 +87,22 @@ class PlaybackService : MediaLibraryService() {
                         val currentMediaItem = currentPlayer.currentMediaItem ?: return
                         
                         // Avoid unnecessary updates
-                        if (currentMediaItem.mediaMetadata.title?.toString() == trackTitle) return
+                        val currentExtras = currentMediaItem.mediaMetadata.extras
+                        if (currentExtras?.getString("icy_title") == trackTitle) return
                         
-                        val newMetadata = currentMediaItem.mediaMetadata.buildUpon()
-                            .setTitle(trackTitle)
-                            .build()
+                        val stationName = currentExtras?.getString("stationName")
+
+                        val newExtras = android.os.Bundle(currentExtras ?: android.os.Bundle.EMPTY).apply {
+                            putString("icy_title", trackTitle)
+                        }
+
+                        val newMetadataBuilder = currentMediaItem.mediaMetadata.buildUpon()
+                            .setTitle(stationName)
+                            .setArtist(trackTitle)
+                            .setExtras(newExtras)
+                            
                         val newMediaItem = currentMediaItem.buildUpon()
-                            .setMediaMetadata(newMetadata)
+                            .setMediaMetadata(newMetadataBuilder.build())
                             .build()
                             
                         // Update metadata without interrupting playback

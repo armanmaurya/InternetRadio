@@ -148,9 +148,9 @@ class PlayerController @Inject constructor(
         }
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-            val title = mediaMetadata.title?.toString() ?: mediaMetadata.displayTitle?.toString()
-            if (title != null && title.isNotBlank() && title != activeStation?.name) {
-                _playbackState.update { it.copy(currentTrack = title) }
+            val trackInfo = mediaMetadata.artist?.toString() ?: mediaMetadata.title?.toString()
+            if (trackInfo != null && trackInfo.isNotBlank() && trackInfo != activeStation?.name) {
+                _playbackState.update { it.copy(currentTrack = trackInfo) }
             } else {
                 _playbackState.update { it.copy(currentTrack = null) }
             }
@@ -358,6 +358,9 @@ class PlayerController @Inject constructor(
                 MediaMetadata.Builder()
                     .setTitle(this.name)
                     .setArtworkUri(artworkUri)
+                    .setExtras(android.os.Bundle().apply {
+                        putString("stationName", this@toMediaItem.name)
+                    })
                     .build()
             )
             .setTag(this)
