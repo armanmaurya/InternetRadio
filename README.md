@@ -83,6 +83,12 @@ Contributions are what make the open-source community such an amazing place to l
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
+## Translation
+
+Translations are managed on <a href="https://hosted.weblate.org/projects/internetradio/">Weblate</a> — no local setup needed, contribute directly from your browser.
+
+<a href="https://hosted.weblate.org/engage/internetradio/"><img src="https://hosted.weblate.org/widget/internetradio/multi-auto.svg"></a>
+
 ## Open Source Libraries
 
 InternetRadio uses the following open-source libraries:
