@@ -5,6 +5,7 @@
     <!-- ========================================== -->
     <string name="app_name">Internet Radio</string>
     <string name="version_format">Version %1$s</string>
+
     <!-- ========================================== -->
     <!-- 2. GENERAL ACTIONS                         -->
     <!-- ========================================== -->
@@ -22,6 +23,7 @@
     <string name="cd_close_search">Suche schließen</string>
     <string name="cd_search">Suchen</string>
     <string name="cd_clear_search">Suche löschen</string>
+
     <!-- ========================================== -->
     <!-- 3. GENERAL LABELS                          -->
     <!-- ========================================== -->
@@ -31,6 +33,7 @@
     <string name="general_unknown">Unbekannt</string>
     <string name="general_station_count_msg">%1$d Sender</string>
     <string name="general_no_recordings">Bisher keine Aufnahmen</string>
+
     <!-- ========================================== -->
     <!-- 4. ERRORS                                  -->
     <!-- ========================================== -->
@@ -40,6 +43,7 @@
     <string name="error_invalid_url">Ungültige URL</string>
     <string name="error_cannot_open_website">Webseite kann nicht geöffnet werden</string>
     <string name="error_cannot_open_url">URL kann nicht geöffnet werden</string>
+
     <!-- ========================================== -->
     <!-- 5. SETTINGS                                -->
     <!-- ========================================== -->
@@ -85,6 +89,7 @@
     <string name="settings_checking_for_updates">Suche nach App-Updates...</string>
     <string name="settings_no_update_available">Keine Updates verfügbar</string>
     <string name="settings_theme_system">Systemstandard</string>
+
     <!-- ========================================== -->
     <!-- 6b. BACKUP & RESTORE                       -->
     <!-- ========================================== -->
@@ -96,10 +101,11 @@
     <string name="settings_conflict_overwrite_desc">Immer die Version der Sicherung verwenden</string>
     <string name="settings_conflict_keep_newer">Neuere Version verwenden</string>
     <string name="settings_conflict_keep_newer_desc">Die zuletzt hinzugefügte Version verwenden</string>
-    <string name="settings_export_title">Sender exportieren</string>
-    <string name="settings_export_subtitle">Sender in einer Datei sichern</string>
-    <string name="settings_import_title">Sender importieren</string>
-    <string name="settings_import_subtitle">Sender aus einer Sicherungsdatei wiederherstellen</string>
+    <string name="settings_export_title">Bibliothek exportieren</string>
+    <string name="settings_export_subtitle">Senderbibliothek in einer Datei sichern</string>
+    <string name="settings_import_title">Bibliothek importieren</string>
+    <string name="settings_import_subtitle">Senderbibliothek aus einer Sicherungsdatei wiederherstellen</string>
+
     <!-- ========================================== -->
     <!-- 6. ABOUT                                   -->
     <!-- ========================================== -->
@@ -116,6 +122,7 @@
     <string name="about_cd_linkedin">LinkedIn</string>
     <string name="about_cd_github">GitHub</string>
     <string name="about_cd_instagram">Instagram</string>
+
     <!-- ========================================== -->
     <!-- 7. HOME                                    -->
     <!-- ========================================== -->
@@ -160,18 +167,21 @@
     <string name="home_sort_added">Hinzugefügt</string>
     <string name="home_sort_name">Name</string>
     <string name="home_sort_custom">Individuell</string>
+
     <!-- ========================================== -->
     <!-- 8. SELECT COUNTRY                          -->
     <!-- ========================================== -->
     <string name="select_country_search">Land suchen</string>
     <string name="select_country_title">Land auswählen</string>
     <string name="select_country_all">Alle Länder</string>
+
     <!-- ========================================== -->
     <!-- 9. SELECT LANGUAGE                         -->
     <!-- ========================================== -->
     <string name="select_language_search">Sprache suchen</string>
     <string name="select_language_title">Sprache auswählen</string>
     <string name="select_language_all">Alle Sprachen</string>
+
     <!-- ========================================== -->
     <!-- 10. SELECT TAGS                            -->
     <!-- ========================================== -->
@@ -182,6 +192,7 @@
     <string name="select_tags_cd_remove_tag">Tag entfernen</string>
     <string name="select_tags_discard_changes">Änderungen verwerfen?</string>
     <string name="select_tags_discard_changes_message">Die ausgewählten Tags sind noch nicht gespeichert. Sollen diese wirklich verworfen werden?</string>
+
     <!-- ========================================== -->
     <!-- 11. EDIT STATION                           -->
     <!-- ========================================== -->
@@ -192,8 +203,10 @@
     <string name="edit_station_favicon_url_optional">Favicon-URL (Optional)</string>
     <string name="edit_station_favicon_url_field">Favicon-URL</string>
     <string name="edit_station_country_field">Land</string>
-    <string name="edit_station_language_field">Sprache</string>
-    <string name="edit_station_tags_optional">Tags (Kommatrennung)</string>
+    <string name="edit_station_language_field">Sprachen</string>
+    <string name="edit_station_add_languages">Sprachen hinzufügen</string>
+    <string name="edit_station_tags_optional">Tags</string>
+    <string name="edit_station_add_tags">Tags hinzufügen</string>
     <string name="edit_station_failed_fetch_original_data">Die Originaldaten konnten nicht abgerufen werden</string>
     <string name="edit_station_unsaved_changes">Nicht gespeicherte Änderungen</string>
     <string name="edit_station_unsaved_changes_message_exit">Die Änderungen sind noch nicht gespeichert. Sollen diese wirklich verworfen und das Programm beendet werden?</string>
@@ -202,6 +215,7 @@
     <string name="edit_station_fields_reset_message">Felder auf Originaldaten zurückgesetzt</string>
     <string name="edit_station_saved_message">Gespeichert</string>
     <string name="edit_station_cd_reset_to_original">Auf Originalzustand zurückgesetzt</string>
+
     <!-- ========================================== -->
     <!-- 12. PLAYER                                 -->
     <!-- ========================================== -->
@@ -242,6 +256,7 @@
     <string name="player_retrying_connection">Verbindung wird erneut versucht...</string>
     <string name="player_tab_lyrics">Songtext</string>
     <string name="player_lyrics_not_available">Songtext nicht verfügbar</string>
+
     <!-- ========================================== -->
     <!-- 13. CAST DIALOG                            -->
     <!-- ========================================== -->
@@ -252,6 +267,7 @@
     <string name="cast_disconnect">Trennen</string>
     <string name="cast_close">Schließen</string>
     <string name="action_retry">Wiederholen</string>
+
     <!-- ========================================== -->
     <!-- 14. SCHEDULE                               -->
     <!-- ========================================== -->
@@ -283,5 +299,9 @@
     <string name="schedule_select_time">Uhrzeit auswählen</string>
     <string name="delete_recording">Löschen</string>
     <string name="more_options">Mehr Optionen</string>
+
+    <!-- ========================================== -->
+    <!-- 15. ANDROID AUTO                           -->
+    <!-- ========================================== -->
     <string name="auto_for_you">Für dich</string>
 </resources>
