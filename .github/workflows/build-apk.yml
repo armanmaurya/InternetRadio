@@ -17,11 +17,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build RELEASE APK SAJA
+        run: ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: app-rilis
+          path: app/build/outputs/apk/release/*.apk
