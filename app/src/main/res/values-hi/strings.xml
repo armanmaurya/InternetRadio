@@ -5,6 +5,7 @@
     <!-- ========================================== -->
     <string name="app_name">Internet Radio</string>
     <string name="version_format">संस्करण %1$s</string>
+
     <!-- ========================================== -->
     <!-- 2. GENERAL ACTIONS                         -->
     <!-- ========================================== -->
@@ -23,6 +24,7 @@
     <string name="cd_search">खोजें</string>
     <string name="cd_clear_search">खोज साफ़ करें</string>
     <string name="cd_delete">हटाएँ</string>
+
     <!-- ========================================== -->
     <!-- 3. GENERAL LABELS                          -->
     <!-- ========================================== -->
@@ -32,6 +34,7 @@
     <string name="general_unknown">अज्ञात</string>
     <string name="general_station_count_msg">%1$d स्टेशन</string>
     <string name="general_no_recordings">अभी कोई रिकॉर्डिंग नहीं</string>
+
     <!-- ========================================== -->
     <!-- 4. ERRORS                                  -->
     <!-- ========================================== -->
@@ -41,6 +44,7 @@
     <string name="error_invalid_url">अमान्य URL</string>
     <string name="error_cannot_open_website">वेबसाइट नहीं खोली जा सकती</string>
     <string name="error_cannot_open_url">URL नहीं खोला जा सकता</string>
+
     <!-- ========================================== -->
     <!-- 5. SETTINGS                                -->
     <!-- ========================================== -->
@@ -53,18 +57,45 @@
     <string name="settings_theme_dark">डार्क</string>
     <string name="settings_pure_black_title">प्योर ब्लैक</string>
     <string name="settings_pure_black_subtitle">डार्क मोड में शुद्ध काले रंग की पृष्ठभूमि का उपयोग करें</string>
+    <string name="settings_pure_black_disabled_subtitle">केवल डार्क थीम सक्रिय होने पर ही उपलब्ध है</string>
+    <string name="settings_color_purple">बैंगनी</string>
+    <string name="settings_color_blue">नीला</string>
+    <string name="settings_color_teal">टील</string>
+    <string name="settings_color_green">हरा</string>
+    <string name="settings_color_yellow">पीला</string>
+    <string name="settings_color_pink">गुलाबी</string>
+    <string name="settings_color_red">लाल</string>
+    <string name="settings_color_custom">कस्टम</string>
+    <string name="settings_custom_color_title">कस्टम रंग</string>
+    <string name="settings_custom_color_hex">हेक्स रंग</string>
+    <string name="settings_custom_color_apply">लागू करें</string>
+    <string name="settings_custom_color_cancel">रद्द करें</string>
+    <string name="settings_show_station_thumbnails">स्टेशन थंबनेल दिखाएं</string>
+    <string name="settings_show_station_thumbnails_desc">सूचियों और प्लेयर में स्टेशन लोगो दिखाएं (डेटा और मेमोरी बचाने के लिए बंद करें)</string>
     <string name="settings_general_section">सामान्य</string>
     <string name="settings_language_title">भाषा</string>
     <string name="settings_auto_route_search_title">खोज पर ऑटो-रूट</string>
     <string name="settings_auto_route_search_subtitle">खोजते समय स्वचालित रूप से ब्राउज़ टैब पर जाएँ</string>
+    <string name="settings_select_all_text_on_focus_title">खोज पर सभी टेक्स्ट चुनें</string>
+    <string name="settings_select_all_text_on_focus_subtitle">फ़ोकस होने पर सर्च बार के टेक्स्ट को स्वचालित रूप से चुनें</string>
+    <string name="settings_update_section">अपडेट</string>
     <string name="settings_disable_update_check">अपडेट जाँच बंद करें</string>
     <string name="settings_disable_update_check_desc">ऐप शुरू होने पर अपडेट की स्वचालित रूप से जाँच न करें</string>
     <string name="settings_auto_play">शुरू होने पर स्वतः चलाएँ</string>
     <string name="settings_auto_play_desc">ऐप शुरू होने पर पिछला सुना गया स्टेशन चलाएँ</string>
+    <string name="settings_about_foss_edition">FOSS संस्करण</string>
+    <string name="settings_about_play_edition">Google Play संस्करण</string>
+    <string name="settings_update_up_to_date">ऐप अप-टू-डेट है</string>
+    <string name="settings_update_failed">अपडेट की जाँच विफल रही</string>
+    <string name="settings_support_app">ऐप का समर्थन करें</string>
     <string name="settings_default_tab">शुरुआत में डिफ़ॉल्ट टैब</string>
     <string name="settings_player_section">प्लेयर</string>
     <string name="settings_stop_on_audio_noisy">डिवाइस डिस्कनेक्ट होने पर रोकें</string>
     <string name="settings_stop_on_audio_noisy_desc">ब्लूटूथ या वायर्ड हेडफ़ोन के डिस्कनेक्ट होने पर प्लेबैक रोकें</string>
+    <string name="settings_pause_on_volume_zero">शून्य वॉल्यूम पर रोकें</string>
+    <string name="settings_pause_on_volume_zero_desc">डिवाइस म्यूट होने पर प्लेबैक रोकें (रिकॉर्डिंग के दौरान लागू नहीं)</string>
+    <string name="settings_keep_screen_on_title">स्क्रीन चालू रखें</string>
+    <string name="settings_keep_screen_on_desc">प्लेयर विस्तारित होने के दौरान स्क्रीन को बंद होने से रोकें</string>
     <string name="settings_show_cover_art">नोटिफिकेशन में कवर आर्ट</string>
     <string name="settings_show_cover_art_desc">लॉक स्क्रीन और नोटिफिकेशन में स्टेशन थंबनेल के बजाय ट्रैक कवर आर्ट दिखाएं</string>
     <string name="settings_max_retry_duration">पुनः प्रयास की अधिकतम अवधि</string>
@@ -75,7 +106,14 @@
     <string name="settings_retry_indefinitely">अनिश्चित काल तक</string>
     <string name="settings_check_updates">अपडेट की जाँच करें</string>
     <string name="settings_rate_review">रेट और रिव्यू करें</string>
+    <string name="settings_view_on_play_store">Play Store पर देखें</string>
     <string name="settings_track_history_limit">ट्रैक इतिहास सीमा</string>
+    <string name="settings_widget_section">विजेट</string>
+    <string name="settings_widget_transparency_title">पृष्ठभूमि अपारदर्शिता</string>
+    <string name="settings_widget_transparency_subtitle">होम स्क्रीन विजेट की पृष्ठभूमि अपारदर्शिता समायोजित करें</string>
+    <string name="settings_widget_opacity_opaque">100% (अपारदर्शी)</string>
+    <string name="settings_widget_opacity_transparent">0% (पारदर्शी)</string>
+    <string name="settings_widget_opacity_percent">%1$d%%</string>
     <string name="settings_system_default">सिस्टम डिफ़ॉल्ट</string>
     <string name="settings_start_week_title">सप्ताह का आरंभ</string>
     <string name="settings_start_week_sunday">रविवार</string>
@@ -86,8 +124,9 @@
     <string name="settings_checking_for_updates">अपडेट की जाँच हो रही है...</string>
     <string name="settings_no_update_available">कोई अपडेट उपलब्ध नहीं है</string>
     <string name="settings_theme_system">सिस्टम डिफ़ॉल्ट</string>
+
     <!-- ========================================== -->
-    <!-- 6b. BACKUP & RESTORE                       -->
+    <!-- 5b. BACKUP & RESTORE                       -->
     <!-- ========================================== -->
     <string name="settings_backup_section">बैकअप और रिस्टोर</string>
     <string name="settings_conflict_title">टकराव होने पर</string>
@@ -99,8 +138,31 @@
     <string name="settings_conflict_keep_newer_desc">जो हाल ही में जोड़ा गया हो उसे रखें</string>
     <string name="settings_export_title">स्टेशन निर्यात करें</string>
     <string name="settings_export_subtitle">अपने स्टेशन फ़ाइल में सहेजें</string>
+    <string name="settings_exported_failed">निर्यात विफल: लिखने के लिए फ़ाइल नहीं खोली जा सकी</string>
+    <string name="settings_exported_failed_exception">निर्यात विफल: %1$s</string>
+    <plurals name="settings_exported_success">
+        <item quantity="one">%1$d स्टेशन सफलतापूर्वक निर्यात किया गया</item>
+        <item quantity="other">%1$d स्टेशन सफलतापूर्वक निर्यात किए गए</item>
+    </plurals>
+    <string name="settings_gradual_volume">क्रमिक शेड्यूल वॉल्यूम</string>
+    <string name="settings_gradual_volume_disabled">बंद</string>
+    <string name="settings_gradual_volume_enabled">%1$s सेकंड फ़ेड-इन</string>
+    <plurals name="settings_gradual_volume_seconds">
+        <item quantity="one">%1$d सेकंड</item>
+        <item quantity="other">%1$d सेकंड</item>
+    </plurals>
     <string name="settings_import_title">स्टेशन आयात करें</string>
     <string name="settings_import_subtitle">बैकअप फ़ाइल से स्टेशन पुनर्स्थापित करें</string>
+    <string name="settings_imported">आयातित: %1$d</string>
+    <string name="settings_imported_empty">कोई परिवर्तन नहीं — सभी स्टेशन पहले से मौजूद हैं</string>
+    <plurals name="settings_imported_failed">
+        <item quantity="one">%1$d फ़ाइल पढ़ने में विफल</item>
+        <item quantity="other">%1$d फ़ाइलें पढ़ने में विफल</item>
+    </plurals>
+    <string name="settings_imported_skipped">छोड़ा गया (पहले से मौजूद): %1$d</string>
+    <string name="settings_imported_updated">अपडेट किया गया: %1$d</string>
+    <string name="settings_schedule_section">शेड्यूल</string>
+
     <!-- ========================================== -->
     <!-- 6. ABOUT                                   -->
     <!-- ========================================== -->
@@ -117,6 +179,15 @@
     <string name="about_cd_linkedin">लिंक्डइन</string>
     <string name="about_cd_github">गिटहब</string>
     <string name="about_cd_instagram">इंस्टाग्राम</string>
+    <string name="about_support">समर्थन</string>
+    <string name="about_github_sponsors">GitHub Sponsors</string>
+    <string name="about_buy_me_a_coffee">Buy Me a Coffee</string>
+    <string name="settings_donate_section">दान करें</string>
+    <string name="about_upi">UPI</string>
+    <string name="about_donate_via_upi">UPI के माध्यम से दान करें</string>
+    <string name="about_upi_copied">UPI ID कॉपी की गई: %1$s</string>
+    <string name="about_cd_copy_upi">UPI ID कॉपी करें</string>
+
     <!-- ========================================== -->
     <!-- 7. HOME                                    -->
     <!-- ========================================== -->
@@ -165,6 +236,7 @@
     <string name="library_cd_sort_a_z">A-Z</string>
     <string name="library_cd_sort_z_a">Z-A</string>
     <string name="home_cd_in_library">लाइब्रेरी में है</string>
+
     <!-- ========================================== -->
     <!-- 8. SELECT COUNTRY                          -->
     <!-- ========================================== -->
@@ -174,12 +246,18 @@
     <string name="select_country_search_states">राज्य खोजें...</string>
     <string name="select_country_select_state_in">%1$s में राज्य चुनें</string>
     <string name="select_country_all_of">%1$s के सभी</string>
+    <plurals name="select_country_states_count">
+        <item quantity="one">%1$d राज्य</item>
+        <item quantity="other">%1$d राज्य</item>
+    </plurals>
+
     <!-- ========================================== -->
     <!-- 9. SELECT LANGUAGE                         -->
     <!-- ========================================== -->
     <string name="select_language_search">भाषाएँ खोजें...</string>
     <string name="select_language_title">भाषा चुनें</string>
     <string name="select_language_all">सभी भाषाएँ</string>
+
     <!-- ========================================== -->
     <!-- 10. SELECT TAGS                            -->
     <!-- ========================================== -->
@@ -190,6 +268,7 @@
     <string name="select_tags_cd_remove_tag">टैग हटाएँ</string>
     <string name="select_tags_discard_changes">परिवर्तन रद्द करें?</string>
     <string name="select_tags_discard_changes_message">आपके पास सहेजे न गए टैग चयन हैं। क्या आप वाकई वापस जाना चाहते हैं और उन्हें रद्द करना चाहते हैं?</string>
+
     <!-- ========================================== -->
     <!-- 11. EDIT STATION                           -->
     <!-- ========================================== -->
@@ -201,7 +280,7 @@
     <string name="edit_station_favicon_url_field">फेविकॉन URL</string>
     <string name="edit_station_country_field">देश (वैकल्पिक)</string>
     <string name="edit_station_state_field">राज्य / क्षेत्र (वैकल्पिक)</string>
-    <string name="edit_station_language_field">भाषा (वैकल्पिक)</string>
+    <string name="edit_station_language_field">भाषाएँ (वैकल्पिक)</string>
     <string name="edit_station_add_languages">भाषाएँ जोड़ें (वैकल्पिक)</string>
     <string name="edit_station_tags_optional">टैग (वैकल्पिक)</string>
     <string name="edit_station_add_tags">टैग जोड़ें (वैकल्पिक)</string>
@@ -210,7 +289,14 @@
     <string name="edit_station_unsaved_changes_message_exit">आपके पास सहेजे न गए परिवर्तन हैं। क्या आप वाकई उन्हें रद्द करके बाहर निकलना चाहते हैं?</string>
     <string name="edit_station_reset_title">स्टेशन रीसेट करें</string>
     <string name="edit_station_reset_message">क्या आप वाकई इस स्टेशन को इसके मूल डेटा पर रीसेट करना चाहते हैं? आपके सभी संपादन नष्ट हो जाएँगे।</string>
-    <string name="edit_station_fields_reset_message">फ़ील्ड्स को मूल डेटा पर रीसेट कर दिया गया है</string>
+    <string name="edit_station_fields_reset_message">मूल डेटा पर रीसेट करें</string>
+    <string name="edit_station_overwrite_title">मेटाडेटा बदलें?</string>
+    <string name="edit_station_overwrite_message">क्या आप अपने वर्तमान स्टेशन विवरण को प्राप्त मेटाडेटा से बदलना चाहते हैं?</string>
+    <string name="edit_station_error_empty_url">स्ट्रीम URL खाली नहीं हो सकता</string>
+    <string name="edit_station_saved_message">सहेजा गया</string>
+    <string name="edit_station_cd_reset_to_original">मूल पर रीसेट करें</string>
+    <string name="edit_station_similar_stations">समान स्टेशन</string>
+    <string name="edit_station_custom">कस्टम</string>
     <string name="edit_station_error_empty_fields">आवश्यक फ़ील्ड खाली नहीं हो सकते</string>
     <string name="edit_station_upload_save">अपलोड और सहेजें</string>
     <string name="edit_station_upload_add">अपलोड करें और जोड़ें</string>
@@ -222,10 +308,7 @@
     <string name="edit_station_cd_remove_language">भाषा हटाएँ</string>
     <string name="edit_station_cd_remove_tag">टैग हटाएँ</string>
     <string name="edit_station_refresh_metadata">मेटाडेटा ताज़ा करें</string>
-    <string name="edit_station_saved_message">सहेजा गया</string>
-    <string name="edit_station_cd_reset_to_original">मूल पर रीसेट करें</string>
-    <string name="edit_station_similar_stations">समान स्टेशन</string>
-    <string name="edit_station_custom">कस्टम</string>
+
     <!-- ========================================== -->
     <!-- 12. PLAYER                                 -->
     <!-- ========================================== -->
@@ -266,16 +349,20 @@
     <string name="player_cd_search_google">गूगल पर खोजें</string>
     <string name="player_no_tracks_played">अभी तक कोई ट्रैक नहीं बजाया गया</string>
     <string name="player_tab_about">हमारे बारे में</string>
+    <string name="player_tab_about_stream_url">स्ट्रीम URL</string>
     <string name="player_tab_tracks">ट्रैक</string>
     <string name="player_retrying_in">%1$ds में पुनः प्रयास...</string>
     <string name="player_retrying_connection">कनेक्शन पुनः प्रयास कर रहा है...</string>
     <string name="player_tab_lyrics">बोल</string>
+    <string name="player_original_stream_metadata">मूल स्ट्रीम मेटाडेटा</string>
     <string name="player_lyrics_not_available">बोल उपलब्ध नहीं हैं</string>
     <string name="player_cd_cast">कास्ट</string>
     <string name="player_cd_volume">वॉल्यूम</string>
+    <string name="player_volume_boost_label">बूस्ट</string>
     <string name="player_cast_connected">कनेक्टेड</string>
     <string name="player_cd_delay_lyrics">बोल में देरी करें</string>
     <string name="player_cd_fast_forward_lyrics">बोल को आगे बढ़ाएं</string>
+
     <!-- ========================================== -->
     <!-- 13. CAST DIALOG                            -->
     <!-- ========================================== -->
@@ -285,11 +372,14 @@
     <string name="cast_no_devices_found">नेटवर्क पर कोई डिवाइस नहीं मिला।</string>
     <string name="cast_disconnect">डिस्कनेक्ट करें</string>
     <string name="cast_close">बंद करें</string>
+
     <string name="update_new_available">नया अपडेट उपलब्ध है</string>
     <string name="update_version_available">संस्करण %1$s अब उपलब्ध है।</string>
     <string name="export_success">\'%1$s\' सफलतापूर्वक निर्यात किया गया</string>
     <string name="export_failed">निर्यात विफल: %1$s</string>
+
     <string name="action_retry">पुनः प्रयास करें</string>
+
     <!-- ========================================== -->
     <!-- 14. SCHEDULE                               -->
     <!-- ========================================== -->
@@ -312,6 +402,8 @@
     <string name="schedule_action_save">सहेजें</string>
     <string name="schedule_action_create">बनाएं</string>
     <string name="schedule_none">कोई नहीं</string>
+    <string name="schedule_listen_while_recording">रिकॉर्डिंग के दौरान सुनें</string>
+    <string name="schedule_listen_while_recording_subtitle">बैकग्राउंड रिकॉर्डिंग के दौरान स्टेशन ऑडियो चलाएं</string>
     <string name="schedule_grant_exact_alarm_permission">कृपया शेड्यूल करने के लिए Exact Alarm की अनुमति दें</string>
     <string name="schedule_indefinite">अनिश्चित काल</string>
     <string name="schedule_once">एक बार</string>
@@ -320,63 +412,61 @@
     <string name="schedule_add_schedule_cd">शेड्यूल जोड़ें</string>
     <string name="schedule_volume">वॉल्यूम: %1$d%%</string>
     <string name="schedule_select_time">समय चुनें</string>
+    <string name="schedule_dismiss">खारिज करें</string>
+    <string name="schedule_snooze">स्नूज़ करें (10 मिनट)</string>
+    <string name="schedule_alarm_channel_name">शेड्यूल किए गए अलार्म</string>
+    <string name="schedule_alarm_channel_description">शेड्यूल किए गए रेडियो अलार्म के लिए सूचनाएं</string>
+    <string name="schedule_alarm_playing">अलार्म बज रहा है</string>
     <string name="delete_recording">हटाएँ</string>
-    <plurals name="recordings_count">
-        <item quantity="one">%1$d रिकॉर्डिंग</item>
-        <item quantity="other">%1$d रिकॉर्डिंग</item>
-    </plurals>
-    <plurals name="tracks_count">
-        <item quantity="one">%1$d ट्रैक</item>
-        <item quantity="other">%1$d ट्रैक</item>
-    </plurals>
-    <string name="schedule_keep_playback_subtitle">बंद होने पर, रिकॉर्डिंग समाप्त होने पर प्लेबैक बंद हो जाता है</string>
-    <!-- ========================================== -->
-    <!-- 15. ANDROID AUTO                           -->
-    <!-- ========================================== -->
-    <string name="auto_for_you">आपके लिए</string>
-    <string name="more_options">अधिक विकल्प</string>
-    <string name="nav_all_languages">सभी भाषाएँ</string>
-    <string name="player_cd_stop">रोकें</string>
-    <string name="settings_schedule_section">शेड्यूल</string>
-    <string name="settings_gradual_volume">क्रमिक शेड्यूल वॉल्यूम</string>
-    <plurals name="settings_gradual_volume_seconds">
-        <item quantity="one">%1$d सेकंड</item>
-        <item quantity="other">%1$d सेकंड</item>
-    </plurals>
-    <string name="settings_gradual_volume_enabled">%1$s सेकंड फ़ेड-इन</string>
-    <string name="settings_gradual_volume_disabled">बंद</string>
-    <string name="action_stop_recording">रिकॉर्डिंग रोकें</string>
-    <string name="action_record_station">स्टेशन रिकॉर्ड करें</string>
-    <!-- Missing Translations -->
-    <string name="settings_exported_failed">निर्यात विफल: लिखने के लिए फ़ाइल नहीं खोली जा सकी</string>
-    <string name="settings_exported_failed_exception">निर्यात विफल: %1$s</string>
-    <plurals name="settings_exported_success">
-        <item quantity="one">%1$d स्टेशन सफलतापूर्वक निर्यात किया गया</item>
-        <item quantity="other">%1$d स्टेशन सफलतापूर्वक निर्यात किए गए</item>
-    </plurals>
-    <string name="settings_imported">आयातित: %1$d</string>
-    <string name="settings_imported_empty">कोई परिवर्तन नहीं — सभी स्टेशन पहले से मौजूद हैं</string>
-    <plurals name="settings_imported_failed">
-        <item quantity="one">%1$d फ़ाइल पढ़ने में विफल</item>
-        <item quantity="other">%1$d फ़ाइलें पढ़ने में विफल</item>
-    </plurals>
-    <string name="settings_imported_skipped">छोड़ा गया (पहले से मौजूद): %1$d</string>
-    <string name="settings_imported_updated">अपडेट किया गया: %1$d</string>
-    <plurals name="select_country_states_count">
-        <item quantity="one">%1$d राज्य</item>
-        <item quantity="other">%1$d राज्य</item>
-    </plurals>
-    <string name="schedule_listen_while_recording">रिकॉर्डिंग के दौरान सुनें</string>
-    <string name="schedule_listen_while_recording_subtitle">बैकग्राउंड रिकॉर्डिंग के दौरान स्टेशन ऑडियो चलाएं</string>
     <plurals name="delete_recordings_message">
         <item quantity="one">क्या आप वाकई %1$d आइटम हटाना चाहते हैं?</item>
         <item quantity="other">क्या आप वाकई %1$d आइटम हटाना चाहते हैं?</item>
     </plurals>
     <string name="notification_recording">रिकॉर्डिंग: %1$s</string>
     <string name="notification_recording_duration">अवधि: %1$s</string>
+    <plurals name="recordings_count">
+        <item quantity="one">%1$d रिकॉर्डिंग</item>
+        <item quantity="other">%1$d रिकॉर्डिंग</item>
+    </plurals>
     <string name="recordings_selected">%1$d चयनित</string>
+    <plurals name="tracks_count">
+        <item quantity="one">%1$d ट्रैक</item>
+        <item quantity="other">%1$d ट्रैक</item>
+    </plurals>
+    <string name="schedule_keep_playback_subtitle">बंद होने पर, रिकॉर्डिंग समाप्त होने पर प्लेबैक बंद हो जाता है</string>
+
+    <!-- ========================================== -->
+    <!-- 15. ANDROID AUTO                           -->
+    <!-- ========================================== -->
+    <string name="auto_for_you">आपके लिए</string>
+
+    <string name="more_options">अधिक विकल्प</string>
+    <string name="nav_all_languages">सभी भाषाएँ</string>
+    <string name="player_cd_stop">रोकें</string>
+
     <string name="recordings_currently_recording">वर्तमान में रिकॉर्ड हो रहा है</string>
     <string name="recordings_saved">सहेजी गई रिकॉर्डिंग</string>
+    <string name="action_stop_recording">रिकॉर्डिंग रोकें</string>
+    <string name="action_record_station">स्टेशन रिकॉर्ड करें</string>
+    <string name="action_create_shortcut">शॉर्टकट बनाएँ</string>
     <string name="lyrics_powered_by">द्वारा संचालित </string>
     <string name="lyrics_provider_lrclib" translatable="false">LRCLIB</string>
+
+    <string name="review_message_foss">क्या आप Internet Radio का आनंद ले रहे हैं? यदि हाँ, तो कृपया GitHub पर स्टार देकर प्रोजेक्ट का समर्थन करने पर विचार करें। आपका समर्थन हमारे लिए बहुत मायने रखता है!</string>
+    <string name="review_message_play">क्या आप Internet Radio का आनंद ले रहे हैं? यदि हाँ, तो कृपया ऐप को रेटिंग देने के लिए कुछ समय निकालें। आपका समर्थन हमारे लिए बहुत मायने रखता है!</string>
+    <string name="review_rate_now">अभी रेट करें</string>
+    <string name="review_star_github">GitHub पर स्टार दें</string>
+    <string name="review_no_thanks">नहीं, धन्यवाद</string>
+
+    <!-- Widget -->
+    <string name="widget_preview_title">Internet Radio</string>
+    <string name="widget_preview_artist">अब बज रहा है</string>
+    <string name="widget_description">रेडियो प्लेबैक और नियंत्रणों तक त्वरित पहुँच</string>
+    <string name="widget_nothing_playing">कुछ नहीं बज रहा है</string>
+    <string name="widget_configure_title">विजेट कॉन्फ़िगरेशन</string>
+    <string name="widget_configure_apply">लागू करें</string>
+    <string name="widget_configure_preview">लाइव पूर्वावलोकन</string>
+    <string name="widget_configure_presets">प्रीसेट</string>
+    <string name="settings_widget_appearance_title">विजेट की दिखावट</string>
+    <string name="settings_widget_appearance_subtitle">होम स्क्रीन विजेट की पारदर्शिता और पूर्वावलोकन अनुकूलित करें</string>
 </resources>

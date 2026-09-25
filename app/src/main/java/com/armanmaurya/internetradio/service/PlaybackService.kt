@@ -961,6 +961,7 @@ class PlaybackService : MediaLibraryService() {
             .build()
     }
 
+    @OptIn(UnstableApi::class)
     private fun setupLoudnessEnhancer(audioSessionId: Int) {
         if (audioSessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) return
         try {
