@@ -401,4 +401,9 @@
     <string name="about_upi_copied">ID UPI copiato: %1$s</string>
     <string name="about_cd_copy_upi">Copia ID UPI</string>
     <string name="player_volume_boost_label">BOOST</string>
+    <string name="schedule_dismiss">Ignora</string>
+    <string name="schedule_alarm_channel_name">Avvisi pianificati</string>
+    <string name="schedule_alarm_channel_description">Notifiche per gli avvisi radio pianificati</string>
+    <string name="schedule_alarm_playing">Avviso in riproduzione</string>
+    <string name="schedule_snooze">Posticipa (10m)</string>
 </resources>
