@@ -1,14 +1,12 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.service.playback.engine
 
 import androidx.media3.common.audio.BaseAudioProcessor
+import androidx.media3.common.audio.AudioProcessor.AudioFormat
 import java.nio.ByteBuffer
 import kotlin.math.sqrt
 
-import androidx.media3.common.audio.AudioProcessor.AudioFormat
-import com.armanmaurya.internetradio.domain.controller.RecordingController
-
 class AmplitudeAudioProcessor(
-    private val recordingController: RecordingController
+    private val onAmplitudeChanged: (Float) -> Unit
 ) : BaseAudioProcessor() {
 
     override fun onConfigure(inputAudioFormat: AudioFormat): AudioFormat {
@@ -34,7 +32,7 @@ class AmplitudeAudioProcessor(
             }
             
             val rms = if (count > 0) sqrt(sumSquares / count).toFloat() else 0f
-            recordingController.updateAmplitude(rms)
+            onAmplitudeChanged(rms)
         }
         
         // Pass the buffer through unchanged

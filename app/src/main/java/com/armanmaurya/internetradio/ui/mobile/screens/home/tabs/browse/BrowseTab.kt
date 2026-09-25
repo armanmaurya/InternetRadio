@@ -58,7 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RadioStation
-import com.armanmaurya.internetradio.player.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationListCard
 import androidx.compose.material.icons.filled.ViewModule

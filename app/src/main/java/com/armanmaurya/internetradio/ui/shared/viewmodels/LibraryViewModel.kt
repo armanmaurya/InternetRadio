@@ -11,7 +11,7 @@ import com.armanmaurya.internetradio.domain.model.Tag
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
-import com.armanmaurya.internetradio.player.PlayerController
+import com.armanmaurya.internetradio.domain.controller.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

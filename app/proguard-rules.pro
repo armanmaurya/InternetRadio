@@ -44,10 +44,10 @@
 -keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver { *; }
 
 # Playback Service and Broadcast Receivers
--keep class com.armanmaurya.internetradio.player.PlaybackService { *; }
--keep class com.armanmaurya.internetradio.player.PlaybackService$* { *; }
--keep class com.armanmaurya.internetradio.player.BootReceiver { *; }
--keep class com.armanmaurya.internetradio.player.ScheduleReceiver { *; }
+-keep class com.armanmaurya.internetradio.service.PlaybackService { *; }
+-keep class com.armanmaurya.internetradio.service.PlaybackService$* { *; }
+-keep class com.armanmaurya.internetradio.data.schedule.BootReceiver { *; }
+-keep class com.armanmaurya.internetradio.data.schedule.ScheduleReceiver { *; }
 -keepclassmembers class * extends android.content.BroadcastReceiver {
     @javax.inject.Inject <fields>;
 }

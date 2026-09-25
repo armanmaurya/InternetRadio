@@ -7,8 +7,8 @@ import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
-import com.armanmaurya.internetradio.player.PlayerController
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.domain.controller.PlayerController
+import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.domain.controller.WidgetController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext

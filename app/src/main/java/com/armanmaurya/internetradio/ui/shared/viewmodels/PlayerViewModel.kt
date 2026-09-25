@@ -7,13 +7,21 @@ import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
-import com.armanmaurya.internetradio.player.PlaybackSource
-import com.armanmaurya.internetradio.player.PlayerController
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
+import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.RecordingController
 import com.armanmaurya.internetradio.domain.usecase.recording.GetActiveRecordingsUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StartRecordingUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StopRecordingUseCase
-import com.armanmaurya.internetradio.player.SvgProxyProvider
+import com.armanmaurya.internetradio.domain.usecase.player.PlayStationUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.TogglePlayPauseUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.PlayNextStationUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.PlayPreviousStationUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.SetSleepTimerUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.SetPlayerVolumeUseCase
+import com.armanmaurya.internetradio.domain.usecase.player.StopPlaybackUseCase
+import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
+import com.armanmaurya.internetradio.service.playback.engine.RetryStateTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,6 +50,13 @@ class PlayerViewModel @Inject constructor(
     private val castController: CastController,
     private val connectCastDeviceUseCase: ConnectCastDeviceUseCase,
     private val disconnectCastDeviceUseCase: DisconnectCastDeviceUseCase,
+    private val playStationUseCase: PlayStationUseCase,
+    private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
+    private val playNextStationUseCase: PlayNextStationUseCase,
+    private val playPreviousStationUseCase: PlayPreviousStationUseCase,
+    private val setSleepTimerUseCase: SetSleepTimerUseCase,
+    private val setPlayerVolumeUseCase: SetPlayerVolumeUseCase,
+    private val stopPlaybackUseCase: StopPlaybackUseCase,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val stationRepository: com.armanmaurya.internetradio.domain.repository.StationRepository,
@@ -52,7 +67,7 @@ class PlayerViewModel @Inject constructor(
     private val stopRecordingUseCase: StopRecordingUseCase,
     private val recordingRepository: com.armanmaurya.internetradio.domain.repository.RecordingRepository,
     private val lyricsRepository: com.armanmaurya.internetradio.domain.repository.LyricsRepository,
-    retryStateTracker: com.armanmaurya.internetradio.player.RetryStateTracker
+    retryStateTracker: RetryStateTracker
 ) : ViewModel() {
 
     val retryCountdown = retryStateTracker.retryCountdown
@@ -108,7 +123,7 @@ class PlayerViewModel @Inject constructor(
         session?.durationSeconds ?: kotlinx.coroutines.flow.flowOf(0L)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
-    val amplitude = recordingController.amplitude
+    val amplitude = playerController.amplitude
     val recordingSavedEvent = recordingController.recordingSavedEvent
 
     val discoveredCastDevices = castController.discoveredDevices
@@ -304,22 +319,20 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None) {
-        val station = stations[startIndex]
+        val station = stations.getOrNull(startIndex) ?: return
         
         if (playbackState.value.currentStation?.stationUuid == station.stationUuid) {
             togglePlayPause()
             return
         }
 
-        playerController.play(
-            stations = stations,
-            startIndex = startIndex,
-            source = source,
-            playWhenReady = true
-        )
         viewModelScope.launch {
-            recentRepository.addRecentStation(station)
-            stationRepository.registerClick(station.stationUuid)
+            playStationUseCase(
+                stations = stations,
+                startIndex = startIndex,
+                source = source,
+                playWhenReady = true
+            )
         }
     }
 
@@ -328,11 +341,11 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun next() {
-        playerController.next()
+        playNextStationUseCase()
     }
 
     fun previous() {
-        playerController.previous()
+        playPreviousStationUseCase()
     }
 
     fun setLyricsSyncOffset(offsetMs: Long) {
@@ -353,7 +366,7 @@ class PlayerViewModel @Inject constructor(
                 }
             }
         } else {
-            playerController.togglePlayPause()
+            togglePlayPauseUseCase()
         }
     }
 
@@ -361,15 +374,15 @@ class PlayerViewModel @Inject constructor(
         if (connectedCastDevice.value != null) {
             castController.stop()
         }
-        playerController.stop()
+        stopPlaybackUseCase()
     }
 
     fun setSleepTimer(durationMillis: Long) {
-        playerController.setSleepTimer(durationMillis)
+        setSleepTimerUseCase(durationMillis)
     }
 
     fun cancelSleepTimer() {
-        playerController.cancelSleepTimer()
+        setSleepTimerUseCase.cancel()
     }
 
     fun connectToCastDevice(device: CastDevice) {
@@ -394,7 +407,7 @@ class PlayerViewModel @Inject constructor(
         if (connectedCastDevice.value != null) {
             setCastVolume(volume.coerceIn(0f, 1f))
         } else {
-            playerController.setVolume(volume)
+            setPlayerVolumeUseCase(volume)
         }
     }
 }

@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.service.PlaybackService
 
 class PrevAction : ActionCallback {
     override suspend fun onAction(

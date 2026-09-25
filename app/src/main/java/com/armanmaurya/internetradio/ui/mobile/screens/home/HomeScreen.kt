@@ -53,6 +53,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.platform.LocalContext
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.model.RadioStation
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -231,7 +232,7 @@ fun HomeScreen(
                                 isFavorite = true,
                                 onClick = {
                                     val index = filteredLibraryStations.indexOf(station).coerceAtLeast(0)
-                                    playerViewModel.play(filteredLibraryStations, index, com.armanmaurya.internetradio.player.PlaybackSource.None)
+                                    playerViewModel.play(filteredLibraryStations, index, PlaybackSource.None)
                                 },
                                 onToggleFavoriteClick = { browseViewModel.toggleLibrary(station) },
                                 isRecording = session != null,
@@ -284,7 +285,7 @@ fun HomeScreen(
                                 isFavorite = libraryUuids.contains(station.stationUuid),
                                 onClick = {
                                     val index = browseUiState.stations.indexOf(station).coerceAtLeast(0)
-                                    playerViewModel.play(browseUiState.stations, index, com.armanmaurya.internetradio.player.PlaybackSource.None)
+                                    playerViewModel.play(browseUiState.stations, index, PlaybackSource.None)
                                 },
                                 onToggleFavoriteClick = { browseViewModel.toggleLibrary(station) },
                                 isRecording = session != null,
@@ -436,11 +437,11 @@ fun HomeScreen(
                 libraryUuids = libraryUuids,
                 onLibraryStationClick = { station ->
                     val index = filteredLibraryStations.indexOf(station).coerceAtLeast(0)
-                    playerViewModel.play(filteredLibraryStations, index, com.armanmaurya.internetradio.player.PlaybackSource.None)
+                    playerViewModel.play(filteredLibraryStations, index, PlaybackSource.None)
                 },
                 onBrowseStationClick = { station ->
                     val index = browseUiState.stations.indexOf(station).coerceAtLeast(0)
-                    playerViewModel.play(browseUiState.stations, index, com.armanmaurya.internetradio.player.PlaybackSource.None)
+                    playerViewModel.play(browseUiState.stations, index, PlaybackSource.None)
                 },
                 onLibraryHeaderClick = {
                     isSearchExpanded = false

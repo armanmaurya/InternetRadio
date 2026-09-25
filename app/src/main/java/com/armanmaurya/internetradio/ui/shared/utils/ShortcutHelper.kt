@@ -15,7 +15,7 @@ import coil3.request.SuccessResult
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RadioStation
-import com.armanmaurya.internetradio.player.SvgProxyProvider
+import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -72,7 +72,7 @@
             android:label="Crash Log" />
 
         <provider
-            android:name=".player.SvgProxyProvider"
+            android:name=".core.provider.SvgProxyProvider"
             android:authorities="${applicationId}.svgproxy"
             android:exported="true"
             android:grantUriPermissions="true" />
@@ -83,7 +83,7 @@
             discover this app in the media section.
         -->
         <service
-            android:name=".player.PlaybackService"
+            android:name=".service.PlaybackService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true">
             <intent-filter>
@@ -95,7 +95,7 @@
         </service>
 
         <service
-            android:name=".recording.RecordingService"
+            android:name=".service.RecordingService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 

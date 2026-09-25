@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.armanmaurya.internetradio.player.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel

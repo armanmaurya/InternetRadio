@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.service.playback.engine
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

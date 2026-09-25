@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.service.playback.engine
 
 import androidx.media3.common.C
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy

@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel
@@ -44,7 +45,7 @@ fun RecordingsContent(
     viewModel: RecordingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
     activeSessions: Map<String, RecordingSession>? = null,
     onStopRecording: ((String) -> Unit)? = null,
-    onStationClick: (List<RadioStation>, Int, com.armanmaurya.internetradio.player.PlaybackSource) -> Unit = { _, _, _ -> },
+    onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit = { _, _, _ -> },
     onEditStation: (String) -> Unit = {},
     onExportStation: ((RadioStation) -> Unit)? = null,
     playingStationUuid: String? = null,
@@ -247,7 +248,7 @@ fun RecordingsContent(
                     val duration by session.durationSeconds.collectAsState(initial = 0L)
                     StationCard(
                         station = session.station,
-                        onClick = { onStationClick(sessionsList.map { it.station }, sessionsList.indexOf(session), com.armanmaurya.internetradio.player.PlaybackSource.None) },
+                        onClick = { onStationClick(sessionsList.map { it.station }, sessionsList.indexOf(session), PlaybackSource.None) },
                         isRecordingOverlay = true,
                         recordingDuration = duration,
                         onStopRecordingClick = { (onStopRecording ?: viewModel::stopRecording)(session.station.stationUuid) },

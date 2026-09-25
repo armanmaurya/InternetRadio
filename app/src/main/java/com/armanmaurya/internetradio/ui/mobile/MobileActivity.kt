@@ -18,7 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.controller.WidgetController
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.ui.tv.TvActivity
 import com.armanmaurya.internetradio.ui.widget.NowPlayingWidget
 import dagger.hilt.android.AndroidEntryPoint

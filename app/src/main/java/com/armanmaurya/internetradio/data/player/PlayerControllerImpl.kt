@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.data.player
 
 import android.content.ComponentName
 import android.content.Context
@@ -7,10 +7,16 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
+import com.armanmaurya.internetradio.service.PlaybackService
+import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
+import com.armanmaurya.internetradio.service.playback.toMediaItem
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.armanmaurya.internetradio.core.media.prober.StreamProber
@@ -23,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -31,7 +38,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlayerController @Inject constructor(
+class PlayerControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val stationRepository: StationRepository,
@@ -39,18 +46,21 @@ class PlayerController @Inject constructor(
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
     private val okHttpClient: okhttp3.OkHttpClient,
     private val streamProber: StreamProber
-) {
+) : PlayerController {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
 
     private val _playbackState = MutableStateFlow(PlaybackState())
-    val playbackState = _playbackState.asStateFlow()
+    override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+
+    private val _amplitude = MutableStateFlow(0f)
+    override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private var activeStation: RadioStation? = null
     private var currentPlaylist: List<RadioStation> = emptyList()
-    val currentPlaylistSnapshot: List<RadioStation> get() = currentPlaylist
+    override val currentPlaylistSnapshot: List<RadioStation> get() = currentPlaylist
     private var currentPlaybackSource: PlaybackSource = PlaybackSource.None
     private var isFetchingMore = false
 
@@ -61,7 +71,7 @@ class PlayerController @Inject constructor(
      * existing onMediaItemTransition logic will dynamically fetch more items (pagination)
      * as the user skips forward in Android Auto.
      */
-    fun syncAndroidAutoContext(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource) {
+    override fun syncAndroidAutoContext(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource) {
         currentPlaylist = stations
         currentPlaybackSource = source
         val station = stations.getOrNull(startIndex)
@@ -71,7 +81,7 @@ class PlayerController @Inject constructor(
         }
     }
 
-    val currentPosition: Long
+    override val currentPosition: Long
         get() = controller?.currentPosition ?: 0L
 
     private val playerListener = object : Player.Listener {
@@ -380,7 +390,7 @@ class PlayerController @Inject constructor(
         }, MoreExecutors.directExecutor())
     }
 
-    fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None, playWhenReady: Boolean = true) {
+    override fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource, playWhenReady: Boolean) {
         val player = controller ?: return
         if (stations.isEmpty() || startIndex !in stations.indices) return
         
@@ -417,13 +427,13 @@ class PlayerController @Inject constructor(
         player.setMediaItems(mediaItems, startIndex, 0L)
         player.volume = 1f
         val boostResetArgs = android.os.Bundle().apply { putFloat("KEY_BOOST", 0f) }
-        player.sendCustomCommand(AutoMediaLibraryCallback.COMMAND_SET_VOLUME_BOOST, boostResetArgs)
+        player.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, boostResetArgs)
         player.prepare()
         if (playWhenReady) player.play() else player.pause()
     }
 
     
-    fun updateCurrentStation(updatedStation: RadioStation, oldUuid: String? = null) {
+    override fun updateCurrentStation(updatedStation: RadioStation, oldUuid: String?) {
         val player = controller ?: return
         val targetUuid = oldUuid ?: updatedStation.stationUuid
         if (activeStation?.stationUuid != targetUuid) return
@@ -455,7 +465,7 @@ class PlayerController @Inject constructor(
         }
     }
     
-    fun playIndex(index: Int) {
+    override fun playIndex(index: Int) {
         val player = controller ?: return
         if (index in 0 until player.mediaItemCount) {
             player.seekToDefaultPosition(index)
@@ -468,7 +478,7 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun next() {
+    override fun next() {
         controller?.let { player ->
             if (player.hasNextMediaItem()) {
                 player.seekToNextMediaItem()
@@ -476,7 +486,7 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun previous() {
+    override fun previous() {
         controller?.let { player ->
             if (player.hasPreviousMediaItem()) {
                 player.seekToPreviousMediaItem()
@@ -484,14 +494,14 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun pause() {
+    override fun pause() {
         val player = controller ?: return
         if (player.isPlaying || player.playWhenReady) {
             player.pause()
         }
     }
 
-    fun togglePlayPause() {
+    override fun togglePlayPause() {
         val player = controller ?: return
         val isBuffering = player.playbackState == Player.STATE_BUFFERING && player.playWhenReady
         if (player.isPlaying || isBuffering) {
@@ -505,16 +515,16 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun setVolume(volume: Float) {
+    override fun setVolume(volume: Float) {
         val clampedPlayerVolume = volume.coerceIn(0f, 1f)
         controller?.volume = clampedPlayerVolume
         val boost = if (volume > 1f) (volume - 1f).coerceIn(0f, 1f) else 0f
         val args = android.os.Bundle().apply { putFloat("KEY_BOOST", boost) }
-        controller?.sendCustomCommand(AutoMediaLibraryCallback.COMMAND_SET_VOLUME_BOOST, args)
+        controller?.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, args)
         _playbackState.update { it.copy(volume = volume) }
     }
 
-    fun stop() {
+    override fun stop() {
         val player = controller ?: return
         player.stop()
         player.clearMediaItems()
@@ -526,11 +536,12 @@ class PlayerController @Inject constructor(
                 sessionResumeTimeMs = null
             )
         }
+        _amplitude.value = 0f
     }
 
     private var timerJob: Job? = null
 
-    fun setSleepTimer(durationMillis: Long) {
+    override fun setSleepTimer(durationMillis: Long) {
         timerJob?.cancel()
         val endTime = System.currentTimeMillis() + durationMillis
         _playbackState.update { it.copy(sleepTimerEndTime = endTime, sleepTimerTotalDuration = durationMillis) }
@@ -542,7 +553,7 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun cancelSleepTimer() {
+    override fun cancelSleepTimer() {
         timerJob?.cancel()
         timerJob = null
         _playbackState.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
@@ -552,32 +563,7 @@ class PlayerController @Inject constructor(
         return localConfiguration?.tag as? RadioStation
     }
     
-    private fun RadioStation.toMediaItem(): MediaItem {
-        val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
-            SvgProxyProvider.createProxyUri(context, favicon)
-        } else {
-            favicon.takeIf { it.isNotBlank() }
-        }
-        val artworkUri = artworkUriStr?.let { android.net.Uri.parse(it) } ?: android.net.Uri.EMPTY
-
-        return MediaItem.Builder()
-            .setMediaId(this.stationUuid)
-            .setUri(this.urlResolved)
-            .setLiveConfiguration(androidx.media3.common.MediaItem.LiveConfiguration.Builder().build())
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(this.name)
-                    .setAlbumTitle(this.name)
-                    .setArtworkUri(artworkUri)
-                    .setExtras(android.os.Bundle().apply {
-                        putString("stationName", this@toMediaItem.name)
-                        putString("stationFavicon", artworkUriStr)
-                    })
-                    .build()
-            )
-            .setTag(this)
-            .build()
-    }
+    private fun RadioStation.toMediaItem(): MediaItem = toMediaItem(context)
 
     private suspend fun getFilteredLibraryStations(prefs: AppPreferences): List<RadioStation> {
         val stations = when (prefs.librarySortOption) {
@@ -667,49 +653,11 @@ class PlayerController @Inject constructor(
         }
     }
 
-    fun setLyricsSyncOffset(offsetMs: Long) {
+    override fun setLyricsSyncOffset(offsetMs: Long) {
         _playbackState.update { it.copy(lyricsSyncOffsetMs = offsetMs) }
     }
-}
 
-sealed class PlaybackSource {
-    data class Browse(
-        val name: String,
-        val countryCode: String?,
-        val language: String?,
-        val tagList: String?,
-        val order: String,
-        val reverse: Boolean
-    ) : PlaybackSource()
-    
-    object Library : PlaybackSource()
-    object Recent : PlaybackSource()
-    object None : PlaybackSource()
+    override fun updateAmplitude(rms: Float) {
+        _amplitude.value = rms
+    }
 }
-
-data class PlaybackState(
-    val currentStation: RadioStation? = null,
-    val currentPlaylist: List<RadioStation> = emptyList(),
-    val currentPlaylistIndex: Int = -1,
-    val currentTrack: String? = null,
-    val cleanTrackName: String? = null,
-    val cleanArtistName: String? = null,
-    val rawTrackName: String? = null,
-    val trackStartTime: Long? = null,
-    val lyricsSyncOffsetMs: Long = 0L,
-    val trackCoverArtUri: String? = null,
-    val isFetchingArtwork: Boolean = false,
-    val isPlaying: Boolean = false,
-    val isLoading: Boolean = false,
-    val isError: Boolean = false,
-    val sleepTimerEndTime: Long? = null,
-    val sleepTimerTotalDuration: Long = 0L,
-    val hasNext: Boolean = false,
-    val hasPrevious: Boolean = false,
-    val volume: Float = 1f,
-    val sessionActiveDurationMs: Long = 0L,
-    val sessionResumeTimeMs: Long? = null,
-    val playbackSource: PlaybackSource = PlaybackSource.None,
-    val streamCodec: String? = null,
-    val streamBitrate: Int? = null
-)

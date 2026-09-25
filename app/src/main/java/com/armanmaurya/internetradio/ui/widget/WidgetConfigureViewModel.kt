@@ -16,7 +16,7 @@ import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.service.PlaybackService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

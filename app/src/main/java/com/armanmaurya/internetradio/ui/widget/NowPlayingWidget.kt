@@ -26,7 +26,7 @@ import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.core.utils.extractPaletteFromBitmap
 import com.armanmaurya.internetradio.core.utils.resolveArtwork
 import com.armanmaurya.internetradio.domain.controller.WidgetController
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.ui.widget.components.PlayerContent
 import com.armanmaurya.internetradio.ui.widget.state.NowPlayingWidgetState
 import dagger.hilt.EntryPoint

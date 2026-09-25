@@ -9,7 +9,7 @@ import com.armanmaurya.internetradio.domain.controller.ScheduleController
 import com.armanmaurya.internetradio.domain.model.ScheduleType
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.ScheduleRepository
-import com.armanmaurya.internetradio.player.PlayerController
+import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.service.AlarmService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

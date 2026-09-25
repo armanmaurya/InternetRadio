@@ -43,15 +43,8 @@ class RecordingControllerImpl @Inject constructor(
     private val _activeSessions = MutableStateFlow<Map<String, RecordingSession>>(emptyMap())
     override val activeSessions: StateFlow<Map<String, RecordingSession>> = _activeSessions.asStateFlow()
 
-    private val _amplitude = MutableStateFlow(0f)
-    override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
-
     private val _recordingSavedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     override val recordingSavedEvent: SharedFlow<Unit> = _recordingSavedEvent.asSharedFlow()
-
-    override fun updateAmplitude(rms: Float) {
-        _amplitude.value = rms
-    }
 
     override fun startRecording(station: RadioStation) {
         val intent = Intent(context, RecordingService::class.java).apply {

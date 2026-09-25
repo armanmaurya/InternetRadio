@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.service
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import android.media.audiofx.LoudnessEnhancer
 import android.os.Build
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -17,12 +18,18 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import com.armanmaurya.internetradio.ui.mobile.MobileActivity
+import com.armanmaurya.internetradio.R
+import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
+import com.armanmaurya.internetradio.domain.controller.PlayerController
+import com.armanmaurya.internetradio.domain.controller.WidgetController
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
-import com.armanmaurya.internetradio.domain.controller.RecordingController
-import com.armanmaurya.internetradio.R
-import com.armanmaurya.internetradio.domain.controller.WidgetController
+import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
+import com.armanmaurya.internetradio.service.playback.engine.AmplitudeAudioProcessor
+import com.armanmaurya.internetradio.service.playback.engine.CoilBitmapLoader
+import com.armanmaurya.internetradio.service.playback.engine.ExponentialBackoffLoadErrorHandlingPolicy
+import com.armanmaurya.internetradio.service.playback.engine.RetryStateTracker
+import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +39,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import com.armanmaurya.internetradio.domain.repository.CoverArtRepository
+import com.armanmaurya.internetradio.domain.repository.LibraryRepository
+import com.armanmaurya.internetradio.domain.repository.RecentRepository
+import com.armanmaurya.internetradio.domain.repository.SettingsRepository
+import kotlinx.coroutines.Job
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -42,28 +56,28 @@ class PlaybackService : MediaLibraryService() {
     lateinit var audioAttributes: AudioAttributes
 
     @Inject
-    lateinit var autoCallback: AutoMediaLibraryCallback
+    lateinit var sessionCallback: PlaybackSessionCallback
 
     @Inject
     lateinit var trackHistoryRepository: TrackHistoryRepository
 
     @Inject
-    lateinit var recordingController: RecordingController
+    lateinit var playerController: PlayerController
 
     @Inject
     lateinit var retryStateTracker: RetryStateTracker
 
     @Inject
-    lateinit var settingsRepository: com.armanmaurya.internetradio.domain.repository.SettingsRepository
+    lateinit var settingsRepository: SettingsRepository
 
     @Inject
-    lateinit var libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository
+    lateinit var libraryRepository: LibraryRepository
 
     @Inject
-    lateinit var recentRepository: com.armanmaurya.internetradio.domain.repository.RecentRepository
+    lateinit var recentRepository: RecentRepository
 
     @Inject
-    lateinit var coverArtRepository: com.armanmaurya.internetradio.domain.repository.CoverArtRepository
+    lateinit var coverArtRepository: CoverArtRepository
 
     @Inject
     lateinit var widgetController: WidgetController
@@ -84,7 +98,7 @@ class PlaybackService : MediaLibraryService() {
     private var alarmFadeInSeconds: Int = 0
     private var volumeFadeJob: kotlinx.coroutines.Job? = null
     private var activeTrackTitle: String? = null
-    private var loudnessEnhancer: android.media.audiofx.LoudnessEnhancer? = null
+    private var loudnessEnhancer: LoudnessEnhancer? = null
     private var currentBoostFactor: Float = 0f
     
     private val audioNoisyReceiver = object : BroadcastReceiver() {
@@ -99,24 +113,22 @@ class PlaybackService : MediaLibraryService() {
 
     
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var libraryStatusJob: kotlinx.coroutines.Job? = null
+    private var libraryStatusJob: Job? = null
 
-    /**
-     * Watches for station changes so the ❤️ button on Android Auto's now-playing
-     * screen always shows the correct filled / outline state.
-     */
-    private val stationChangeListener = object : Player.Listener {
+
+    private val stationChangeListener = @UnstableApi
+    object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             libraryStatusJob?.cancel()
             val stationUuid = mediaItem?.mediaId
             if (stationUuid != null) {
                 libraryStatusJob = serviceScope.launch {
                     libraryRepository.isStationInLibrary(stationUuid).collect {
-                        autoCallback.updateLibraryButton(stationUuid)
+                        sessionCallback.updateLibraryButton(stationUuid)
                     }
                 }
             } else {
-                autoCallback.updateLibraryButton(null)
+                sessionCallback.updateLibraryButton(null)
             }
             
             if (stationUuid == null) return
@@ -337,6 +349,7 @@ class PlaybackService : MediaLibraryService() {
         }
     }
 
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         isRunning = true
@@ -404,7 +417,7 @@ class PlaybackService : MediaLibraryService() {
                 enableAudioTrackPlaybackParams: Boolean
             ): AudioSink? {
                 return DefaultAudioSink.Builder(context)
-                    .setAudioProcessors(arrayOf(AmplitudeAudioProcessor(recordingController)))
+                    .setAudioProcessors(arrayOf(AmplitudeAudioProcessor(playerController::updateAmplitude)))
                     .build()
             }
         }
@@ -561,15 +574,15 @@ class PlaybackService : MediaLibraryService() {
                 intent,
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
-            mediaLibrarySession = MediaLibrarySession.Builder(this, it, autoCallback)
+            mediaLibrarySession = MediaLibrarySession.Builder(this, it, sessionCallback)
                 .setSessionActivity(pendingIntent)
                 .setBitmapLoader(CoilBitmapLoader(this))
                 .build()
 
             // Give the callback a reference to the session so it can push
             // custom layout updates (e.g. refreshing the heart icon) at any time
-            autoCallback.activeSession = mediaLibrarySession
-            autoCallback.onVolumeBoostChanged = { boost ->
+            sessionCallback.activeSession = mediaLibrarySession
+            sessionCallback.onVolumeBoostChanged = { boost ->
                 currentBoostFactor = boost
                 applyBoostGain(loudnessEnhancer, boost)
             }
@@ -590,8 +603,8 @@ class PlaybackService : MediaLibraryService() {
         pushStoppedWidgetUpdate()
         serviceScope.cancel()
         // Clear session ref first so the callback stops pushing updates
-        autoCallback.activeSession = null
-        autoCallback.onVolumeBoostChanged = null
+        sessionCallback.activeSession = null
+        sessionCallback.onVolumeBoostChanged = null
         try {
             loudnessEnhancer?.release()
             loudnessEnhancer = null

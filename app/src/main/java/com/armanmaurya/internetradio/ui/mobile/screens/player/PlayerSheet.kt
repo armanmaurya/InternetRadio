@@ -69,7 +69,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import com.armanmaurya.internetradio.player.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.graphics.FilterQuality
@@ -79,7 +79,7 @@ import com.armanmaurya.internetradio.domain.model.CastDevice
 import com.armanmaurya.internetradio.domain.model.LyricsState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
-import com.armanmaurya.internetradio.player.PlaybackState
+import com.armanmaurya.internetradio.domain.model.PlaybackState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale

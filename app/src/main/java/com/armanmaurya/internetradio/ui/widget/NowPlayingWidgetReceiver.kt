@@ -8,7 +8,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import com.armanmaurya.internetradio.domain.controller.WidgetController
-import com.armanmaurya.internetradio.player.PlaybackService
+import com.armanmaurya.internetradio.service.PlaybackService
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

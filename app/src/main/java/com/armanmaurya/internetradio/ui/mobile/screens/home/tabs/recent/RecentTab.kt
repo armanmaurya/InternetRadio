@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.domain.model.RadioStation
-import com.armanmaurya.internetradio.player.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationListCard
 import com.armanmaurya.internetradio.R

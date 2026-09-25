@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.player
+package com.armanmaurya.internetradio.core.provider
 
 import android.content.ContentProvider
 import android.content.ContentValues

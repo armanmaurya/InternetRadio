@@ -17,7 +17,7 @@ import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.SettingsScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.edit.EditStationScreen
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
-import com.armanmaurya.internetradio.player.PlaybackSource
+import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.animation.core.tween
