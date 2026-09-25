@@ -409,4 +409,9 @@
     <string name="about_upi_copied">UPI ID скопирован: %1$s</string>
     <string name="about_cd_copy_upi">Скопировать UPI ID</string>
     <string name="player_volume_boost_label">БУСТ</string>
+    <string name="schedule_dismiss">Отмена</string>
+    <string name="schedule_snooze">Отложить (10 мин)</string>
+    <string name="schedule_alarm_channel_name">Запланированные будильники</string>
+    <string name="schedule_alarm_channel_description">Уведомления о запланированных радиобудильниках</string>
+    <string name="schedule_alarm_playing">Будильник играет</string>
 </resources>
