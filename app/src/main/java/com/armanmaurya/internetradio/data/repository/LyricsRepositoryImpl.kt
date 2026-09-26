@@ -1,11 +1,9 @@
 package com.armanmaurya.internetradio.data.repository
 
 import com.armanmaurya.internetradio.domain.model.LrcLine
-import com.armanmaurya.internetradio.domain.model.LyricsState
+import com.armanmaurya.internetradio.domain.model.Lyrics
 import com.armanmaurya.internetradio.data.remote.LrcLibApi
 import com.armanmaurya.internetradio.core.utils.TrackSanitizer
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.armanmaurya.internetradio.domain.repository.LyricsRepository
@@ -14,9 +12,8 @@ import com.armanmaurya.internetradio.domain.repository.LyricsRepository
 class LyricsRepositoryImpl @Inject constructor(
     private val lrcLibApi: LrcLibApi
 ) : LyricsRepository {
-    override fun getLyricsForTrack(trackName: String, artistName: String?): Flow<LyricsState> = flow {
-        emit(LyricsState.Loading)
-        try {
+    override suspend fun getLyricsForTrack(trackName: String, artistName: String?): Lyrics? {
+        return try {
             suspend fun searchAndFindBestMatch(query: String, explicitArtist: String?): com.armanmaurya.internetradio.data.remote.dto.LrcLibResponse? {
                 val responses = if (explicitArtist != null) {
                     lrcLibApi.searchLyricsExplicit(query, explicitArtist)
@@ -54,12 +51,12 @@ class LyricsRepositoryImpl @Inject constructor(
 
             if (bestMatch != null) {
                 val parsedSyncedLyrics = bestMatch.syncedLyrics?.let { parseLrc(it) }
-                emit(LyricsState.Success(bestMatch.plainLyrics, parsedSyncedLyrics))
+                Lyrics(bestMatch.plainLyrics, parsedSyncedLyrics)
             } else {
-                emit(LyricsState.NotAvailable)
+                null
             }
         } catch (e: Exception) {
-            emit(LyricsState.NotAvailable)
+            null
         }
     }
 

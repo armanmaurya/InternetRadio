@@ -17,3 +17,8 @@ data class Schedule(
     val playOnRecording: Boolean = true,
     val scheduleName: String = ""
 )
+
+enum class ScheduleType {
+    PLAYBACK,
+    RECORD
+}

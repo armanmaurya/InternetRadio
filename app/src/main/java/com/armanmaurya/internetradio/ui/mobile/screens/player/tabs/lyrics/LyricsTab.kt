@@ -31,7 +31,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.drawscope.clipPath
 import com.armanmaurya.internetradio.domain.model.LrcLine
-import com.armanmaurya.internetradio.domain.model.LyricsState
+import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel.LyricsUiState
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.background
@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
 fun LyricsTab(
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
-    lyricsState: LyricsState,
+    lyricsUiState: LyricsUiState,
     trackStartTime: Long?,
     syncOffsetMs: Long,
     isPlaying: Boolean,
@@ -84,8 +84,8 @@ fun LyricsTab(
                 },
             contentAlignment = Alignment.Center
         ) {
-            when (lyricsState) {
-                is LyricsState.Loading -> {
+            when (lyricsUiState) {
+                is LyricsUiState.Loading -> {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
@@ -97,7 +97,7 @@ fun LyricsTab(
                         }
                     }
                 }
-                is LyricsState.NotAvailable -> {
+                is LyricsUiState.NotAvailable -> {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
@@ -113,21 +113,21 @@ fun LyricsTab(
                         }
                     }
                 }
-                is LyricsState.Success -> {
-                    val canSync = !lyricsState.syncedLyrics.isNullOrEmpty() && trackStartTime != null
+                is LyricsUiState.Success -> {
+                    val canSync = !lyricsUiState.syncedLyrics.isNullOrEmpty() && trackStartTime != null
                     val actuallySync = canSync && isSyncEnabled
                     
                     if (actuallySync) {
                         SyncedLyricsView(
-                            lines = lyricsState.syncedLyrics!!,
+                            lines = lyricsUiState.syncedLyrics!!,
                             listState = listState,
                             trackStartTime = trackStartTime!!,
                             syncOffsetMs = syncOffsetMs,
                             getCurrentPosition = getCurrentPosition
                         )
-                    } else if (!lyricsState.plainLyrics.isNullOrEmpty()) {
+                    } else if (!lyricsUiState.plainLyrics.isNullOrEmpty()) {
                         PlainLyricsView(
-                            lyrics = lyricsState.plainLyrics!!,
+                            lyrics = lyricsUiState.plainLyrics!!,
                             listState = listState
                         )
                     } else {
@@ -151,12 +151,12 @@ fun LyricsTab(
         }
 
         // Overlay Toggle Button
-        if (lyricsState is LyricsState.Success) {
-            val canSync = !lyricsState.syncedLyrics.isNullOrEmpty() && trackStartTime != null
+        if (lyricsUiState is LyricsUiState.Success) {
+            val canSync = !lyricsUiState.syncedLyrics.isNullOrEmpty() && trackStartTime != null
             val isCurrentlySynced = canSync && isSyncEnabled
             
             // Only show button if we have SOME lyrics
-            if (!lyricsState.syncedLyrics.isNullOrEmpty() || !lyricsState.plainLyrics.isNullOrEmpty()) {
+            if (!lyricsUiState.syncedLyrics.isNullOrEmpty() || !lyricsUiState.plainLyrics.isNullOrEmpty()) {
                 val cornerRadius by androidx.compose.animation.core.animateDpAsState(
                     targetValue = if (isCurrentlySynced) 12.dp else 50.dp,
                     animationSpec = androidx.compose.animation.core.tween(300)

@@ -76,7 +76,7 @@ import androidx.compose.ui.graphics.FilterQuality
 import coil3.compose.SubcomposeAsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.CastDevice
-import com.armanmaurya.internetradio.domain.model.LyricsState
+import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel.LyricsUiState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.domain.model.PlaybackState
@@ -163,7 +163,7 @@ fun PlayerBottomSheet(
     val connectedCastDevice by playerViewModel.connectedCastDevice.collectAsStateWithLifecycle()
     val castPlaybackState by playerViewModel.castPlaybackState.collectAsStateWithLifecycle()
     val castVolume by playerViewModel.castVolume.collectAsStateWithLifecycle()
-    val lyricsState by playerViewModel.lyricsState.collectAsStateWithLifecycle()
+    val lyricsUiState by playerViewModel.lyricsUiState.collectAsStateWithLifecycle()
 
     val effectivePlaybackState = if (connectedCastDevice != null) {
         playbackState.copy(
@@ -295,7 +295,7 @@ fun PlayerBottomSheet(
                 stationRecordings = stationRecordings,
                 activeSessions = activeSessions,
                 retryCountdown = retryCountdown,
-                lyricsState = lyricsState,
+                lyricsUiState = lyricsUiState,
                 progress = progress,
                 onTogglePlayPause = playerViewModel::togglePlayPause,
                 onToggleFavorite = playerViewModel::toggleFavorite,
@@ -343,7 +343,7 @@ fun PlayerSheetContent(
     stationRecordings: List<com.armanmaurya.internetradio.domain.model.RecordingFile>? = null,
     activeSessions: Map<String, RecordingSession> = emptyMap(),
     retryCountdown: Int? = null,
-    lyricsState: LyricsState = LyricsState.Loading,
+    lyricsUiState: LyricsUiState = LyricsUiState.Loading,
     progress: Float, // 0.0 (collapsed) to 1.0 (expanded)
     onTogglePlayPause: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -1566,7 +1566,7 @@ fun PlayerSheetContent(
                                 LyricsTab(
                                     listState = lyricsListState,
                                     nestedScrollConnection = nestedScrollConnection,
-                                    lyricsState = lyricsState,
+                                    lyricsUiState = lyricsUiState,
                                     trackStartTime = playbackState.trackStartTime,
                                     syncOffsetMs = playbackState.lyricsSyncOffsetMs,
                                     isPlaying = playbackState.isPlaying,

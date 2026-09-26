@@ -1,8 +1,7 @@
 package com.armanmaurya.internetradio.domain.repository
 
-import com.armanmaurya.internetradio.domain.model.LyricsState
-import kotlinx.coroutines.flow.Flow
+import com.armanmaurya.internetradio.domain.model.Lyrics
 
 interface LyricsRepository {
-    fun getLyricsForTrack(trackName: String, artistName: String? = null): Flow<LyricsState>
+    suspend fun getLyricsForTrack(trackName: String, artistName: String? = null): Lyrics?
 }

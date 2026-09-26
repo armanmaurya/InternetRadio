@@ -2,10 +2,6 @@ package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.schedules.comp
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,16 +11,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.Schedule
-import com.armanmaurya.internetradio.domain.model.ScheduleType
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
-import java.util.Locale
 import java.util.Calendar
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext

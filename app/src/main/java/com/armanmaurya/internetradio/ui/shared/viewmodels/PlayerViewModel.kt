@@ -2,7 +2,10 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.armanmaurya.internetradio.domain.model.LyricsState
+import com.armanmaurya.internetradio.domain.model.LrcLine
+import com.armanmaurya.internetradio.domain.model.Lyrics
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
@@ -75,6 +78,17 @@ class PlayerViewModel @Inject constructor(
 
     val playbackState = playerController.playbackState
     
+    sealed interface LyricsUiState {
+        data object Loading : LyricsUiState
+        data object NotAvailable : LyricsUiState
+        data class Success(
+            val plainLyrics: String?,
+            val syncedLyrics: List<LrcLine>?
+        ) : LyricsUiState {
+            constructor(lyrics: Lyrics) : this(lyrics.plainLyrics, lyrics.syncedLyrics)
+        }
+    }
+
     private data class LyricsRequestData(
         val track: String?,
         val cleanTrack: String?,
@@ -83,7 +97,7 @@ class PlayerViewModel @Inject constructor(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val lyricsState = combine(
+    val lyricsUiState: StateFlow<LyricsUiState> = combine(
         playbackState.map { it.currentTrack }.distinctUntilChanged(),
         playbackState.map { it.cleanTrackName }.distinctUntilChanged(),
         playbackState.map { it.cleanArtistName }.distinctUntilChanged(),
@@ -92,23 +106,33 @@ class PlayerViewModel @Inject constructor(
         LyricsRequestData(track, cleanTrack, cleanArtist, isFetching)
     }
         .flatMapLatest { data ->
-            if (data.track.isNullOrBlank()) {
-                flowOf(LyricsState.NotAvailable)
-            } else if (data.isFetching) {
-                flowOf(LyricsState.Loading)
-            } else {
-                if (data.cleanTrack != null) {
-                    lyricsRepository.getLyricsForTrack(data.cleanTrack, data.cleanArtist)
+            flow {
+                if (data.track.isNullOrBlank()) {
+                    emit(LyricsUiState.NotAvailable)
+                } else if (data.isFetching) {
+                    emit(LyricsUiState.Loading)
                 } else {
-                    lyricsRepository.getLyricsForTrack(data.track, null)
+                    emit(LyricsUiState.Loading)
+                    val lyrics = if (data.cleanTrack != null) {
+                        lyricsRepository.getLyricsForTrack(data.cleanTrack, data.cleanArtist)
+                    } else {
+                        lyricsRepository.getLyricsForTrack(data.track, null)
+                    }
+                    if (lyrics != null) {
+                        emit(LyricsUiState.Success(lyrics))
+                    } else {
+                        emit(LyricsUiState.NotAvailable)
+                    }
                 }
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = LyricsState.Loading
+            initialValue = LyricsUiState.Loading
         )
+
+    val lyricsState: StateFlow<LyricsUiState> get() = lyricsUiState
 
     val activeSessions = getActiveRecordingsUseCase()
 
