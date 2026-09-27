@@ -2,7 +2,7 @@ package com.armanmaurya.internetradio.domain.usecase.player
 
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
-import com.armanmaurya.internetradio.domain.model.PlaybackState
+import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
@@ -137,8 +137,11 @@ class PlayerUseCasesTest {
     }
 
     private class FakePlayerController : PlayerController {
-        private val _playbackState = MutableStateFlow(PlaybackState())
-        override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+        private val _playbackSession = MutableStateFlow(PlaybackSession())
+        override val playbackSession: StateFlow<PlaybackSession> = _playbackSession.asStateFlow()
+        override val isBuffering: StateFlow<Boolean> = MutableStateFlow(false)
+        override val isError: StateFlow<Boolean> = MutableStateFlow(false)
+        override val isFetchingArtwork: StateFlow<Boolean> = MutableStateFlow(false)
         override val currentPlaylistSnapshot: List<RadioStation> = emptyList()
         override val currentPosition: Long = 0L
         private val _amplitude = MutableStateFlow(0f)

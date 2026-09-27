@@ -11,6 +11,7 @@ import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.ScheduleRepository
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.service.AlarmService
+import com.armanmaurya.internetradio.service.PlaybackService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,8 +49,49 @@ class ScheduleReceiver : BroadcastReceiver() {
             }
             val keepPlayback = intent.getBooleanExtra("KEEP_PLAYBACK", false)
             if (!keepPlayback) {
+                val dismissIntent = Intent(context, AlarmService::class.java).apply {
+                    this.action = AlarmService.ACTION_DISMISS_ALARM
+                }
+                try {
+                    context.startService(dismissIntent)
+                } catch (_: Exception) {}
+
+                val stopPlaybackIntent = Intent(context, PlaybackService::class.java).apply {
+                    this.action = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
+                }
+                try {
+                    context.startService(stopPlaybackIntent)
+                } catch (_: Exception) {}
+
                 playerController.stop()
+            } else {
+                val dismissIntent = Intent(context, AlarmService::class.java).apply {
+                    this.action = AlarmService.ACTION_DISMISS_ALARM
+                    putExtra(AlarmService.EXTRA_STOP_PLAYBACK, false)
+                }
+                try {
+                    context.startService(dismissIntent)
+                } catch (_: Exception) {}
             }
+            return
+        }
+
+        if (action == ACTION_STOP_PLAYBACK) {
+            val dismissIntent = Intent(context, AlarmService::class.java).apply {
+                this.action = AlarmService.ACTION_DISMISS_ALARM
+            }
+            try {
+                context.startService(dismissIntent)
+            } catch (_: Exception) {}
+
+            val stopPlaybackIntent = Intent(context, PlaybackService::class.java).apply {
+                this.action = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
+            }
+            try {
+                context.startService(stopPlaybackIntent)
+            } catch (_: Exception) {}
+
+            playerController.stop()
             return
         }
 
@@ -79,7 +121,7 @@ class ScheduleReceiver : BroadcastReceiver() {
             }
         }
 
-        // Handle recording and rescheduling in background using goAsync
+        // Handle recording, playback end time, and rescheduling in background using goAsync
         val pendingResult = goAsync()
         scope.launch {
             try {
@@ -98,6 +140,13 @@ class ScheduleReceiver : BroadcastReceiver() {
                                 )
                             }
                         }
+                    }
+
+                    if (schedule.type == ScheduleType.PLAYBACK && schedule.durationMinutes > 0) {
+                        scheduleController.schedulePlaybackStop(
+                            scheduleId = schedule.id,
+                            durationMinutes = schedule.durationMinutes
+                        )
                     }
 
                     if (schedule.isRecurring) {
@@ -120,5 +169,6 @@ class ScheduleReceiver : BroadcastReceiver() {
     companion object {
         const val EXTRA_SCHEDULE_ID = "extra_schedule_id"
         const val ACTION_STOP_RECORDING = "com.armanmaurya.internetradio.ACTION_STOP_RECORDING"
+        const val ACTION_STOP_PLAYBACK = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
     }
 }

@@ -34,12 +34,12 @@ fun AppIntentHandler(
 
     fun expandPlayerSheet() {
         scope.launch {
-            if (playerViewModel.playbackState.value.currentStation == null) {
+            if (playerViewModel.uiState.value.currentStation == null) {
                 withTimeoutOrNull(2500L) {
-                    playerViewModel.playbackState.first { it.currentStation != null }
+                    playerViewModel.uiState.first { it.currentStation != null }
                 }
             }
-            if (playerViewModel.playbackState.value.currentStation != null) {
+            if (playerViewModel.uiState.value.currentStation != null) {
                 delay(100)
                 try {
                     scaffoldState.bottomSheetState.expand()

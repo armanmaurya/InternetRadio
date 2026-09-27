@@ -1,12 +1,15 @@
 package com.armanmaurya.internetradio.domain.controller
 
+import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
-import com.armanmaurya.internetradio.domain.model.PlaybackState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import kotlinx.coroutines.flow.StateFlow
 
 interface PlayerController {
-    val playbackState: StateFlow<PlaybackState>
+    val playbackSession: StateFlow<PlaybackSession>
+    val isBuffering: StateFlow<Boolean>
+    val isError: StateFlow<Boolean>
+    val isFetchingArtwork: StateFlow<Boolean>
     val currentPlaylistSnapshot: List<RadioStation>
     val currentPosition: Long
     val amplitude: StateFlow<Float>

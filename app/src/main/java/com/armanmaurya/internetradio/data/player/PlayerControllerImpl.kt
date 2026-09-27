@@ -11,7 +11,7 @@ import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
-import com.armanmaurya.internetradio.domain.model.PlaybackState
+import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.service.PlaybackService
@@ -50,8 +50,17 @@ class PlayerControllerImpl @Inject constructor(
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
 
-    private val _playbackState = MutableStateFlow(PlaybackState())
-    override val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
+    private val _playbackSession = MutableStateFlow(PlaybackSession())
+    override val playbackSession: StateFlow<PlaybackSession> = _playbackSession.asStateFlow()
+
+    private val _isBuffering = MutableStateFlow(false)
+    override val isBuffering: StateFlow<Boolean> = _isBuffering.asStateFlow()
+
+    private val _isError = MutableStateFlow(false)
+    override val isError: StateFlow<Boolean> = _isError.asStateFlow()
+
+    private val _isFetchingArtwork = MutableStateFlow(false)
+    override val isFetchingArtwork: StateFlow<Boolean> = _isFetchingArtwork.asStateFlow()
 
     private val _amplitude = MutableStateFlow(0f)
     override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
@@ -77,7 +86,7 @@ class PlayerControllerImpl @Inject constructor(
         val station = stations.getOrNull(startIndex)
         if (station != null) {
             activeStation = station
-            _playbackState.update { it.copy(currentStation = station, currentPlaylist = currentPlaylist, currentPlaylistIndex = startIndex, currentTrack = null, trackStartTime = null, lyricsSyncOffsetMs = 0L, playbackSource = currentPlaybackSource) }
+            _playbackSession.update { it.copy(currentStation = station, currentPlaylist = currentPlaylist, currentPlaylistIndex = startIndex, currentTrack = null, trackStartTime = null, lyricsSyncOffsetMs = 0L, playbackSource = currentPlaybackSource) }
         }
     }
 
@@ -87,7 +96,7 @@ class PlayerControllerImpl @Inject constructor(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             val now = System.currentTimeMillis()
-            _playbackState.update { state ->
+            _playbackSession.update { state ->
                 if (isPlaying) {
                     state.copy(
                         isPlaying = true,
@@ -106,55 +115,42 @@ class PlayerControllerImpl @Inject constructor(
 
         override fun onEvents(player: Player, events: Player.Events) {
             super.onEvents(player, events)
-            _playbackState.update { state ->
-                var updatedState = state.copy(
-                    hasNext = player.hasNextMediaItem(),
-                    hasPrevious = player.hasPreviousMediaItem()
-                )
+            if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                _playbackSession.update { it.copy(streamCodec = null, streamBitrate = null) }
                 
-                if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                    updatedState = updatedState.copy(streamCodec = null, streamBitrate = null)
-                    
-                    val currentStation = updatedState.currentStation
-                    val needsCodec = currentStation?.codec.isNullOrBlank() || currentStation?.codec?.uppercase() == "UNKNOWN"
-                    val needsBitrate = currentStation?.bitrate == null || currentStation.bitrate == 0
-                    
-                    if (currentStation != null && (needsCodec || needsBitrate)) {
-                        val url = currentStation.url
-                        scope.launch {
-                            val probeResult = streamProber.probe(url)
-                            if (probeResult != null) {
-                                _playbackState.update { s ->
-                                    if (s.currentStation?.stationUuid == currentStation.stationUuid) {
-                                        s.copy(
-                                            streamCodec = probeResult.codec.takeIf { it.isNotBlank() },
-                                            streamBitrate = probeResult.bitrate.takeIf { it > 0 }
-                                        )
-                                    } else {
-                                        s
-                                    }
+                val currentStation = _playbackSession.value.currentStation
+                val needsCodec = currentStation?.codec.isNullOrBlank() || currentStation?.codec?.uppercase() == "UNKNOWN"
+                val needsBitrate = currentStation?.bitrate == null || currentStation.bitrate == 0
+                
+                if (currentStation != null && (needsCodec || needsBitrate)) {
+                    val url = currentStation.url
+                    scope.launch {
+                        val probeResult = streamProber.probe(url)
+                        if (probeResult != null) {
+                            _playbackSession.update { s ->
+                                if (s.currentStation?.stationUuid == currentStation.stationUuid) {
+                                    s.copy(
+                                        streamCodec = probeResult.codec.takeIf { it.isNotBlank() },
+                                        streamBitrate = probeResult.bitrate.takeIf { it > 0 }
+                                    )
+                                } else {
+                                    s
                                 }
                             }
                         }
                     }
                 }
-                
-                updatedState
             }
         }
 
         override fun onPlaybackStateChanged(state: Int) {
-            _playbackState.update {
-                val isTransientIdle = state == Player.STATE_IDLE && controller?.playWhenReady == true && controller?.playerError == null
-                it.copy(
-                    isLoading = state == Player.STATE_BUFFERING || (it.isLoading && isTransientIdle),
-                    isError = state == Player.STATE_IDLE && controller?.playerError != null
-                )
-            }
+            val isTransientIdle = state == Player.STATE_IDLE && controller?.playWhenReady == true && controller?.playerError == null
+            _isBuffering.value = state == Player.STATE_BUFFERING || (_isBuffering.value && isTransientIdle)
+            _isError.value = state == Player.STATE_IDLE && controller?.playerError != null
         }
 
         override fun onVolumeChanged(volume: Float) {
-            _playbackState.update { current ->
+            _playbackSession.update { current ->
                 if (current.volume > 1.0f && volume == 1.0f) current
                 else current.copy(volume = volume)
             }
@@ -164,13 +160,13 @@ class PlayerControllerImpl @Inject constructor(
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (mediaItem == null) {
                 activeStation = null
-                _playbackState.update { it.copy(currentStation = null, currentPlaylistIndex = currentIndex) }
+                _playbackSession.update { it.copy(currentStation = null, currentPlaylistIndex = currentIndex) }
                 return
             }
 
             val originalId = mediaItem.mediaId.substringAfter("|")
             if (originalId == activeStation?.stationUuid) {
-                _playbackState.update { it.copy(currentStation = activeStation, currentPlaylistIndex = currentPlaylist.indexOf(activeStation).coerceAtLeast(0)) }
+                _playbackSession.update { it.copy(currentStation = activeStation, currentPlaylistIndex = currentPlaylist.indexOf(activeStation).coerceAtLeast(0)) }
                 return
             }
             
@@ -179,14 +175,14 @@ class PlayerControllerImpl @Inject constructor(
                 
             if (tagStation != null) {
                 activeStation = tagStation
-                _playbackState.update { 
+                _isFetchingArtwork.value = false
+                _playbackSession.update { 
                     it.copy(
                         currentStation = activeStation, 
                         currentPlaylistIndex = currentPlaylist.indexOf(tagStation).coerceAtLeast(0),
                         currentTrack = null, 
                         trackStartTime = null, 
                         trackCoverArtUri = null,
-                        isFetchingArtwork = false,
                         lyricsSyncOffsetMs = 0L,
                         sessionActiveDurationMs = 0L,
                         sessionResumeTimeMs = null
@@ -231,7 +227,7 @@ class PlayerControllerImpl @Inject constructor(
                                     .toSet()
                                 val uniqueNew = newStations.filter { it.stationUuid !in existingIds }
                                 currentPlaylist = currentPlaylist + uniqueNew
-                                _playbackState.update { it.copy(currentPlaylist = currentPlaylist) }
+                                _playbackSession.update { it.copy(currentPlaylist = currentPlaylist) }
                                 val newMediaItems = uniqueNew.map { it.toMediaItem() }
                                 player.addMediaItems(newMediaItems)
                             }
@@ -242,34 +238,39 @@ class PlayerControllerImpl @Inject constructor(
             }
         }
 
-        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-            val artworkUri = mediaMetadata.extras?.getString("track_cover_art_url")
+        override fun onPlaylistMetadataChanged(mediaMetadata: MediaMetadata) {
+            val title = mediaMetadata.title?.toString()
+            val artist = mediaMetadata.artist?.toString()
             val cleanTrackName = mediaMetadata.extras?.getString("clean_track_name")
             val cleanArtistName = mediaMetadata.extras?.getString("clean_artist_name")
-            val rawTrackName = mediaMetadata.extras?.getString("icy_raw_title")
-            val trackInfo = mediaMetadata.extras?.getString("icy_title") 
-                ?: if (mediaMetadata.artist != null && mediaMetadata.title != null) {
-                    "${mediaMetadata.artist} - ${mediaMetadata.title}"
-                } else {
-                    mediaMetadata.title?.toString() ?: mediaMetadata.artist?.toString()
-                }
+            val rawTrackName = mediaMetadata.extras?.getString("raw_track_name")
+            val artworkUri = mediaMetadata.artworkUri?.toString()
+            
+            val trackInfo = if (!title.isNullOrBlank() && !artist.isNullOrBlank()) {
+                "$artist - $title"
+            } else if (!title.isNullOrBlank()) {
+                title
+            } else {
+                null
+            }
             if (trackInfo != null && trackInfo.isNotBlank() && trackInfo != activeStation?.name) {
                 // Read the exact start time recorded by the background service. 
                 // If it's -1, it means it's the tune-in track and we don't know the position.
                 val exactStartTime = mediaMetadata.extras?.getLong("track_start_time")?.takeIf { it > 0L }
-                val isFetchingArtwork = mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
+                val isFetching = mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
+                _isFetchingArtwork.value = isFetching
                 
-                _playbackState.update { it.copy(
+                _playbackSession.update { it.copy(
                     currentTrack = trackInfo, 
                     trackStartTime = exactStartTime,
                     trackCoverArtUri = artworkUri,
-                    isFetchingArtwork = isFetchingArtwork,
                     cleanTrackName = cleanTrackName,
                     cleanArtistName = cleanArtistName,
                     rawTrackName = rawTrackName
                 ) }
             } else {
-                _playbackState.update { it.copy(currentTrack = null, trackStartTime = null, trackCoverArtUri = artworkUri, isFetchingArtwork = false, cleanTrackName = null, cleanArtistName = null, rawTrackName = null) }
+                _isFetchingArtwork.value = false
+                _playbackSession.update { it.copy(currentTrack = null, trackStartTime = null, trackCoverArtUri = artworkUri, cleanTrackName = null, cleanArtistName = null, rawTrackName = null) }
             }
         }
     }
@@ -285,20 +286,16 @@ class PlayerControllerImpl @Inject constructor(
             controller?.let { 
                 it.addListener(playerListener)
                 
-                val currentVolume = it.volume
                 val isCurrentlyPlaying = it.isPlaying
+                val currentVolume = it.volume
                 val isCurrentlyLoading = it.playbackState == Player.STATE_BUFFERING
                 val isCurrentlyError = it.playbackState == Player.STATE_IDLE && it.playerError != null
-                val hasNext = it.hasNextMediaItem()
-                val hasPrevious = it.hasPreviousMediaItem()
 
-                _playbackState.update { state ->
+                _isBuffering.value = isCurrentlyLoading
+                _isError.value = isCurrentlyError
+                _playbackSession.update { state ->
                     state.copy(
-                        volume = currentVolume,
-                        isLoading = isCurrentlyLoading,
-                        isError = isCurrentlyError,
-                        hasNext = hasNext,
-                        hasPrevious = hasPrevious
+                        volume = currentVolume
                     )
                 }
 
@@ -311,7 +308,7 @@ class PlayerControllerImpl @Inject constructor(
                     
                     if (station != null) {
                         activeStation = station
-                        _playbackState.update { state ->
+                        _playbackSession.update { state ->
                             state.copy(
                                 isPlaying = isCurrentlyPlaying,
                                 currentStation = station,
@@ -329,7 +326,7 @@ class PlayerControllerImpl @Inject constructor(
                         }
                     }
                 } else {
-                    _playbackState.update { state ->
+                    _playbackSession.update { state ->
                         state.copy(
                             isPlaying = it.isPlaying,
                             currentStation = null
@@ -350,9 +347,9 @@ class PlayerControllerImpl @Inject constructor(
                                         currentPlaylist = libraryStations
                                         currentPlaybackSource = PlaybackSource.Library
                                         activeStation = station
-                                        _playbackState.update { state ->
+                                        _isBuffering.value = true
+                                        _playbackSession.update { state ->
                                             state.copy(
-                                                isLoading = true,
                                                 currentStation = station,
                                                 currentPlaylist = currentPlaylist,
                                                 currentPlaylistIndex = libraryIndex,
@@ -366,9 +363,9 @@ class PlayerControllerImpl @Inject constructor(
                                         currentPlaylist = recentStations
                                         currentPlaybackSource = PlaybackSource.Recent
                                         activeStation = station
-                                        _playbackState.update { state ->
+                                        _isBuffering.value = true
+                                        _playbackSession.update { state ->
                                             state.copy(
-                                                isLoading = true,
                                                 currentStation = station,
                                                 currentPlaylist = currentPlaylist,
                                                 currentPlaylistIndex = recentIndex,
@@ -390,12 +387,17 @@ class PlayerControllerImpl @Inject constructor(
         }, MoreExecutors.directExecutor())
     }
 
-    override fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource, playWhenReady: Boolean) {
+    override fun play(
+        stations: List<RadioStation>,
+        startIndex: Int,
+        source: PlaybackSource,
+        playWhenReady: Boolean
+    ) {
         val player = controller ?: return
         if (stations.isEmpty() || startIndex !in stations.indices) return
-        
-        currentPlaybackSource = source
+
         currentPlaylist = stations
+        currentPlaybackSource = source
         val station = stations[startIndex]
 
         if (activeStation?.stationUuid == station.stationUuid) {
@@ -407,10 +409,10 @@ class PlayerControllerImpl @Inject constructor(
         }
 
         activeStation = station
-        _playbackState.update { 
+        _isBuffering.value = playWhenReady
+        _playbackSession.update { 
             it.copy(
                 isPlaying = false,
-                isLoading = playWhenReady,
                 currentStation = station, 
                 currentPlaylist = currentPlaylist, 
                 currentPlaylistIndex = startIndex, 
@@ -441,62 +443,54 @@ class PlayerControllerImpl @Inject constructor(
         val urlChanged = activeStation?.url != updatedStation.url || activeStation?.urlResolved != updatedStation.urlResolved
 
         activeStation = updatedStation
-        _playbackState.update { it.copy(currentStation = updatedStation) }
+        _playbackSession.update { it.copy(currentStation = updatedStation) }
         
         currentPlaylist = currentPlaylist.map { 
             if (it.stationUuid == targetUuid) updatedStation else it 
         }
-        _playbackState.update { it.copy(currentPlaylist = currentPlaylist) }
+        _playbackSession.update { it.copy(currentPlaylist = currentPlaylist) }
 
         if (urlChanged) {
             val currentIndex = player.currentMediaItemIndex
             if (currentIndex != -1) {
                 val mediaItems = currentPlaylist.map { it.toMediaItem() }
                 val position = player.currentPosition
+                val isPlaying = player.isPlaying
                 player.setMediaItems(mediaItems, currentIndex, position)
-                player.prepare()
-                player.play()
-            }
-        } else {
-            val currentIndex = player.currentMediaItemIndex
-            if (currentIndex != -1) {
-                player.replaceMediaItem(currentIndex, updatedStation.toMediaItem())
+                if (isPlaying) {
+                    player.play()
+                }
             }
         }
     }
-    
+
     override fun playIndex(index: Int) {
         val player = controller ?: return
         if (index in 0 until player.mediaItemCount) {
             player.seekToDefaultPosition(index)
-            if (player.playbackState == Player.STATE_IDLE) {
-                player.prepare()
-            }
-            if (!player.isPlaying) {
-                player.play()
-            }
+            player.play()
         }
     }
 
     override fun next() {
-        controller?.let { player ->
-            if (player.hasNextMediaItem()) {
-                player.seekToNextMediaItem()
-            }
+        val player = controller ?: return
+        if (player.hasNextMediaItem()) {
+            player.seekToNextMediaItem()
+            player.play()
         }
     }
 
     override fun previous() {
-        controller?.let { player ->
-            if (player.hasPreviousMediaItem()) {
-                player.seekToPreviousMediaItem()
-            }
+        val player = controller ?: return
+        if (player.hasPreviousMediaItem()) {
+            player.seekToPreviousMediaItem()
+            player.play()
         }
     }
 
     override fun pause() {
         val player = controller ?: return
-        if (player.isPlaying || player.playWhenReady) {
+        if (player.isPlaying) {
             player.pause()
         }
     }
@@ -507,7 +501,7 @@ class PlayerControllerImpl @Inject constructor(
         if (player.isPlaying || isBuffering) {
             player.pause()
         } else {
-            _playbackState.update { it.copy(isLoading = true) }
+            _isBuffering.value = true
             if (player.playbackState == Player.STATE_IDLE) {
                 player.prepare()
             }
@@ -521,7 +515,7 @@ class PlayerControllerImpl @Inject constructor(
         val boost = if (volume > 1f) (volume - 1f).coerceIn(0f, 1f) else 0f
         val args = android.os.Bundle().apply { putFloat("KEY_BOOST", boost) }
         controller?.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, args)
-        _playbackState.update { it.copy(volume = volume) }
+        _playbackSession.update { it.copy(volume = volume) }
     }
 
     override fun stop() {
@@ -529,7 +523,7 @@ class PlayerControllerImpl @Inject constructor(
         player.stop()
         player.clearMediaItems()
         cancelSleepTimer()
-        _playbackState.update {
+        _playbackSession.update {
             it.copy(
                 isPlaying = false,
                 sessionActiveDurationMs = 0L,
@@ -544,19 +538,19 @@ class PlayerControllerImpl @Inject constructor(
     override fun setSleepTimer(durationMillis: Long) {
         timerJob?.cancel()
         val endTime = System.currentTimeMillis() + durationMillis
-        _playbackState.update { it.copy(sleepTimerEndTime = endTime, sleepTimerTotalDuration = durationMillis) }
+        _playbackSession.update { it.copy(sleepTimerEndTime = endTime, sleepTimerTotalDuration = durationMillis) }
         
         timerJob = scope.launch {
             delay(durationMillis)
             stop()
-            _playbackState.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
+            _playbackSession.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
         }
     }
 
     override fun cancelSleepTimer() {
         timerJob?.cancel()
         timerJob = null
-        _playbackState.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
+        _playbackSession.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
     }
 
     private fun MediaItem.toRadioStation(): RadioStation? {
@@ -617,7 +611,7 @@ class PlayerControllerImpl @Inject constructor(
             currentPlaybackSource = playbackSource
             activeStation = station
             
-            _playbackState.update { state ->
+            _playbackSession.update { state ->
                 state.copy(
                     isPlaying = player.isPlaying,
                     currentStation = station,
@@ -641,7 +635,7 @@ class PlayerControllerImpl @Inject constructor(
         } else {
             activeStation = station
             currentPlaylist = listOf(station)
-            _playbackState.update { state ->
+            _playbackSession.update { state ->
                 state.copy(
                     isPlaying = player.isPlaying,
                     currentStation = station,
@@ -654,7 +648,7 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun setLyricsSyncOffset(offsetMs: Long) {
-        _playbackState.update { it.copy(lyricsSyncOffsetMs = offsetMs) }
+        _playbackSession.update { it.copy(lyricsSyncOffsetMs = offsetMs) }
     }
 
     override fun updateAmplitude(rms: Float) {

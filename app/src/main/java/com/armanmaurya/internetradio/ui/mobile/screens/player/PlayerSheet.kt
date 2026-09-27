@@ -79,7 +79,7 @@ import com.armanmaurya.internetradio.domain.model.CastDevice
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel.LyricsUiState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
-import com.armanmaurya.internetradio.domain.model.PlaybackState
+import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -150,29 +150,8 @@ fun PlayerBottomSheet(
     playerViewModel: PlayerViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
-    val isFavorite by playerViewModel.isFavorite.collectAsStateWithLifecycle()
-    val trackHistory by playerViewModel.trackHistory.collectAsStateWithLifecycle()
-    val stationRecordings by playerViewModel.stationRecordings.collectAsStateWithLifecycle()
-    val activeSessions by playerViewModel.activeSessions.collectAsStateWithLifecycle()
-    val isRecording by playerViewModel.isCurrentStationRecording.collectAsStateWithLifecycle()
-    val recordingDuration by playerViewModel.currentRecordingDuration.collectAsStateWithLifecycle()
-    val amplitude by playerViewModel.amplitude.collectAsStateWithLifecycle()
-    val retryCountdown by playerViewModel.retryCountdown.collectAsStateWithLifecycle()
+    val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
     val discoveredCastDevices by playerViewModel.discoveredCastDevices.collectAsStateWithLifecycle()
-    val connectedCastDevice by playerViewModel.connectedCastDevice.collectAsStateWithLifecycle()
-    val castPlaybackState by playerViewModel.castPlaybackState.collectAsStateWithLifecycle()
-    val castVolume by playerViewModel.castVolume.collectAsStateWithLifecycle()
-    val lyricsUiState by playerViewModel.lyricsUiState.collectAsStateWithLifecycle()
-
-    val effectivePlaybackState = if (connectedCastDevice != null) {
-        playbackState.copy(
-            isPlaying = castPlaybackState.isPlaying,
-            isLoading = castPlaybackState.isBuffering
-        )
-    } else {
-        playbackState
-    }
 
     // BackHandler to collapse sheet when expanded
     BackHandler(enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
@@ -199,18 +178,18 @@ fun PlayerBottomSheet(
 
     // Handle Swipe to Dismiss (Stop playback when swiped away)
     LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
-        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden && playbackState.currentStation != null) {
+        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden && uiState.currentStation != null) {
             playerViewModel.stop()
         }
     }
 
     // Handle Re-appearing (Show player when a station starts playing) and Hiding (when playback stops)
-    LaunchedEffect(playbackState.currentStation) {
-        if (playbackState.currentStation != null && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
+    LaunchedEffect(uiState.currentStation) {
+        if (uiState.currentStation != null && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
             if (scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded) {
                 scaffoldState.bottomSheetState.partialExpand()
             }
-        } else if (playbackState.currentStation == null && scaffoldState.bottomSheetState.currentValue != SheetValue.Hidden) {
+        } else if (uiState.currentStation == null && scaffoldState.bottomSheetState.currentValue != SheetValue.Hidden) {
             scaffoldState.bottomSheetState.hide()
         }
     }
@@ -243,8 +222,8 @@ fun PlayerBottomSheet(
         }
     )
 
-    LaunchedEffect(playbackState.currentStation) {
-        if (playbackState.currentStation != null) {
+    LaunchedEffect(uiState.currentStation) {
+        if (uiState.currentStation != null) {
             dismissState.snapTo(SwipeToDismissBoxValue.Settled)
         }
     }
@@ -289,13 +268,7 @@ fun PlayerBottomSheet(
         ) {
             PlayerSheetContent(
                 isWidescreen = isWidescreen,
-                playbackState = effectivePlaybackState,
-                isFavorite = isFavorite,
-                trackHistory = trackHistory,
-                stationRecordings = stationRecordings,
-                activeSessions = activeSessions,
-                retryCountdown = retryCountdown,
-                lyricsUiState = lyricsUiState,
+                uiState = uiState,
                 progress = progress,
                 onTogglePlayPause = playerViewModel::togglePlayPause,
                 onToggleFavorite = playerViewModel::toggleFavorite,
@@ -314,15 +287,10 @@ fun PlayerBottomSheet(
                     scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                     onEditStation(station)
                 },
-                isRecording = isRecording,
-                recordingDuration = recordingDuration,
-                amplitude = amplitude,
                 onToggleRecording = playerViewModel::toggleRecording,
                 onSyncOffsetChange = playerViewModel::setLyricsSyncOffset,
                 discoveredCastDevices = discoveredCastDevices,
-                volume = castVolume.toFloat(),
                 onVolumeChange = playerViewModel::setVolume,
-                connectedCastDevice = connectedCastDevice,
                 onConnectCastDevice = playerViewModel::connectToCastDevice,
                 onDisconnectCastDevice = playerViewModel::disconnectCastDevice,
                 onDeleteRecording = playerViewModel::deleteRecording,
@@ -337,13 +305,7 @@ fun PlayerBottomSheet(
 @Composable
 fun PlayerSheetContent(
     isWidescreen: Boolean,
-    playbackState: PlaybackState,
-    isFavorite: Boolean,
-    trackHistory: List<TrackHistoryEntity> = emptyList(),
-    stationRecordings: List<com.armanmaurya.internetradio.domain.model.RecordingFile>? = null,
-    activeSessions: Map<String, RecordingSession> = emptyMap(),
-    retryCountdown: Int? = null,
-    lyricsUiState: LyricsUiState = LyricsUiState.Loading,
+    uiState: PlayerUiState,
     progress: Float, // 0.0 (collapsed) to 1.0 (expanded)
     onTogglePlayPause: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -355,14 +317,9 @@ fun PlayerSheetContent(
     onPrevious: () -> Unit,
     onPlayIndex: (Int) -> Unit,
     onEditStation: (RadioStation) -> Unit,
-    isRecording: Boolean = false,
-    recordingDuration: Long = 0L,
-    amplitude: Float = 0f,
     onToggleRecording: () -> Unit,
     onSyncOffsetChange: (Long) -> Unit,
     discoveredCastDevices: List<CastDevice> = emptyList(),
-    connectedCastDevice: CastDevice? = null,
-    volume: Float = 1f,
     onVolumeChange: (Float) -> Unit = {},
     onConnectCastDevice: (CastDevice) -> Unit = {},
     onDisconnectCastDevice: () -> Unit = {},
@@ -371,6 +328,18 @@ fun PlayerSheetContent(
     getCurrentPosition: () -> Long,
     modifier: Modifier = Modifier
 ) {
+    val playbackState = uiState
+    val isFavorite = uiState.isFavorite
+    val trackHistory = uiState.trackHistory
+    val stationRecordings = uiState.stationRecordings
+    val activeSessions = uiState.activeSessions
+    val retryCountdown = uiState.retryCountdown
+    val lyricsUiState = uiState.lyricsUiState
+    val isRecording = uiState.isRecording
+    val recordingDuration = uiState.recordingDuration
+    val amplitude = uiState.amplitude
+    val connectedCastDevice = uiState.connectedCastDevice
+    val volume = if (uiState.connectedCastDevice != null) uiState.castVolume else uiState.volume
     val station = playbackState.currentStation ?: return
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current

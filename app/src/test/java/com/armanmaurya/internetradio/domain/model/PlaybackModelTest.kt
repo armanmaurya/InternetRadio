@@ -9,17 +9,15 @@ import org.junit.Test
 class PlaybackModelTest {
 
     @Test
-    fun playbackState_defaultValues_areCorrect() {
-        val state = PlaybackState()
+    fun playbackSession_defaultValues_areCorrect() {
+        val session = PlaybackSession()
 
-        assertNull(state.currentStation)
-        assertTrue(state.currentPlaylist.isEmpty())
-        assertEquals(-1, state.currentPlaylistIndex)
-        assertFalse(state.isPlaying)
-        assertFalse(state.isLoading)
-        assertFalse(state.isError)
-        assertEquals(1f, state.volume)
-        assertEquals(PlaybackSource.None, state.playbackSource)
+        assertNull(session.currentStation)
+        assertTrue(session.currentPlaylist.isEmpty())
+        assertEquals(-1, session.currentPlaylistIndex)
+        assertFalse(session.isPlaying)
+        assertEquals(1f, session.volume)
+        assertEquals(PlaybackSource.None, session.playbackSource)
     }
 
     @Test

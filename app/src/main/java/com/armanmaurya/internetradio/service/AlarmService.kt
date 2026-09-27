@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.schedule.AlarmWakeLockBridge
 import com.armanmaurya.internetradio.domain.controller.ScheduleController
+import com.armanmaurya.internetradio.domain.model.ScheduleType
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.ScheduleRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
@@ -71,7 +72,8 @@ class AlarmService : Service() {
                 }
             }
             ACTION_DISMISS_ALARM -> {
-                dismissAlarm()
+                val stopPlayback = intent.getBooleanExtra(EXTRA_STOP_PLAYBACK, true)
+                dismissAlarm(stopPlayback)
             }
             ACTION_SNOOZE_ALARM -> {
                 val scheduleId = intent.getIntExtra(EXTRA_SCHEDULE_ID, activeScheduleId)
@@ -92,14 +94,7 @@ class AlarmService : Service() {
         val initialNotification = buildAlarmNotification(scheduleId, getString(R.string.schedule_alarm_channel_name))
         startForeground(NOTIFICATION_ID_ALARM, initialNotification)
 
-        // 2. Start 15-minute auto-silence timer
-        autoSilenceJob?.cancel()
-        autoSilenceJob = serviceScope.launch {
-            delay(AUTO_SILENCE_DURATION_MS)
-            dismissAlarm()
-        }
-
-        // 3. Resolve schedule and trigger playback
+        // 2. Resolve schedule and trigger playback
         serviceScope.launch(Dispatchers.IO) {
             val schedule = scheduleRepository.getScheduleById(scheduleId)
             if (schedule == null) {
@@ -119,6 +114,18 @@ class AlarmService : Service() {
                 val updatedNotification = buildAlarmNotification(schedule.id, schedule.stationName)
                 val notificationManager = getSystemService(NotificationManager::class.java)
                 notificationManager?.notify(NOTIFICATION_ID_ALARM, updatedNotification)
+
+                // Schedule end time auto-silence if duration is set
+                autoSilenceJob?.cancel()
+                if (schedule.durationMinutes > 0) {
+                    autoSilenceJob = serviceScope.launch {
+                        delay(schedule.durationMinutes * 60 * 1000L)
+                        val shouldStopPlayback = !(schedule.type == ScheduleType.RECORD && schedule.keepPlayback)
+                        dismissAlarm(shouldStopPlayback)
+                    }
+                } else {
+                    autoSilenceJob = null
+                }
 
                 // Start audio stream in PlaybackService
                 val playIntent = Intent(this@AlarmService, PlaybackService::class.java).apply {
@@ -142,7 +149,7 @@ class AlarmService : Service() {
                 // Bridge wakelock can be released now that PlaybackService has been launched
                 AlarmWakeLockBridge.release()
 
-                // 4. Observe player state: if playback starts and user manually pauses/stops, dismiss alarm
+                // 3. Observe player state: if playback starts and user manually pauses/stops, dismiss alarm
                 observePlaybackState()
             }
         }
@@ -152,8 +159,8 @@ class AlarmService : Service() {
         playbackObserverJob?.cancel()
         playbackObserverJob = serviceScope.launch {
             var hasStartedPlaying = false
-            playerController.playbackState.collect { state ->
-                if (state.isPlaying) {
+            playerController.playbackSession.collect { session ->
+                if (session.isPlaying) {
                     hasStartedPlaying = true
                 } else if (hasStartedPlaying) {
                     // User manually stopped or paused playback inside the app
@@ -163,18 +170,25 @@ class AlarmService : Service() {
         }
     }
 
-    private fun dismissAlarm() {
+    private fun dismissAlarm(stopPlayback: Boolean = true) {
         autoSilenceJob?.cancel()
+        autoSilenceJob = null
         playbackObserverJob?.cancel()
         AlarmWakeLockBridge.release()
 
-        // Stop playback in PlaybackService
-        val stopIntent = Intent(this, PlaybackService::class.java).apply {
-            action = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
+        if (activeScheduleId != -1) {
+            scheduleController.cancelPlaybackStop(activeScheduleId)
         }
-        try {
-            startService(stopIntent)
-        } catch (_: Exception) {}
+
+        if (stopPlayback) {
+            // Stop playback in PlaybackService
+            val stopIntent = Intent(this, PlaybackService::class.java).apply {
+                action = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
+            }
+            try {
+                startService(stopIntent)
+            } catch (_: Exception) {}
+        }
 
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -182,8 +196,13 @@ class AlarmService : Service() {
 
     private fun snoozeAlarm(scheduleId: Int) {
         autoSilenceJob?.cancel()
+        autoSilenceJob = null
         playbackObserverJob?.cancel()
         AlarmWakeLockBridge.release()
+
+        if (scheduleId != -1) {
+            scheduleController.cancelPlaybackStop(scheduleId)
+        }
 
         // Stop current playback
         val stopIntent = Intent(this, PlaybackService::class.java).apply {
@@ -284,6 +303,7 @@ class AlarmService : Service() {
         const val ACTION_DISMISS_ALARM = "com.armanmaurya.internetradio.ACTION_DISMISS_ALARM"
         const val ACTION_SNOOZE_ALARM = "com.armanmaurya.internetradio.ACTION_SNOOZE_ALARM"
         const val EXTRA_SCHEDULE_ID = "extra_schedule_id"
+        const val EXTRA_STOP_PLAYBACK = "extra_stop_playback"
         const val DEFAULT_SNOOZE_MINUTES = 10
         const val AUTO_SILENCE_DURATION_MS = 15 * 60 * 1000L // 15 minutes
     }

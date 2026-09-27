@@ -108,7 +108,7 @@ class RecentViewModel @Inject constructor(
     fun removeRecent(stationUuid: String) {
         viewModelScope.launch {
             recentRepository.removeRecent(stationUuid)
-            if (!playerController.playbackState.value.isPlaying) {
+            if (!playerController.playbackSession.value.isPlaying) {
                 val nextStation = recentRepository.getAllRecent().first().firstOrNull()
                 widgetController.cleanStaleWidgetState(nextStation?.name, nextStation?.favicon)
             }
@@ -118,7 +118,7 @@ class RecentViewModel @Inject constructor(
     fun clearAllRecent() {
         viewModelScope.launch {
             recentRepository.clearAllRecent()
-            if (!playerController.playbackState.value.isPlaying) {
+            if (!playerController.playbackSession.value.isPlaying) {
                 widgetController.cleanStaleWidgetState()
             }
         }

@@ -79,6 +79,7 @@ class ScheduleControllerImpl @Inject constructor(
             alarmManager.cancel(pendingIntent)
             pendingIntent.cancel()
         }
+        cancelPlaybackStop(scheduleId)
     }
 
     override fun snooze(scheduleId: Int, minutes: Int) {
@@ -177,6 +178,66 @@ class ScheduleControllerImpl @Inject constructor(
         }
     }
 
+    override fun schedulePlaybackStop(scheduleId: Int, durationMinutes: Int) {
+        if (durationMinutes <= 0) return
+
+        val stopIntent = Intent(context, ScheduleReceiver::class.java).apply {
+            action = ScheduleReceiver.ACTION_STOP_PLAYBACK
+            putExtra(ScheduleReceiver.EXTRA_SCHEDULE_ID, scheduleId)
+        }
+        val requestCode = getPlaybackStopRequestCode(scheduleId)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val showIntent = Intent(context, MobileActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val showPendingIntent = PendingIntent.getActivity(
+            context,
+            requestCode,
+            showIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val stopAt = System.currentTimeMillis() + (durationMinutes * 60 * 1000L)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, stopAt, pendingIntent)
+            } else {
+                val alarmClockInfo = AlarmManager.AlarmClockInfo(stopAt, showPendingIntent)
+                alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+            }
+        } catch (e: SecurityException) {
+            try {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, stopAt, pendingIntent)
+            } catch (_: Exception) {}
+        }
+    }
+
+    override fun cancelPlaybackStop(scheduleId: Int) {
+        val stopIntent = Intent(context, ScheduleReceiver::class.java).apply {
+            action = ScheduleReceiver.ACTION_STOP_PLAYBACK
+        }
+        val requestCode = getPlaybackStopRequestCode(scheduleId)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            stopIntent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
+        }
+    }
+
+    private fun getPlaybackStopRequestCode(scheduleId: Int): Int {
+        return REQUEST_CODE_PLAYBACK_STOP_OFFSET + scheduleId
+    }
+
     private fun getNextTriggerTime(schedule: Schedule): Long {
         if (!schedule.isRecurring && schedule.triggerTimeInMillis > System.currentTimeMillis()) {
             return schedule.triggerTimeInMillis
@@ -214,5 +275,9 @@ class ScheduleControllerImpl @Inject constructor(
         }
 
         return calendar.timeInMillis
+    }
+
+    companion object {
+        private const val REQUEST_CODE_PLAYBACK_STOP_OFFSET = 1_000_000
     }
 }

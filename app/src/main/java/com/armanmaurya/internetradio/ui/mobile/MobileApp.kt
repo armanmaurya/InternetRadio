@@ -53,7 +53,7 @@ fun MobileApp(
     playerViewModel: PlayerViewModel = hiltViewModel()
 ) {
     val appPreferences by mainViewModel.appPreferences.collectAsStateWithLifecycle(initialValue = AppPreferences())
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
+    val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
 
     CompositionLocalProvider(LocalAppPreferences provides appPreferences) {
         InternetRadioTheme(appPreferences = appPreferences) {
@@ -88,7 +88,7 @@ fun MobileApp(
         val onCheckUpdates = rememberManualUpdateChecker(mainViewModel)
 
         val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val sheetPeekHeight = if (playbackState.currentStation != null) 72.dp + bottomInset else 0.dp
+        val sheetPeekHeight = if (uiState.currentStation != null) 72.dp + bottomInset else 0.dp
         val isExpanded = widthSizeClass == WindowWidthSizeClass.Expanded
 
         val progress by rememberPlayerSheetProgress(scaffoldState, bottomInset)

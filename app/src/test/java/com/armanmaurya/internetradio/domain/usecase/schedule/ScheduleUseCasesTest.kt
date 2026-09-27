@@ -79,6 +79,17 @@ class ScheduleUseCasesTest {
         override fun cancelRecordingStop(stationUuid: String) {
             recordingStopCancels.add(stationUuid)
         }
+
+        val playbackStops = mutableListOf<Pair<Int, Int>>()
+        val playbackStopCancels = mutableListOf<Int>()
+
+        override fun schedulePlaybackStop(scheduleId: Int, durationMinutes: Int) {
+            playbackStops.add(scheduleId to durationMinutes)
+        }
+
+        override fun cancelPlaybackStop(scheduleId: Int) {
+            playbackStopCancels.add(scheduleId)
+        }
     }
 
     @Test
@@ -278,5 +289,18 @@ class ScheduleUseCasesTest {
 
         assertEquals(1, controller.snoozedAlarms.size)
         assertEquals(15 to 10, controller.snoozedAlarms.first())
+    }
+
+    @Test
+    fun testPlaybackStopScheduling() {
+        val controller = FakeScheduleController()
+
+        controller.schedulePlaybackStop(scheduleId = 20, durationMinutes = 45)
+        assertEquals(1, controller.playbackStops.size)
+        assertEquals(20 to 45, controller.playbackStops.first())
+
+        controller.cancelPlaybackStop(scheduleId = 20)
+        assertEquals(1, controller.playbackStopCancels.size)
+        assertEquals(20, controller.playbackStopCancels.first())
     }
 }

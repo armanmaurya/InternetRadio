@@ -126,7 +126,7 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val contentFocusRequester = remember { FocusRequester() }
     
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
+    val playbackState by playerViewModel.uiState.collectAsStateWithLifecycle()
     
     // Helper for drawer navigation
     val navigateToDrawerItem: (String) -> Unit = { route ->

@@ -4,9 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.domain.model.LrcLine
 import com.armanmaurya.internetradio.domain.model.Lyrics
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
+import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.domain.model.RecordingFile
+import com.armanmaurya.internetradio.domain.model.RecordingSession
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
@@ -28,9 +29,11 @@ import com.armanmaurya.internetradio.service.playback.engine.RetryStateTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -60,8 +63,9 @@ class PlayerViewModel @Inject constructor(
     private val setSleepTimerUseCase: SetSleepTimerUseCase,
     private val setPlayerVolumeUseCase: SetPlayerVolumeUseCase,
     private val stopPlaybackUseCase: StopPlaybackUseCase,
-    private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
+    private val libraryRepository: LibraryRepository,
+    private val settingsRepository: com.armanmaurya.internetradio.domain.repository.SettingsRepository,
     private val stationRepository: com.armanmaurya.internetradio.domain.repository.StationRepository,
     private val trackHistoryRepository: TrackHistoryRepository,
     private val recordingController: RecordingController,
@@ -76,7 +80,8 @@ class PlayerViewModel @Inject constructor(
     val retryCountdown = retryStateTracker.retryCountdown
     val retryToastEvent = retryStateTracker.retryToastEvent
 
-    val playbackState = playerController.playbackState
+    val playbackSession = playerController.playbackSession
+    val playbackState: StateFlow<PlaybackSession> get() = playbackSession
     
     sealed interface LyricsUiState {
         data object Loading : LyricsUiState
@@ -98,10 +103,10 @@ class PlayerViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val lyricsUiState: StateFlow<LyricsUiState> = combine(
-        playbackState.map { it.currentTrack }.distinctUntilChanged(),
-        playbackState.map { it.cleanTrackName }.distinctUntilChanged(),
-        playbackState.map { it.cleanArtistName }.distinctUntilChanged(),
-        playbackState.map { it.isFetchingArtwork }.distinctUntilChanged()
+        playbackSession.map { it.currentTrack }.distinctUntilChanged(),
+        playbackSession.map { it.cleanTrackName }.distinctUntilChanged(),
+        playbackSession.map { it.cleanArtistName }.distinctUntilChanged(),
+        playerController.isFetchingArtwork
     ) { track, cleanTrack, cleanArtist, isFetching ->
         LyricsRequestData(track, cleanTrack, cleanArtist, isFetching)
     }
@@ -136,12 +141,12 @@ class PlayerViewModel @Inject constructor(
 
     val activeSessions = getActiveRecordingsUseCase()
 
-    val isCurrentStationRecording = combine(playbackState.map { it.currentStation }, activeSessions) { station, sessions ->
+    val isCurrentStationRecording = combine(playbackSession.map { it.currentStation }, activeSessions) { station, sessions ->
         station != null && sessions.containsKey(station.stationUuid)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val currentRecordingDuration = combine(playbackState.map { it.currentStation }, activeSessions) { station, sessions ->
+    val currentRecordingDuration = combine(playbackSession.map { it.currentStation }, activeSessions) { station, sessions ->
         if (station != null) sessions[station.stationUuid] else null
     }.flatMapLatest { session ->
         session?.durationSeconds ?: kotlinx.coroutines.flow.flowOf(0L)
@@ -158,17 +163,168 @@ class PlayerViewModel @Inject constructor(
     val currentPosition: Long
         get() = playerController.currentPosition
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val isFavorite = playbackSession
+        .map { it.currentStation?.stationUuid }
+        .distinctUntilChanged()
+        .flatMapLatest { uuid ->
+            if (uuid == null) flowOf(false)
+            else libraryRepository.isStationInLibrary(uuid)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val trackHistory = playbackSession
+        .map { it.currentStation?.stationUuid }
+        .distinctUntilChanged()
+        .flatMapLatest { uuid ->
+            if (uuid == null) flowOf(emptyList())
+            else trackHistoryRepository.getTrackHistory(uuid)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val stationRecordings = kotlinx.coroutines.flow.combine(
+        playbackSession.map { it.currentStation?.name }.distinctUntilChanged(),
+        recordingRepository.recordingsChangedEvent.onStart { emit(Unit) }
+    ) { stationName, _ -> 
+        stationName
+    }.flatMapLatest { stationName ->
+        if (stationName == null) flowOf(emptyList())
+        else flowOf(recordingRepository.getRecordingsForStation(stationName))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private data class BasePlayerState(
+        val session: PlaybackSession,
+        val isBuffering: Boolean,
+        val isError: Boolean,
+        val isFetchingArtwork: Boolean,
+        val amplitude: Float
+    )
+
+    private data class CastState(
+        val connectedDevice: CastDevice?,
+        val playbackState: CastPlaybackState,
+        val volume: Float
+    )
+
+    private data class RecordingState(
+        val isRecording: Boolean,
+        val duration: Long,
+        val activeSessions: Map<String, RecordingSession>
+    )
+
+    private data class ExtraUiState(
+        val retry: Int?,
+        val lyrics: LyricsUiState,
+        val history: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>,
+        val recordings: List<RecordingFile>?
+    )
+
+    private val basePlayerFlow = combine(
+        playbackSession,
+        playerController.isBuffering,
+        playerController.isError,
+        playerController.isFetchingArtwork,
+        playerController.amplitude
+    ) { session, isBuffering, isError, isFetchingArtwork, amplitude ->
+        BasePlayerState(session, isBuffering, isError, isFetchingArtwork, amplitude)
+    }
+
+    private val castStateFlow = combine(
+        connectedCastDevice,
+        castPlaybackState,
+        castVolume
+    ) { device, playbackState, volume ->
+        CastState(device, playbackState, volume.toFloat())
+    }
+
+    private val recordingStateFlow = combine(
+        isCurrentStationRecording,
+        currentRecordingDuration,
+        activeSessions
+    ) { isRec, duration, sessions ->
+        RecordingState(isRec, duration, sessions)
+    }
+
+    private val extraUiFlow = combine(
+        retryCountdown,
+        lyricsUiState,
+        trackHistory,
+        stationRecordings
+    ) { retry, lyrics, history, recordings ->
+        ExtraUiState(retry, lyrics, history, recordings)
+    }
+
+    val uiState: StateFlow<PlayerUiState> = combine(
+        basePlayerFlow,
+        castStateFlow,
+        recordingStateFlow,
+        isFavorite,
+        extraUiFlow
+    ) { base, cast, rec, fav, extra ->
+        val session = base.session
+        val isCasting = cast.connectedDevice != null
+        val effectiveIsPlaying = if (isCasting) cast.playbackState.isPlaying else session.isPlaying
+        val effectiveIsLoading = if (isCasting) cast.playbackState.isBuffering else base.isBuffering
+        val hasNext = session.currentPlaylist.isNotEmpty() && session.currentPlaylistIndex < session.currentPlaylist.size - 1
+        val hasPrevious = session.currentPlaylist.isNotEmpty() && session.currentPlaylistIndex > 0
+
+        PlayerUiState(
+            currentStation = session.currentStation,
+            currentPlaylist = session.currentPlaylist,
+            currentPlaylistIndex = session.currentPlaylistIndex,
+            currentTrack = session.currentTrack,
+            cleanTrackName = session.cleanTrackName,
+            cleanArtistName = session.cleanArtistName,
+            rawTrackName = session.rawTrackName,
+            trackStartTime = session.trackStartTime,
+            trackCoverArtUri = session.trackCoverArtUri,
+            isFetchingArtwork = base.isFetchingArtwork,
+            isPlaying = effectiveIsPlaying,
+            isLoading = effectiveIsLoading,
+            isError = base.isError,
+            hasNext = hasNext,
+            hasPrevious = hasPrevious,
+            volume = session.volume,
+            sleepTimerEndTime = session.sleepTimerEndTime,
+            sleepTimerTotalDuration = session.sleepTimerTotalDuration,
+            lyricsSyncOffsetMs = session.lyricsSyncOffsetMs,
+            streamCodec = session.streamCodec,
+            streamBitrate = session.streamBitrate,
+            isFavorite = fav,
+            isRecording = rec.isRecording,
+            recordingDuration = rec.duration,
+            activeSessions = rec.activeSessions,
+            connectedCastDevice = cast.connectedDevice,
+            isCasting = isCasting,
+            castVolume = cast.volume,
+            amplitude = base.amplitude,
+            retryCountdown = extra.retry,
+            lyricsUiState = extra.lyrics,
+            trackHistory = extra.history,
+            stationRecordings = extra.recordings,
+            sessionActiveDurationMs = session.sessionActiveDurationMs,
+            sessionResumeTimeMs = session.sessionResumeTimeMs,
+            playbackSource = session.playbackSource
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PlayerUiState()
+    )
+
     init {
-        playbackState
-            .onEach { state ->
-                if (state.isError) {
+        playerController.isError
+            .onEach { isError ->
+                if (isError) {
                     handlePlaybackFailure()
                 }
             }
             .launchIn(viewModelScope)
 
         kotlinx.coroutines.flow.combine(
-            playbackState.map { it.currentStation }.distinctUntilChanged { old, new -> old?.stationUuid == new?.stationUuid },
+            playbackSession.map { it.currentStation }.distinctUntilChanged { old, new -> old?.stationUuid == new?.stationUuid },
             connectedCastDevice
         ) { station, device ->
             if (station != null && device != null) {
@@ -193,7 +349,7 @@ class PlayerViewModel @Inject constructor(
                 if (isCasting) playerController.setVolume(0f)
                 if (wasCasting && !isCasting) {
                     playerController.setVolume(1f)
-                    val station = playbackState.value.currentStation
+                    val station = playbackSession.value.currentStation
                     if (station != null) {
                         playerController.play(listOf(station), 0, playWhenReady = true)
                     }
@@ -204,7 +360,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun handlePlaybackFailure() {
-        val currentStation = playbackState.value.currentStation ?: return
+        val currentStation = playbackSession.value.currentStation ?: return
         viewModelScope.launch {
             stationRepository.getStationsByUuid(listOf(currentStation.stationUuid))
                 .onSuccess { freshStations ->
@@ -247,37 +403,6 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val isFavorite = playbackState
-        .map { it.currentStation?.stationUuid }
-        .distinctUntilChanged()
-        .flatMapLatest { uuid ->
-            if (uuid == null) flowOf(false)
-            else libraryRepository.isStationInLibrary(uuid)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val trackHistory = playbackState
-        .map { it.currentStation?.stationUuid }
-        .distinctUntilChanged()
-        .flatMapLatest { uuid ->
-            if (uuid == null) flowOf(emptyList())
-            else trackHistoryRepository.getTrackHistory(uuid)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val stationRecordings = kotlinx.coroutines.flow.combine(
-        playbackState.map { it.currentStation?.name }.distinctUntilChanged(),
-        recordingRepository.recordingsChangedEvent.onStart { emit(Unit) }
-    ) { stationName, _ -> 
-        stationName
-    }.flatMapLatest { stationName ->
-        if (stationName == null) flowOf(emptyList()) // Fetch recordings immediately
-        else flowOf(recordingRepository.getRecordingsForStation(stationName))
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
     fun deleteRecording(recording: com.armanmaurya.internetradio.domain.model.RecordingFile) {
         viewModelScope.launch {
             recordingRepository.deleteRecording(recording)
@@ -285,14 +410,14 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun toggleFavorite() {
-        val state = playbackState.value
-        val station = state.currentStation ?: return
+        val session = playbackSession.value
+        val station = session.currentStation ?: return
         viewModelScope.launch {
             if (isFavorite.value) {
                 libraryRepository.removeStationFromLibrary(station.stationUuid)
             } else {
-                val codecToSave = state.streamCodec ?: station.codec
-                val bitrateToSave = state.streamBitrate ?: station.bitrate
+                val codecToSave = session.streamCodec ?: station.codec
+                val bitrateToSave = session.streamBitrate ?: station.bitrate
                 val stationToSave = station.copy(
                     codec = codecToSave,
                     bitrate = bitrateToSave
@@ -319,7 +444,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun toggleRecording(station: RadioStation? = playbackState.value.currentStation) {
+    fun toggleRecording(station: RadioStation? = playbackSession.value.currentStation) {
         val st = station ?: return
         if (activeSessions.value.containsKey(st.stationUuid)) {
             stopRecordingUseCase(st.stationUuid)
@@ -345,7 +470,7 @@ class PlayerViewModel @Inject constructor(
     fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None) {
         val station = stations.getOrNull(startIndex) ?: return
         
-        if (playbackState.value.currentStation?.stationUuid == station.stationUuid) {
+        if (playbackSession.value.currentStation?.stationUuid == station.stationUuid) {
             togglePlayPause()
             return
         }
@@ -384,7 +509,7 @@ class PlayerViewModel @Inject constructor(
                 playerController.pause()
             } else {
                 castController.play()
-                val station = playbackState.value.currentStation
+                val station = playbackSession.value.currentStation
                 if (station != null) {
                     playerController.play(listOf(station), 0, playWhenReady = true)
                 }
@@ -417,7 +542,7 @@ class PlayerViewModel @Inject constructor(
     fun disconnectCastDevice() {
         disconnectCastDeviceUseCase()
         playerController.setVolume(1f)
-        val station = playbackState.value.currentStation
+        val station = playbackSession.value.currentStation
         if (station != null) {
             playerController.play(listOf(station), 0)
         }

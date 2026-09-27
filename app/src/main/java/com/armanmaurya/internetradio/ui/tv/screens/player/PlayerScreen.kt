@@ -66,7 +66,7 @@ fun PlayerScreen(
     libraryViewModel: LibraryViewModel,
     onEditStation: (String) -> Unit
 ) {
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
+    val playbackState by playerViewModel.uiState.collectAsStateWithLifecycle()
     val station = playbackState.currentStation
     val isInLibraryFlow = remember(station?.stationUuid) {
         station?.let { libraryViewModel.isStationInLibrary(it.stationUuid) }

@@ -40,9 +40,9 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
-    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
-    val playingStationUuid = playbackState.currentStation?.stationUuid
-    val isPlaybackActive = playbackState.isPlaying
+    val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val playingStationUuid = playerUiState.currentStation?.stationUuid
+    val isPlaybackActive = playerUiState.isPlaying
 
     NavHost(
         navController = navController,

@@ -236,7 +236,7 @@ class LibraryViewModel @Inject constructor(
                 bitrate = bitrate
             )
             val updatedStation = libraryRepository.getStationById(stationUuid)
-            if (updatedStation != null && playerController.playbackState.value.currentStation?.stationUuid == stationUuid) {
+            if (updatedStation != null && playerController.playbackSession.value.currentStation?.stationUuid == stationUuid) {
                 playerController.updateCurrentStation(updatedStation)
             }
         }
@@ -335,7 +335,7 @@ class LibraryViewModel @Inject constructor(
             }
             result.onSuccess { newUuid ->
                 // Update player state if the uploaded station is currently playing
-                val currentPlayingId = playerController.playbackState.value.currentStation?.stationUuid
+                val currentPlayingId = playerController.playbackSession.value.currentStation?.stationUuid
                 if (currentPlayingId == stationUuid || currentPlayingId == newUuid) {
                     val updatedStation = libraryRepository.getStationById(newUuid)
                     if (updatedStation != null) {
