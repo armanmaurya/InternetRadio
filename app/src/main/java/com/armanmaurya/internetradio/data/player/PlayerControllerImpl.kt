@@ -86,7 +86,21 @@ class PlayerControllerImpl @Inject constructor(
         val station = stations.getOrNull(startIndex)
         if (station != null) {
             activeStation = station
-            _playbackSession.update { it.copy(currentStation = station, currentPlaylist = currentPlaylist, currentPlaylistIndex = startIndex, currentTrack = null, trackStartTime = null, lyricsSyncOffsetMs = 0L, playbackSource = currentPlaybackSource) }
+            _playbackSession.update { 
+                it.copy(
+                    currentStation = station, 
+                    currentPlaylist = currentPlaylist, 
+                    currentPlaylistIndex = startIndex, 
+                    currentTrack = null, 
+                    trackStartTime = null, 
+                    trackCoverArtUri = null,
+                    cleanTrackName = null,
+                    cleanArtistName = null,
+                    rawTrackName = null,
+                    lyricsSyncOffsetMs = 0L, 
+                    playbackSource = currentPlaybackSource
+                ) 
+            }
         }
     }
 
@@ -167,6 +181,7 @@ class PlayerControllerImpl @Inject constructor(
             val originalId = mediaItem.mediaId.substringAfter("|")
             if (originalId == activeStation?.stationUuid) {
                 _playbackSession.update { it.copy(currentStation = activeStation, currentPlaylistIndex = currentPlaylist.indexOf(activeStation).coerceAtLeast(0)) }
+                handleMetadataChanged(mediaItem.mediaMetadata)
                 return
             }
             
@@ -182,7 +197,10 @@ class PlayerControllerImpl @Inject constructor(
                         currentPlaylistIndex = currentPlaylist.indexOf(tagStation).coerceAtLeast(0),
                         currentTrack = null, 
                         trackStartTime = null, 
-                        trackCoverArtUri = null,
+                        trackCoverArtUri = null, 
+                        cleanTrackName = null,
+                        cleanArtistName = null,
+                        rawTrackName = null,
                         lyricsSyncOffsetMs = 0L,
                         sessionActiveDurationMs = 0L,
                         sessionResumeTimeMs = null
@@ -202,6 +220,7 @@ class PlayerControllerImpl @Inject constructor(
                     }
                 }
             }
+            handleMetadataChanged(mediaItem.mediaMetadata)
             
             // Check if we need to load more
             controller?.let { player ->
@@ -238,40 +257,70 @@ class PlayerControllerImpl @Inject constructor(
             }
         }
 
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            handleMetadataChanged(mediaMetadata)
+        }
+
         override fun onPlaylistMetadataChanged(mediaMetadata: MediaMetadata) {
-            val title = mediaMetadata.title?.toString()
-            val artist = mediaMetadata.artist?.toString()
-            val cleanTrackName = mediaMetadata.extras?.getString("clean_track_name")
-            val cleanArtistName = mediaMetadata.extras?.getString("clean_artist_name")
-            val rawTrackName = mediaMetadata.extras?.getString("raw_track_name")
-            val artworkUri = mediaMetadata.artworkUri?.toString()
-            
-            val trackInfo = if (!title.isNullOrBlank() && !artist.isNullOrBlank()) {
+            handleMetadataChanged(mediaMetadata)
+        }
+    }
+
+    private fun handleMetadataChanged(mediaMetadata: MediaMetadata) {
+        val title = mediaMetadata.title?.toString()
+        val artist = mediaMetadata.artist?.toString()
+        val cleanTrackName = mediaMetadata.extras?.getString("clean_track_name")
+        val cleanArtistName = mediaMetadata.extras?.getString("clean_artist_name")
+        val rawTrackName = mediaMetadata.extras?.getString("icy_raw_title")
+            ?: mediaMetadata.extras?.getString("raw_track_name")
+        val artworkUri = mediaMetadata.extras?.getString("track_cover_art_url")
+            ?: mediaMetadata.artworkUri?.toString()?.takeIf {
+                it.isNotBlank() &&
+                it != activeStation?.favicon &&
+                it != mediaMetadata.extras?.getString("stationFavicon")
+            }
+        
+        val stationName = activeStation?.name ?: mediaMetadata.extras?.getString("stationName")
+
+        val trackInfo = mediaMetadata.extras?.getString("icy_title")
+            ?: if (!title.isNullOrBlank() && !artist.isNullOrBlank()) {
                 "$artist - $title"
             } else if (!title.isNullOrBlank()) {
                 title
+            } else if (!artist.isNullOrBlank()) {
+                artist
             } else {
                 null
             }
-            if (trackInfo != null && trackInfo.isNotBlank() && trackInfo != activeStation?.name) {
-                // Read the exact start time recorded by the background service. 
-                // If it's -1, it means it's the tune-in track and we don't know the position.
-                val exactStartTime = mediaMetadata.extras?.getLong("track_start_time")?.takeIf { it > 0L }
-                val isFetching = mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
-                _isFetchingArtwork.value = isFetching
-                
-                _playbackSession.update { it.copy(
-                    currentTrack = trackInfo, 
-                    trackStartTime = exactStartTime,
-                    trackCoverArtUri = artworkUri,
-                    cleanTrackName = cleanTrackName,
-                    cleanArtistName = cleanArtistName,
-                    rawTrackName = rawTrackName
-                ) }
-            } else {
-                _isFetchingArtwork.value = false
-                _playbackSession.update { it.copy(currentTrack = null, trackStartTime = null, trackCoverArtUri = artworkUri, cleanTrackName = null, cleanArtistName = null, rawTrackName = null) }
-            }
+
+        val isStationName = (stationName != null && trackInfo?.trim()?.equals(stationName.trim(), ignoreCase = true) == true) ||
+                (activeStation?.name != null && trackInfo?.trim()?.equals(activeStation?.name?.trim(), ignoreCase = true) == true)
+
+        if (trackInfo != null && trackInfo.isNotBlank() && !isStationName) {
+            // Read the exact start time recorded by the background service. 
+            // If it's -1, it means it's the tune-in track and we don't know the position.
+            val exactStartTime = mediaMetadata.extras?.getLong("track_start_time")?.takeIf { it > 0L }
+            val isFetching = mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
+            _isFetchingArtwork.value = isFetching
+            
+            _playbackSession.update { it.copy(
+                currentTrack = trackInfo, 
+                trackStartTime = exactStartTime,
+                trackCoverArtUri = artworkUri,
+                cleanTrackName = cleanTrackName,
+                cleanArtistName = cleanArtistName,
+                rawTrackName = rawTrackName
+            ) }
+        } else {
+            _isFetchingArtwork.value = false
+            _playbackSession.update { it.copy(
+                currentTrack = null, 
+                trackStartTime = null, 
+                trackCoverArtUri = null, 
+                cleanTrackName = null, 
+                cleanArtistName = null, 
+                rawTrackName = null
+            ) }
         }
     }
 
@@ -325,6 +374,7 @@ class PlayerControllerImpl @Inject constructor(
                             }
                         }
                     }
+                    handleMetadataChanged(currentItem.mediaMetadata)
                 } else {
                     _playbackSession.update { state ->
                         state.copy(
@@ -418,6 +468,10 @@ class PlayerControllerImpl @Inject constructor(
                 currentPlaylistIndex = startIndex, 
                 currentTrack = null, 
                 trackStartTime = null, 
+                trackCoverArtUri = null,
+                cleanTrackName = null,
+                cleanArtistName = null,
+                rawTrackName = null,
                 lyricsSyncOffsetMs = 0L, 
                 playbackSource = currentPlaybackSource,
                 sessionActiveDurationMs = 0L,
