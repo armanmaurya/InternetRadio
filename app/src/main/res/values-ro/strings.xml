@@ -371,7 +371,7 @@
     <string name="settings_widget_transparency_title">Opacitatea fundalului</string>
     <string name="settings_widget_transparency_subtitle">Ajustează opacitatea fundalului widget-ului ecranului de pornire</string>
     <string name="settings_widget_opacity_opaque">100% (Opac)</string>
-    <string name="settings_widget_opacity_transparent">0% (Transparent)</string>
+    <string name="settings_widget_opacity_transparent">0% (transparent)</string>
     <string name="settings_widget_opacity_percent">%1$d%%</string>
     <string name="review_message_foss">Îți place Internet Radio? Dacă da, te rugăm să susții proiectul lăsând o stea pe GitHub. Sprijinul tău contează foarte mult!</string>
     <string name="review_message_play">Îți place Internet Radio? Dacă da, te rugăm să te ne acorzi un moment pentru a evalua aplicația. Sprijinul tău contează foarte mult!</string>
