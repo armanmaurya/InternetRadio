@@ -85,6 +85,10 @@ fun MobileApp(
             }
         }
 
+        LaunchedEffect(Unit) {
+            playerViewModel.autoPlayRecentStationIfEnabled()
+        }
+
         val onCheckUpdates = rememberManualUpdateChecker(mainViewModel)
 
         val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()

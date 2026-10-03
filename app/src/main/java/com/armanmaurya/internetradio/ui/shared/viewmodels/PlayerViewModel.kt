@@ -2,6 +2,8 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.armanmaurya.internetradio.domain.model.AppPreferences
+import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.LrcLine
 import com.armanmaurya.internetradio.domain.model.Lyrics
 import com.armanmaurya.internetradio.domain.model.PlaybackSession
@@ -14,6 +16,7 @@ import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.RecordingController
+import kotlinx.coroutines.flow.first
 import com.armanmaurya.internetradio.domain.usecase.recording.GetActiveRecordingsUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StartRecordingUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StopRecordingUseCase
@@ -557,6 +560,57 @@ class PlayerViewModel @Inject constructor(
             setCastVolume(volume.coerceIn(0f, 1f))
         } else {
             setPlayerVolumeUseCase(volume)
+        }
+    }
+
+    fun autoPlayRecentStationIfEnabled() {
+        viewModelScope.launch {
+            val prefs = settingsRepository.appPreferencesFlow.first()
+            if (!prefs.autoPlayOnStart) return@launch
+            if (playbackSession.value.isPlaying || playbackSession.value.currentStation != null) return@launch
+
+            val station = recentRepository.getAllRecent().first().firstOrNull() ?: return@launch
+            val libraryStations = getFilteredLibraryStations(prefs)
+            val libraryIndex = libraryStations.indexOfFirst { it.stationUuid == station.stationUuid }
+
+            if (libraryIndex != -1) {
+                play(libraryStations, libraryIndex, PlaybackSource.Library)
+            } else {
+                val recentStations = recentRepository.getAllRecent().first()
+                val recentIndex = recentStations.indexOfFirst { it.stationUuid == station.stationUuid }.coerceAtLeast(0)
+                play(recentStations, recentIndex, PlaybackSource.Recent)
+            }
+        }
+    }
+
+    private suspend fun getFilteredLibraryStations(prefs: AppPreferences): List<RadioStation> {
+        val stations = when (prefs.librarySortOption) {
+            LibrarySortOption.NAME_A_Z -> libraryRepository.getStationsByName().first()
+            LibrarySortOption.NAME_Z_A -> libraryRepository.getStationsByNameDescending().first()
+            LibrarySortOption.RECENTLY_PLAYED -> libraryRepository.getStationsByRecentlyPlayed().first()
+            LibrarySortOption.LEAST_RECENTLY_PLAYED -> libraryRepository.getStationsByLeastRecentlyPlayed().first()
+            LibrarySortOption.CUSTOM -> libraryRepository.getStationsByCustomOrder().first()
+            LibrarySortOption.RECENTLY_ADDED -> libraryRepository.getAllStations().first()
+            LibrarySortOption.OLDEST_ADDED -> libraryRepository.getStationsByOldestAdded().first()
+        }
+
+        return if (prefs.useFilterOnFavorites) {
+            val hasCountryFilter = !prefs.selectedCountryCode.isNullOrBlank()
+            val hasLanguageFilter = !prefs.selectedLanguage.isNullOrBlank()
+            val hasTagFilter = prefs.selectedTags.isNotEmpty()
+
+            if (!hasCountryFilter && !hasLanguageFilter && !hasTagFilter) {
+                stations
+            } else {
+                stations.filter { s ->
+                    val countryMatch = !hasCountryFilter || s.countryCode == prefs.selectedCountryCode
+                    val languageMatch = !hasLanguageFilter || s.language == prefs.selectedLanguage
+                    val tagsMatch = !hasTagFilter || prefs.selectedTags.any { it in s.tags }
+                    countryMatch && languageMatch && tagsMatch
+                }
+            }
+        } else {
+            stations
         }
     }
 }

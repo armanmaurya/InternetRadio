@@ -47,7 +47,10 @@ class PlayerControllerImpl @Inject constructor(
     private val okHttpClient: okhttp3.OkHttpClient,
     private val streamProber: StreamProber
 ) : PlayerController {
-    private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var controllerFuture = MediaController.Builder(
+        context,
+        SessionToken(context, ComponentName(context, PlaybackService::class.java))
+    ).buildAsync()
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
 
     private val _playbackSession = MutableStateFlow(PlaybackSession())
@@ -329,12 +332,10 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     private fun initializeController() {
-        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        controllerFuture?.addListener({
-            controller?.let { 
+        controllerFuture.addListener({
+            controller?.let {
                 it.addListener(playerListener)
-                
+
                 val isCurrentlyPlaying = it.isPlaying
                 val currentVolume = it.volume
                 val isCurrentlyLoading = it.playbackState == Player.STATE_BUFFERING
@@ -344,7 +345,8 @@ class PlayerControllerImpl @Inject constructor(
                 _isError.value = isCurrentlyError
                 _playbackSession.update { state ->
                     state.copy(
-                        volume = currentVolume
+                        volume = currentVolume,
+                        isPlaying = isCurrentlyPlaying
                     )
                 }
 
@@ -352,9 +354,9 @@ class PlayerControllerImpl @Inject constructor(
                 val currentIndex = it.currentMediaItemIndex
                 if (currentItem != null) {
                     val originalId = currentItem.mediaId.substringAfter("|")
-                    val station = currentPlaylist.find { s -> s.stationUuid == originalId } 
+                    val station = currentPlaylist.find { s -> s.stationUuid == originalId }
                         ?: currentItem.localConfiguration?.tag as? RadioStation
-                    
+
                     if (station != null) {
                         activeStation = station
                         _playbackSession.update { state ->
@@ -365,14 +367,6 @@ class PlayerControllerImpl @Inject constructor(
                                 currentPlaylistIndex = currentIndex
                             )
                         }
-                    } else {
-                        // Fallback for scheduled cold start: get FULL RadioStation from library DB
-                        scope.launch {
-                            val dbStation = libraryRepository.getStationById(originalId)
-                            if (dbStation != null) {
-                                linkSingleItemToContext(dbStation)
-                            }
-                        }
                     }
                     handleMetadataChanged(currentItem.mediaMetadata)
                 } else {
@@ -381,56 +375,6 @@ class PlayerControllerImpl @Inject constructor(
                             isPlaying = it.isPlaying,
                             currentStation = null
                         )
-                    }
-                    
-                    scope.launch {
-                        val prefs = settingsRepository.appPreferencesFlow.first()
-                        val autoPlay = prefs.autoPlayOnStart
-                        val station = recentRepository.getAllRecent().first().firstOrNull()
-                        if (station != null) {
-                            try {
-                                if (autoPlay) {
-                                    val libraryStations = getFilteredLibraryStations(prefs)
-                                    val libraryIndex = libraryStations.indexOfFirst { s -> s.stationUuid == station.stationUuid }
-                                    
-                                    if (libraryIndex != -1) {
-                                        currentPlaylist = libraryStations
-                                        currentPlaybackSource = PlaybackSource.Library
-                                        activeStation = station
-                                        _isBuffering.value = true
-                                        _playbackSession.update { state ->
-                                            state.copy(
-                                                currentStation = station,
-                                                currentPlaylist = currentPlaylist,
-                                                currentPlaylistIndex = libraryIndex,
-                                                playbackSource = PlaybackSource.Library
-                                            )
-                                        }
-                                        it.setMediaItems(libraryStations.map { s -> s.toMediaItem() }, libraryIndex, 0L)
-                                    } else {
-                                        val recentStations = recentRepository.getAllRecent().first()
-                                        val recentIndex = recentStations.indexOfFirst { s -> s.stationUuid == station.stationUuid }.coerceAtLeast(0)
-                                        currentPlaylist = recentStations
-                                        currentPlaybackSource = PlaybackSource.Recent
-                                        activeStation = station
-                                        _isBuffering.value = true
-                                        _playbackSession.update { state ->
-                                            state.copy(
-                                                currentStation = station,
-                                                currentPlaylist = currentPlaylist,
-                                                currentPlaylistIndex = recentIndex,
-                                                playbackSource = PlaybackSource.Recent
-                                            )
-                                        }
-                                        it.setMediaItems(recentStations.map { s -> s.toMediaItem() }, recentIndex, 0L)
-                                    }
-                                    it.prepare()
-                                    it.play()
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
                     }
                 }
             }

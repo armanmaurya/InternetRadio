@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,10 +65,12 @@ class AutoBrowseTreeProvider @Inject constructor(
     fun observeSettingsChanges(activeSessionProvider: () -> MediaLibrarySession?) {
         searchScope.launch {
             settingsRepository.appPreferencesFlow.drop(1).collect {
-                activeSessionProvider()?.let { session ->
-                    session.connectedControllers.forEach { controller ->
-                        session.notifyChildrenChanged(controller, AutoBrowseTree.BROWSE, 30, null)
-                        session.notifyChildrenChanged(controller, AutoBrowseTree.LIBRARY, 100, null)
+                withContext(Dispatchers.Main) {
+                    activeSessionProvider()?.let { session ->
+                        session.connectedControllers.forEach { controller ->
+                            session.notifyChildrenChanged(controller, AutoBrowseTree.BROWSE, 30, null)
+                            session.notifyChildrenChanged(controller, AutoBrowseTree.LIBRARY, 100, null)
+                        }
                     }
                 }
             }
@@ -132,7 +135,9 @@ class AutoBrowseTreeProvider @Inject constructor(
             ).getOrElse { emptyList() }
 
             searchResultsCache = searchResultsCache + (query to results)
-            session.notifySearchResultChanged(browser, query, results.size, params)
+            withContext(Dispatchers.Main) {
+                session.notifySearchResultChanged(browser, query, results.size, params)
+            }
         }
         return Futures.immediateFuture(LibraryResult.ofVoid())
     }

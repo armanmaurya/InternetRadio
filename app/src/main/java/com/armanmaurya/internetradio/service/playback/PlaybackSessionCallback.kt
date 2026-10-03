@@ -35,6 +35,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -156,7 +157,9 @@ class PlaybackSessionCallback @Inject constructor(
             val wasFav = libraryRepository.isStationInLibraryDirect(station.stationUuid)
             if (wasFav) libraryRepository.removeStationFromLibrary(station.stationUuid)
             else libraryRepository.addStationToLibrary(station)
-            session.setCustomLayout(buildLibraryButton(!wasFav))
+            withContext(Dispatchers.Main) {
+                session.setCustomLayout(buildLibraryButton(!wasFav))
+            }
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
@@ -165,7 +168,9 @@ class PlaybackSessionCallback @Inject constructor(
         val session = activeSession ?: return
         scope.launch {
             val isFav = mediaId?.let { libraryRepository.isStationInLibraryDirect(it) } ?: false
-            session.setCustomLayout(buildLibraryButton(isFav))
+            withContext(Dispatchers.Main) {
+                session.setCustomLayout(buildLibraryButton(isFav))
+            }
         }
     }
 
