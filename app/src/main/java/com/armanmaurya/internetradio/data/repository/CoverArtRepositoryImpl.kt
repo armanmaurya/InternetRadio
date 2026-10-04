@@ -13,11 +13,12 @@ import javax.inject.Singleton
 class CoverArtRepositoryImpl @Inject constructor(
     private val apiService: ITunesApiService
 ) : CoverArtRepository {
-    override suspend fun getTrackMetadata(trackName: String, artistName: String?): TrackMetadata? = withContext(Dispatchers.IO) {
+    override suspend fun getTrackMetadata(trackName: String): TrackMetadata? = withContext(Dispatchers.IO) {
         try {
             val cleanTrack = TrackSanitizer.sanitizeTrackInfo(trackName)
-            val cleanArtist = artistName?.let { TrackSanitizer.sanitizeTrackInfo(it) }
-            val term = if (!cleanArtist.isNullOrBlank()) "$cleanTrack $cleanArtist" else cleanTrack
+//            val cleanArtist = artistName?.let { TrackSanitizer.sanitizeTrackInfo(it) }
+            val term = cleanTrack
+//            val term = if (!cleanArtist.isNullOrBlank()) "$cleanTrack $cleanArtist" else cleanTrack
             val response = apiService.searchTrack(term = term)
             
             val track = response.results?.firstOrNull() ?: return@withContext null

@@ -17,7 +17,6 @@ import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
 import com.armanmaurya.internetradio.service.playback.toMediaItem
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.armanmaurya.internetradio.core.media.prober.StreamProber
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
@@ -44,7 +43,6 @@ class PlayerControllerImpl @Inject constructor(
     private val stationRepository: StationRepository,
     private val recentRepository: RecentRepository,
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
-    private val okHttpClient: okhttp3.OkHttpClient,
     private val streamProber: StreamProber
 ) : PlayerController {
     private var controllerFuture = MediaController.Builder(
@@ -110,7 +108,7 @@ class PlayerControllerImpl @Inject constructor(
     override val currentPosition: Long
         get() = controller?.currentPosition ?: 0L
 
-    private val playerListener = object : Player.Listener {
+    private val listener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             val now = System.currentTimeMillis()
             _playbackSession.update { state ->
@@ -334,7 +332,7 @@ class PlayerControllerImpl @Inject constructor(
     private fun initializeController() {
         controllerFuture.addListener({
             controller?.let {
-                it.addListener(playerListener)
+                it.addListener(listener)
 
                 val isCurrentlyPlaying = it.isPlaying
                 val currentVolume = it.volume
