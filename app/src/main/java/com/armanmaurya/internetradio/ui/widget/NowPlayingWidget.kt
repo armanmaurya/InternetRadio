@@ -41,6 +41,7 @@ interface WidgetEntryPoint {
     fun recentRepository(): com.armanmaurya.internetradio.domain.repository.RecentRepository
     fun settingsRepository(): com.armanmaurya.internetradio.domain.repository.SettingsRepository
     fun widgetController(): WidgetController
+    fun widgetUpdater(): WidgetUpdater
 }
 
 class NowPlayingWidget : GlanceAppWidget() {
@@ -72,7 +73,6 @@ class NowPlayingWidget : GlanceAppWidget() {
             val nothingPlaying = context.getString(R.string.widget_nothing_playing)
 
             var lastStation by remember { mutableStateOf(initialRecent) }
-            var cleanedStationUuid by remember { mutableStateOf<String?>(null) }
 
             LaunchedEffect(Unit) {
                 entryPoint.recentRepository().getAllRecent().collect { list ->
@@ -80,66 +80,35 @@ class NowPlayingWidget : GlanceAppWidget() {
                 }
             }
 
-            val isPlaying = prefs[WidgetPreferenceKeys.IS_PLAYING] ?: latest?.isPlaying ?: false
-            val isCoverArtFetched = if (isPlaying) (prefs[WidgetPreferenceKeys.IS_COVER_ART_FETCHED] ?: latest?.isCoverArtFetched ?: false) else false
-
-            LaunchedEffect(savedTitle, isPlaying, lastStation) {
-                if (isPlaying) {
-                    if (prefs[WidgetPreferenceKeys.TITLE] == null && isServiceRunning) {
-                        PlaybackService.requestWidgetUpdate()
-                    }
-                } else {
-                    val currentUuid = lastStation?.stationUuid ?: ""
-                    val expectedTitle = lastStation?.name ?: nothingPlaying
-                    val expectedStationName = lastStation?.name ?: ""
-                    val isPrefsStale = prefs[WidgetPreferenceKeys.TITLE] != expectedTitle ||
-                        prefs[WidgetPreferenceKeys.STATION_NAME] != expectedStationName ||
-                        prefs[WidgetPreferenceKeys.IS_PLAYING] == true ||
-                        !prefs[WidgetPreferenceKeys.ARTIST].isNullOrBlank() ||
-                        prefs[WidgetPreferenceKeys.IS_COVER_ART_FETCHED] == true
-
-                    if (cleanedStationUuid != currentUuid && isPrefsStale) {
-                        cleanedStationUuid = currentUuid
-                        widgetController.cleanStaleWidgetState(
-                            stationName = lastStation?.name,
-                            favicon = lastStation?.favicon,
-                        )
-                    }
+            LaunchedEffect(isServiceRunning) {
+                if (isServiceRunning && prefs[WidgetPreferenceKeys.TITLE] == null) {
+                    entryPoint.widgetUpdater().updateWidget()
                 }
             }
 
-            val stationName = if (isPlaying) {
-                prefs[WidgetPreferenceKeys.STATION_NAME]?.takeIf { it.isNotBlank() } ?: latest?.stationName ?: lastStation?.name
-            } else {
-                lastStation?.name
-            }
+            val isPlaying = prefs[WidgetPreferenceKeys.IS_PLAYING] ?: latest?.isPlaying ?: false
+            val isCoverArtFetched = prefs[WidgetPreferenceKeys.IS_COVER_ART_FETCHED] ?: latest?.isCoverArtFetched ?: false
 
-            val title = if (isPlaying) {
-                savedTitle?.takeIf { it.isNotBlank() && it != "Nothing playing" && it != nothingPlaying }
-                    ?: stationName
-                    ?: nothingPlaying
-            } else {
-                lastStation?.name ?: nothingPlaying
-            }
+            val stationName = prefs[WidgetPreferenceKeys.STATION_NAME]?.takeIf { it.isNotBlank() }
+                ?: latest?.stationName
+                ?: lastStation?.name
 
-            val artist = if (isPlaying) {
-                prefs[WidgetPreferenceKeys.ARTIST] ?: latest?.artist ?: ""
-            } else {
-                ""
-            }
+            val title = savedTitle?.takeIf { it.isNotBlank() && it != "Nothing playing" && it != nothingPlaying }
+                ?: stationName
+                ?: nothingPlaying
 
-            val artworkUrl = if (isPlaying) {
-                (prefs[WidgetPreferenceKeys.ARTWORK_URL] ?: latest?.artworkUrl)?.takeIf { it.isNotBlank() } ?: lastStation?.favicon
-            } else {
-                lastStation?.favicon
-            }
+            val artist = prefs[WidgetPreferenceKeys.ARTIST] ?: latest?.artist ?: ""
+
+            val artworkUrl = (prefs[WidgetPreferenceKeys.ARTWORK_URL] ?: latest?.artworkUrl)?.takeIf { it.isNotBlank() }
+                ?: lastStation?.favicon
 
             val stationThumbnailUrl = if (isCoverArtFetched) {
-                (prefs[WidgetPreferenceKeys.STATION_THUMBNAIL_URL] ?: latest?.stationThumbnailUrl)?.takeIf { it.isNotBlank() } ?: lastStation?.favicon
+                (prefs[WidgetPreferenceKeys.STATION_THUMBNAIL_URL] ?: latest?.stationThumbnailUrl)?.takeIf { it.isNotBlank() }
+                    ?: lastStation?.favicon
             } else null
 
-            val hasNext = if (isPlaying) (prefs[WidgetPreferenceKeys.HAS_NEXT] ?: latest?.hasNext ?: false) else false
-            val hasPrev = if (isPlaying) (prefs[WidgetPreferenceKeys.HAS_PREV] ?: latest?.hasPrev ?: false) else false
+            val hasNext = prefs[WidgetPreferenceKeys.HAS_NEXT] ?: latest?.hasNext ?: false
+            val hasPrev = prefs[WidgetPreferenceKeys.HAS_PREV] ?: latest?.hasPrev ?: false
 
             // Pre-computed atomic palette colors (Spotify pattern)
             val precomputedBgColorInt = prefs[WidgetPreferenceKeys.BG_COLOR] ?: latest?.bgColor

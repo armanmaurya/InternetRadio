@@ -1,40 +1,46 @@
 package com.armanmaurya.internetradio.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.armanmaurya.internetradio.domain.model.RadioStation
 
-@Entity(tableName = "recent_stations")
-data class RecentStationEntity(
+@Entity(tableName = "stations")
+data class StationEntity(
     @PrimaryKey val stationUuid: String,
     val name: String,
     val url: String,
-    val urlResolved: String,
-    val favicon: String,
-    val tags: List<String>,
-    val countryCode: String,
-    @androidx.room.ColumnInfo(defaultValue = "")
-    val languageCodes: List<String>,
-    val codec: String,
-    val bitrate: Int,
-
-    @androidx.room.ColumnInfo(defaultValue = "")
+    val urlResolved: String = "",
+    val favicon: String = "",
+    val tags: List<String> = emptyList(),
+    val countryCode: String = "",
+    @ColumnInfo(defaultValue = "")
+    val languageCodes: List<String> = emptyList(),
+    val codec: String = "unknown",
+    val bitrate: Int = 0,
+    @ColumnInfo(defaultValue = "")
     val homepage: String = "",
     val iso3166_2: String? = null,
     val geoLat: Double? = null,
     val geoLong: Double? = null,
-    val lastPlayedAt: Long = System.currentTimeMillis(),
-    
-    @androidx.room.ColumnInfo(defaultValue = "0")
-    val isCustom: Boolean = false
+    @ColumnInfo(defaultValue = "0")
+    val isCustom: Boolean = false,
+
+    // State & Sorting flags
+    @ColumnInfo(defaultValue = "0")
+    val isFavorite: Boolean = false,
+    val addedAt: Long? = null,
+    @ColumnInfo(defaultValue = "0")
+    val orderIndex: Int = 0,
+    val lastPlayedAt: Long? = null
 )
 
-fun RecentStationEntity.toDomain() = RadioStation(
+fun StationEntity.toDomain() = RadioStation(
     changeUuid = "",
     stationUuid = stationUuid,
     name = name,
     url = url,
-    urlResolved = urlResolved,
+    urlResolved = if (urlResolved.isBlank()) url else urlResolved,
     homepage = homepage,
     favicon = favicon,
     tags = tags,
@@ -48,7 +54,6 @@ fun RecentStationEntity.toDomain() = RadioStation(
     lastChangeTime = "",
     codec = codec,
     bitrate = bitrate,
-
     lastCheckOk = true,
     lastCheckTime = "",
     lastCheckOkTime = "",
@@ -64,22 +69,31 @@ fun RecentStationEntity.toDomain() = RadioStation(
     isCustom = isCustom
 )
 
-fun RadioStation.toRecentEntity(timestamp: Long = System.currentTimeMillis()) = RecentStationEntity(
+fun RadioStation.toLibraryEntity(isCustom: Boolean = this.isCustom) = toEntity(isFavorite = true)
+
+fun RadioStation.toEntity(
+    isFavorite: Boolean = this.isCustom,
+    addedAt: Long? = null,
+    orderIndex: Int = 0,
+    lastPlayedAt: Long? = null
+) = StationEntity(
     stationUuid = stationUuid,
     name = name,
     url = url,
-    urlResolved = urlResolved,
+    urlResolved = if (urlResolved.isBlank()) url else urlResolved,
     favicon = favicon,
     tags = tags,
     countryCode = countryCode,
     languageCodes = languageCodes,
     codec = codec,
     bitrate = bitrate,
-
+    isCustom = isCustom,
     homepage = homepage,
     iso3166_2 = iso3166_2,
     geoLat = geoLat,
     geoLong = geoLong,
-    lastPlayedAt = timestamp,
-    isCustom = isCustom
+    isFavorite = isFavorite,
+    addedAt = addedAt,
+    orderIndex = orderIndex,
+    lastPlayedAt = lastPlayedAt
 )

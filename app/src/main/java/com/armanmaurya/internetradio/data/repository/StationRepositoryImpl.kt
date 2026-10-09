@@ -12,14 +12,14 @@ import com.armanmaurya.internetradio.data.remote.dto.toDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.armanmaurya.internetradio.data.local.dao.LibraryStationDao
+import com.armanmaurya.internetradio.data.local.dao.StationDao
 import com.armanmaurya.internetradio.domain.repository.StationRepository
 
 @Singleton
 class StationRepositoryImpl @Inject constructor(
     private val api: RadioBrowserApi,
     @ApplicationContext private val context: Context,
-    private val libraryStationDao: LibraryStationDao
+    private val stationDao: StationDao
 ) : StationRepository {
 
     override suspend fun filterStations(
@@ -102,7 +102,7 @@ class StationRepositoryImpl @Inject constructor(
                     .map { it.toDomain() }
             }
 
-            val customStations = libraryStationDao.getCustomStations()
+            val customStations = stationDao.getCustomStations()
             val customTags = customStations.flatMap { it.tags }
                 .filter { it.isNotBlank() }
                 .filter { if (!filter.isNullOrBlank()) it.contains(filter, ignoreCase = true) else true }

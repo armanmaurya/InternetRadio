@@ -20,7 +20,7 @@
 -keep class com.armanmaurya.internetradio.data.remote.dto.** { *; }
 
 # Keep local entity and backup model classes used by Gson for export/import
--keep class com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity { *; }
+-keep class com.armanmaurya.internetradio.data.local.entity.StationEntity { *; }
 -keep class com.armanmaurya.internetradio.domain.model.** { *; }
 -keep class com.armanmaurya.internetradio.data.backup.** { *; }
 -keep class com.armanmaurya.internetradio.core.media.prober.** { *; }

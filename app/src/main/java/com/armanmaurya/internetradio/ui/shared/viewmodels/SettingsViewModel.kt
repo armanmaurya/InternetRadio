@@ -278,7 +278,7 @@ class SettingsViewModel @Inject constructor(
                     }
 
                     backup.stations.forEach { backupStation ->
-                        val entity = backupStation.toLibraryStationEntity()
+                        val entity = backupStation.toStationEntity()
                         try {
                             val existing = libraryRepository.getEntityById(entity.stationUuid)
                             when {
@@ -291,7 +291,7 @@ class SettingsViewModel @Inject constructor(
                                     totalUpdated++
                                 }
                                 strategy == ConflictStrategy.KEEP_NEWER -> {
-                                    if (entity.addedAt > existing.addedAt) {
+                                    if ((entity.addedAt ?: 0L) > (existing.addedAt ?: 0L)) {
                                         libraryRepository.insertEntity(entity)
                                         totalUpdated++
                                     } else {

@@ -24,28 +24,25 @@ class NowPlayingWidgetReceiver : GlanceAppWidgetReceiver() {
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
+        val entryPoint = try {
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+        } catch (_: Exception) { null }
+
         if (PlaybackService.isRunning) {
-            PlaybackService.requestWidgetUpdate()
+            entryPoint?.widgetUpdater()?.updateWidget()
         } else {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val entryPoint = EntryPointAccessors.fromApplication(
-                        context.applicationContext,
-                        WidgetEntryPoint::class.java
-                    )
-                    val lastStation = entryPoint.recentRepository().getAllRecent().first().firstOrNull()
-                    entryPoint.widgetController().cleanStaleWidgetState(
+                    val lastStation = entryPoint?.recentRepository()?.getAllRecent()?.first()?.firstOrNull()
+                    entryPoint?.widgetController()?.cleanStaleWidgetState(
                         stationName = lastStation?.name,
                         favicon = lastStation?.favicon,
                         appWidgetIds = appWidgetIds,
                     )
                 } catch (e: Exception) {
-                    val entryPoint = try {
-                        EntryPointAccessors.fromApplication(
-                            context.applicationContext,
-                            WidgetEntryPoint::class.java
-                        )
-                    } catch (_: Exception) { null }
                     entryPoint?.widgetController()?.cleanStaleWidgetState()
                 }
             }

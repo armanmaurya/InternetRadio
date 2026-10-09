@@ -1,6 +1,6 @@
 package com.armanmaurya.internetradio.data.backup
 
-import com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity
+import com.armanmaurya.internetradio.data.local.entity.StationEntity
 
 data class LibraryBackup(
     val schemaVersion: Int = 2,
@@ -29,7 +29,7 @@ data class BackupStation(
     val geoLat: Double? = null,
     val geoLong: Double? = null
 ) {
-    fun toLibraryStationEntity(): LibraryStationEntity {
+    fun toStationEntity(): StationEntity {
         val mappedLanguageCodes = languageCodes ?: language?.takeIf { it.isNotBlank() }?.let { langString ->
             com.armanmaurya.internetradio.core.utils.LanguageMapper.getCodesFromNameString(langString).mapNotNull { code ->
                 com.neovisionaries.i18n.LanguageAlpha3Code.getByCodeIgnoreCase(code)?.alpha3B?.name
@@ -38,7 +38,7 @@ data class BackupStation(
             }.distinct()
         } ?: emptyList()
         
-        return LibraryStationEntity(
+        return StationEntity(
             stationUuid = stationUuid,
             name = name,
             url = url,
@@ -50,17 +50,19 @@ data class BackupStation(
             codec = codec ?: "unknown",
             bitrate = bitrate ?: 0,
             isCustom = isCustom ?: false,
+            isFavorite = true,
             addedAt = addedAt ?: System.currentTimeMillis(),
             homepage = homepage ?: "",
             iso3166_2 = iso3166_2,
             geoLat = geoLat,
             geoLong = geoLong,
-            orderIndex = 0
+            orderIndex = 0,
+            lastPlayedAt = null
         )
     }
 }
 
-fun LibraryStationEntity.toBackupStation(): BackupStation {
+fun StationEntity.toBackupStation(): BackupStation {
     return BackupStation(
         stationUuid = stationUuid,
         name = name,

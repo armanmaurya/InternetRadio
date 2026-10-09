@@ -20,7 +20,7 @@ import androidx.media3.session.MediaSession
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
 import com.armanmaurya.internetradio.domain.controller.PlayerController
-import com.armanmaurya.internetradio.domain.controller.WidgetController
+import com.armanmaurya.internetradio.ui.widget.WidgetUpdater
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
@@ -83,7 +83,7 @@ class PlaybackService : MediaLibraryService() {
     lateinit var coverArtRepository: CoverArtRepository
 
     @Inject
-    lateinit var widgetController: WidgetController
+    lateinit var widgetUpdater: WidgetUpdater
 
     @Inject
     lateinit var okHttpClient: okhttp3.OkHttpClient
@@ -125,6 +125,7 @@ class PlaybackService : MediaLibraryService() {
     private val stationChangeListener = @UnstableApi object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             libraryStatusJob?.cancel()
+            lastTrack = null
             if (mediaItem?.mediaMetadata?.artworkUri != null && mediaItem.mediaMetadata.artworkUri != android.net.Uri.EMPTY) {
                 stationArtworkUri = mediaItem.mediaMetadata.artworkUri
             }
@@ -167,15 +168,21 @@ class PlaybackService : MediaLibraryService() {
 
             val fallbackArtUri = stationArtworkUri ?: currentMediaItem.mediaMetadata.artworkUri
 
+            val baseExtras = currentMediaItem.mediaMetadata.extras?.let { android.os.Bundle(it) } ?: android.os.Bundle()
+            baseExtras.remove("track_cover_art_url")
+
             val baseMetadata = currentMediaItem.mediaMetadata.buildUpon()
                 .setTitle(track)
+                .setArtist(null)
                 .setArtworkUri(fallbackArtUri)
+                .setExtras(baseExtras)
                 .build()
 
             currentPlayer.replaceMediaItem(
                 currentPlayer.currentMediaItemIndex,
                 currentMediaItem.buildUpon().setMediaMetadata(baseMetadata).build()
             )
+            widgetUpdater.updateWidget(currentPlayer)
 
             serviceScope.launch {
                 try {
@@ -202,10 +209,18 @@ class PlaybackService : MediaLibraryService() {
                         fallbackArtUri
                     }
 
+                    val finalExtras = currentMediaItem.mediaMetadata.extras?.let { android.os.Bundle(it) } ?: android.os.Bundle()
+                    if (coverArtUrl != null) {
+                        finalExtras.putString("track_cover_art_url", coverArtUrl)
+                    } else {
+                        finalExtras.remove("track_cover_art_url")
+                    }
+
                     val finalMetadata = currentMediaItem.mediaMetadata.buildUpon()
                         .setTitle(trackName)
                         .setArtist(artistName)
                         .setArtworkUri(finalArtworkUri)
+                        .setExtras(finalExtras)
                         .build()
 
                     player?.let { p ->
@@ -218,6 +233,7 @@ class PlaybackService : MediaLibraryService() {
                                 )
                             }
                         }
+                        widgetUpdater.updateWidget(p)
                     }
                 } catch (e: Exception) {
                     Log.e("PlaybackService", "Error during cover art fetching", e)
@@ -228,60 +244,12 @@ class PlaybackService : MediaLibraryService() {
 
     companion object {
         var isRunning = false
-
-        @Volatile
-        private var instance: PlaybackService? = null
-
-        fun requestWidgetUpdate() {
-            val service = instance ?: return
-            if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-                service.updateWidget()
-            } else {
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    instance?.updateWidget()
-                }
-            }
-        }
-    }
-
-    private val widgetActionReceiver = object : android.content.BroadcastReceiver() {
-        override fun onReceive(context: android.content.Context, intent: Intent?) {
-            when (intent?.action) {
-                "com.armanmaurya.internetradio.ACTION_WIDGET_PLAY_PAUSE" -> {
-                    val p = player ?: return
-                    when {
-                        p.isPlaying || (p.playbackState == androidx.media3.common.Player.STATE_BUFFERING && p.playWhenReady) -> p.pause()
-                        p.mediaItemCount == 0 -> serviceScope.launch { restoreAndPlayLastStation() }
-                        else -> {
-                            if (p.playbackState == androidx.media3.common.Player.STATE_IDLE) p.prepare(); p.play()
-                        }
-                    }
-                }
-
-                "com.armanmaurya.internetradio.ACTION_WIDGET_NEXT" -> player?.takeIf { it.hasNextMediaItem() }
-                    ?.seekToNextMediaItem()
-
-                "com.armanmaurya.internetradio.ACTION_WIDGET_PREVIOUS" -> player?.takeIf { it.hasPreviousMediaItem() }
-                    ?.seekToPreviousMediaItem()
-            }
-        }
     }
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         isRunning = true
-        instance = this
-
-        // Register the widget broadcast receiver so buttons work on all OEM launchers
-        val widgetFilter = android.content.IntentFilter().apply {
-            addAction("com.armanmaurya.internetradio.ACTION_WIDGET_PLAY_PAUSE")
-            addAction("com.armanmaurya.internetradio.ACTION_WIDGET_NEXT")
-            addAction("com.armanmaurya.internetradio.ACTION_WIDGET_PREVIOUS")
-        }
-        registerReceiver(
-            widgetActionReceiver, widgetFilter, android.content.Context.RECEIVER_NOT_EXPORTED
-        )
 
         loadErrorHandlingPolicy = ExponentialBackoffLoadErrorHandlingPolicy(retryStateTracker)
 
@@ -363,6 +331,7 @@ class PlaybackService : MediaLibraryService() {
 
         player?.let {
             it.addListener(stationChangeListener)
+            widgetUpdater.attachPlayer(it)
             it.addListener(object : androidx.media3.common.Player.Listener {
                 override fun onDeviceVolumeChanged(volume: Int, muted: Boolean) {
                     val isZero = volume == 0 || muted
@@ -379,34 +348,6 @@ class PlaybackService : MediaLibraryService() {
                     }
 
                     previousVolume = if (muted) 0 else volume
-                }
-
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    updateWidget()
-                }
-
-                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                    updateWidget()
-                }
-
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    updateWidget()
-                }
-
-                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    updateWidget()
-                }
-
-                override fun onMediaMetadataChanged(mediaMetadata: androidx.media3.common.MediaMetadata) {
-                    val isFetchingArtwork =
-                        mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
-                    val isPlaying =
-                        player?.let { it.isPlaying || (it.playbackState == androidx.media3.common.Player.STATE_BUFFERING && it.playWhenReady) }
-                            ?: false
-                    if (isPlaying && isFetchingArtwork) {
-                        return
-                    }
-                    updateWidget()
                 }
             })
 
@@ -437,12 +378,8 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onDestroy() {
         isRunning = false
-        widgetController.clearLatestPayload()
-        if (instance == this) {
-            instance = null
-        }
-        // Push a final stopped-state widget update before tearing down
-        pushStoppedWidgetUpdate()
+        widgetUpdater.detachPlayer()
+        widgetUpdater.pushStoppedWidgetUpdate()
         serviceScope.cancel()
         // Clear session ref first so the callback stops pushing updates
         sessionCallback.activeSession = null
@@ -455,11 +392,6 @@ class PlaybackService : MediaLibraryService() {
         }
         try {
             unregisterReceiver(audioNoisyReceiver)
-        } catch (e: Exception) {
-            // Ignored
-        }
-        try {
-            unregisterReceiver(widgetActionReceiver)
         } catch (e: Exception) {
             // Ignored
         }
@@ -481,10 +413,10 @@ class PlaybackService : MediaLibraryService() {
 
         if (isActivelyPlaying) {
             // Keep playback and widget active in foreground while audio is playing
-            updateWidget()
+            widgetUpdater.updateWidget()
         } else {
             // Not playing - clear widget state and stop service
-            pushStoppedWidgetUpdate()
+            widgetUpdater.pushStoppedWidgetUpdate()
             stopSelf()
         }
         super.onTaskRemoved(rootIntent)
@@ -553,92 +485,9 @@ class PlaybackService : MediaLibraryService() {
                 }
             }
         } else if (action == "com.armanmaurya.internetradio.ACTION_WIDGET_UPDATE") {
-            updateWidget()
+            widgetUpdater.updateWidget()
         }
         return super.onStartCommand(intent, flags, startId)
-    }
-
-    /**
-     * Reads the current player state and pushes it to the widget via DataStore,
-     * then triggers a Glance re-render for every placed widget instance.
-     */
-    private fun updateWidget() {
-        val p = player ?: return
-
-        // Read ExoPlayer state on the main thread
-        val metadata = p.currentMediaItem?.mediaMetadata
-        val isPlaying =
-            p.isPlaying || (p.playbackState == androidx.media3.common.Player.STATE_BUFFERING && p.playWhenReady)
-
-        // Skip intermediate widget updates while artwork is being fetched for a live track.
-        // Once artwork resolution finishes (or confirms none), is_fetching_artwork is set to "false",
-        // triggering a single clean update with the resolved image and background palette.
-        val isFetchingArtwork = metadata?.extras?.getString("is_fetching_artwork") == "true"
-        if (isPlaying && isFetchingArtwork) {
-            return
-        }
-
-        // If actively playing -> push live track info
-        // If paused -> instantly push base station info
-        val title = if (isPlaying) {
-            metadata?.title?.toString() ?: getString(R.string.widget_nothing_playing)
-        } else {
-            metadata?.extras?.getString("stationName") ?: metadata?.title?.toString()
-            ?: getString(R.string.widget_nothing_playing)
-        }
-
-        val trackCoverArtUrl = if (isPlaying) {
-            metadata?.extras?.getString("track_cover_art_url")?.takeIf { it.isNotBlank() }
-        } else null
-
-        val stationFavicon =
-            metadata?.extras?.getString("stationFavicon")?.takeIf { it.isNotBlank() }
-        val isCoverArtFetched = isPlaying && trackCoverArtUrl != null
-
-        val artworkUrl = if (isCoverArtFetched) {
-            trackCoverArtUrl
-        } else {
-            stationFavicon
-        }
-
-        val stationThumbnailUrl = if (isCoverArtFetched) {
-            stationFavicon
-        } else null
-
-        val artist = if (isPlaying) {
-            metadata?.artist?.toString() ?: ""
-        } else {
-            ""
-        }
-
-        val hasNext = p.hasNextMediaItem()
-        val hasPrev = p.hasPreviousMediaItem()
-        val stationName = metadata?.extras?.getString("stationName")
-
-        serviceScope.launch(Dispatchers.IO) {
-            widgetController.updatePlayback(
-                title = title,
-                artist = artist,
-                artworkUrl = artworkUrl,
-                isPlaying = isPlaying,
-                hasNext = hasNext,
-                hasPrev = hasPrev,
-                stationName = stationName,
-                stationThumbnailUrl = stationThumbnailUrl,
-                isCoverArtFetched = isCoverArtFetched,
-            )
-        }
-    }
-
-    /**
-     * Pushes a stopped/idle state to the widget.
-     * Call this when the service is about to be destroyed or when playback stops.
-     */
-    private fun pushStoppedWidgetUpdate() {
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            val lastStation = recentRepository.getAllRecent().first().firstOrNull()
-            widgetController.cleanStaleWidgetState(lastStation?.name, lastStation?.favicon)
-        }
     }
 
     private fun startStationPlayback(
@@ -736,16 +585,10 @@ class PlaybackService : MediaLibraryService() {
     }
 
 
-    /**
-     * Restores the last played station with a full playlist context, mirroring
-     * the autoPlayOnStart strategy used by PlayerController:
-     * 1. Check if the station is in the library → load full library as playlist
-     * 2. Fall back to the full recents list as playlist
-     */
     private suspend fun restoreAndPlayLastStation() {
         val p = player ?: return
         val lastStation = recentRepository.getAllRecent().first().firstOrNull() ?: run {
-            widgetController.cleanStaleWidgetState(null, null)
+            widgetUpdater.pushStoppedWidgetUpdate()
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
             } else {

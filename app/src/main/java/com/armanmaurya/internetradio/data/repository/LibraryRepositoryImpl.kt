@@ -1,87 +1,91 @@
 package com.armanmaurya.internetradio.data.repository
 
-import com.armanmaurya.internetradio.data.local.dao.LibraryStationDao
-import com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity
+import com.armanmaurya.internetradio.data.local.dao.ScheduleDao
+import com.armanmaurya.internetradio.data.local.dao.StationDao
+import com.armanmaurya.internetradio.data.local.entity.StationEntity
 import com.armanmaurya.internetradio.data.local.entity.toDomain
-import com.armanmaurya.internetradio.data.local.entity.toLibraryEntity
+import com.armanmaurya.internetradio.data.local.entity.toEntity
+import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
-import com.armanmaurya.internetradio.data.local.dao.RecentStationDao
-import com.armanmaurya.internetradio.data.local.dao.ScheduleDao
-import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 
 @Singleton
 class LibraryRepositoryImpl @Inject constructor(
-    private val libraryStationDao: LibraryStationDao,
-    private val recentStationDao: RecentStationDao,
+    private val stationDao: StationDao,
     private val scheduleDao: ScheduleDao,
     private val radioBrowserApi: RadioBrowserApi
 ) : LibraryRepository {
     override fun getAllStations(): Flow<List<RadioStation>> {
-        return libraryStationDao.getAllStations().map { entities ->
+        return stationDao.getAllFavorites().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByOldestAdded(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByOldestAdded().map { entities ->
+        return stationDao.getFavoritesByOldestAdded().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByName(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByName().map { entities ->
+        return stationDao.getFavoritesByName().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByNameDescending(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByNameDescending().map { entities ->
+        return stationDao.getFavoritesByNameDescending().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByRecentlyPlayed(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByRecentlyPlayed().map { entities ->
+        return stationDao.getFavoritesByRecentlyPlayed().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByLeastRecentlyPlayed(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByLeastRecentlyPlayed().map { entities ->
+        return stationDao.getFavoritesByLeastRecentlyPlayed().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
     override fun getStationsByCustomOrder(): Flow<List<RadioStation>> {
-        return libraryStationDao.getStationsByCustomOrder().map { entities ->
+        return stationDao.getFavoritesByCustomOrder().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    override suspend fun updateStations(stations: List<LibraryStationEntity>) {
-        libraryStationDao.updateStations(stations)
+    override suspend fun updateStations(stations: List<StationEntity>) {
+        stationDao.updateStations(stations)
     }
 
     override fun isStationInLibrary(stationUuid: String): Flow<Boolean> {
-        return libraryStationDao.isStationInLibrary(stationUuid).map { it != 0 }
+        return stationDao.isStationInLibrary(stationUuid).map { it != 0 }
     }
 
     override suspend fun isStationInLibraryDirect(stationUuid: String): Boolean {
-        return libraryStationDao.isStationInLibraryDirect(stationUuid)
+        return stationDao.isStationInLibraryDirect(stationUuid)
     }
 
     override suspend fun getStationById(stationUuid: String): RadioStation? {
-        return libraryStationDao.getStationById(stationUuid)?.toDomain()
+        return stationDao.getStationById(stationUuid)?.toDomain()
     }
 
     override suspend fun addStationToLibrary(station: RadioStation) {
-        libraryStationDao.insertStation(station.toLibraryEntity())
+        val existing = stationDao.getStationById(station.stationUuid)
+        val now = System.currentTimeMillis()
+        if (existing != null) {
+            stationDao.updateFavoriteStatus(station.stationUuid, true, now)
+        } else {
+            stationDao.insertStation(station.toEntity(isFavorite = true, addedAt = now))
+        }
     }
 
     override suspend fun addCustomStation(
@@ -96,7 +100,7 @@ class LibraryRepositoryImpl @Inject constructor(
         codec: String,
         bitrate: Int
     ) {
-        val station = LibraryStationEntity(
+        val station = StationEntity(
             stationUuid = UUID.randomUUID().toString(),
             name = name,
             url = url,
@@ -109,10 +113,11 @@ class LibraryRepositoryImpl @Inject constructor(
             iso3166_2 = iso31662,
             codec = codec,
             bitrate = bitrate,
-
-            isCustom = true
+            isCustom = true,
+            isFavorite = true,
+            addedAt = System.currentTimeMillis()
         )
-        libraryStationDao.insertStation(station)
+        stationDao.insertStation(station)
     }
     
     override suspend fun updateStation(
@@ -128,7 +133,7 @@ class LibraryRepositoryImpl @Inject constructor(
         codec: String,
         bitrate: Int
     ) {
-        val existing = libraryStationDao.getStationById(stationUuid) ?: return
+        val existing = stationDao.getStationById(stationUuid) ?: return
         val updated = existing.copy(
             name = name,
             url = url,
@@ -142,11 +147,16 @@ class LibraryRepositoryImpl @Inject constructor(
             codec = codec,
             bitrate = bitrate
         )
-        libraryStationDao.insertStation(updated)
+        stationDao.insertOrUpdate(updated)
     }
 
     override suspend fun removeStationFromLibrary(stationUuid: String) {
-        libraryStationDao.deleteStationById(stationUuid)
+        val existing = stationDao.getStationById(stationUuid) ?: return
+        if (existing.lastPlayedAt != null) {
+            stationDao.updateFavoriteStatus(stationUuid, false, null)
+        } else {
+            stationDao.deleteStationById(stationUuid)
+        }
     }
 
     override suspend fun uploadAndSaveNewStation(
@@ -173,8 +183,8 @@ class LibraryRepositoryImpl @Inject constructor(
                 tags = tags.joinToString(","),
             )
             if (response.ok) {
-                val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
-                val newStation = com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity(
+                val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
+                val newStation = StationEntity(
                     stationUuid = newUuid,
                     name = name,
                     url = url,
@@ -187,9 +197,11 @@ class LibraryRepositoryImpl @Inject constructor(
                     iso3166_2 = iso31662,
                     codec = codec,
                     bitrate = bitrate,
-                    isCustom = false
+                    isCustom = false,
+                    isFavorite = true,
+                    addedAt = System.currentTimeMillis()
                 )
-                libraryStationDao.insertStation(newStation)
+                stationDao.insertStation(newStation)
                 Result.success(newUuid)
             } else {
                 Result.failure(Exception(response.message ?: "Unknown API error"))
@@ -224,13 +236,10 @@ class LibraryRepositoryImpl @Inject constructor(
                 tags = tags.joinToString(","),
             )
             if (response.ok) {
-                val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: java.util.UUID.randomUUID().toString()
+                val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
                 val oldUuid = stationUuid
-                // Update DAOs to replace old UUID with new UUID, and mark as not custom
-                libraryStationDao.updateStationUuid(oldUuid, newUuid)
-                recentStationDao.updateStationUuid(oldUuid, newUuid)
+                stationDao.updateStationUuid(oldUuid, newUuid)
                 scheduleDao.updateStationUuid(oldUuid, newUuid)
-                // Also update the other metadata to what they are in `station` just in case
                 updateStation(
                     stationUuid = newUuid,
                     name = name,
@@ -255,15 +264,15 @@ class LibraryRepositoryImpl @Inject constructor(
 
     // --- Backup & Restore ---
 
-    override suspend fun getAllStationEntities(): List<LibraryStationEntity> {
-        return libraryStationDao.getAllStationEntities()
+    override suspend fun getAllStationEntities(): List<StationEntity> {
+        return stationDao.getAllFavoriteEntities()
     }
 
-    override suspend fun getEntityById(stationUuid: String): LibraryStationEntity? {
-        return libraryStationDao.getStationById(stationUuid)
+    override suspend fun getEntityById(stationUuid: String): StationEntity? {
+        return stationDao.getStationById(stationUuid)
     }
 
-    override suspend fun insertEntity(entity: LibraryStationEntity) {
-        libraryStationDao.insertStation(entity)
+    override suspend fun insertEntity(entity: StationEntity) {
+        stationDao.insertStation(entity)
     }
 }

@@ -2,7 +2,7 @@ package com.armanmaurya.internetradio.core.utils
 
 import android.content.Context
 import android.net.Uri
-import com.armanmaurya.internetradio.data.local.entity.toLibraryEntity
+import com.armanmaurya.internetradio.data.local.entity.toEntity
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toBackupStation
 import com.armanmaurya.internetradio.domain.model.RadioStation
@@ -19,7 +19,7 @@ object ExportUtils {
             val exportedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                 .format(Date())
 
-            val backupStation = station.toLibraryEntity(isCustom = station.isCustom).toBackupStation()
+            val backupStation = station.toEntity(isFavorite = true).toBackupStation()
 
             val backup = LibraryBackup(
                 exportedAt = exportedAt,

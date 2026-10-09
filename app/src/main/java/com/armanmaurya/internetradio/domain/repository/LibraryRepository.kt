@@ -1,6 +1,6 @@
 package com.armanmaurya.internetradio.domain.repository
 
-import com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity
+import com.armanmaurya.internetradio.data.local.entity.StationEntity
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import kotlinx.coroutines.flow.Flow
 
@@ -12,7 +12,7 @@ interface LibraryRepository {
     fun getStationsByRecentlyPlayed(): Flow<List<RadioStation>>
     fun getStationsByLeastRecentlyPlayed(): Flow<List<RadioStation>>
     fun getStationsByCustomOrder(): Flow<List<RadioStation>>
-    suspend fun updateStations(stations: List<LibraryStationEntity>)
+    suspend fun updateStations(stations: List<StationEntity>)
     fun isStationInLibrary(stationUuid: String): Flow<Boolean>
     suspend fun isStationInLibraryDirect(stationUuid: String): Boolean
     suspend fun getStationById(stationUuid: String): RadioStation?
@@ -22,7 +22,7 @@ interface LibraryRepository {
     suspend fun removeStationFromLibrary(stationUuid: String)
     suspend fun uploadAndSaveNewStation(name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String>
     suspend fun uploadExistingCustomStation(stationUuid: String, name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String>
-    suspend fun getAllStationEntities(): List<LibraryStationEntity>
-    suspend fun getEntityById(stationUuid: String): LibraryStationEntity?
-    suspend fun insertEntity(entity: LibraryStationEntity)
+    suspend fun getAllStationEntities(): List<StationEntity>
+    suspend fun getEntityById(stationUuid: String): StationEntity?
+    suspend fun insertEntity(entity: StationEntity)
 }

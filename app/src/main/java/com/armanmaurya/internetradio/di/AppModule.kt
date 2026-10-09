@@ -135,18 +135,13 @@ object AppModule {
             RadioDatabase::class.java,
             "radio_database"
         )
-        .addMigrations(RadioDatabase.MIGRATION_3_4)
+        .addMigrations(*com.armanmaurya.internetradio.data.local.migration.DatabaseMigrations.ALL_MIGRATIONS)
         .build()
 
     @Provides
     @Singleton
-    fun provideLibraryStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.LibraryStationDao =
-        database.libraryStationDao
-
-    @Provides
-    @Singleton
-    fun provideRecentStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.RecentStationDao =
-        database.recentStationDao
+    fun provideStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.StationDao =
+        database.stationDao
 
     @Provides
     @Singleton

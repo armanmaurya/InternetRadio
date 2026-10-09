@@ -1,0 +1,75 @@
+Project InternetRadio {
+  database_type: 'SQLite / Room (Unified Schema)'
+  Note: '''
+    # Internet Radio Unified Database Schema
+    Local Room database storing stations (combining library & recents),
+    track identification history, and playback/recording schedules.
+  '''
+}
+
+// Enum used by Room TypeConverter for ScheduleEntity
+Enum schedule_type {
+  PLAYBACK [note: 'Alarm station stream playback']
+  RECORD   [note: 'Background stream audio recording']
+}
+
+Table stations {
+  stationUuid text [pk, note: 'Unique Station UUID (Radio Browser API or UUIDv4)']
+  name text [not null, note: 'Station display name']
+  url text [not null, note: 'Original/entered stream URL']
+  urlResolved text [not null, note: 'Directly resolved playable stream URL']
+  favicon text [not null, note: 'Station icon/logo URL (PNG/SVG/WebP)']
+  tags text [not null, note: 'Comma-separated genres/tags (List<String>)']
+  countryCode text [not null, note: '2-letter ISO country code (e.g. US, IN, DE)']
+  languageCodes text [not null, default: "''", note: 'Comma-separated language codes']
+  codec text [not null, note: 'Audio codec (e.g. MP3, AAC, OGG)']
+  bitrate integer [not null, note: 'Bitrate in kbps']
+  homepage text [not null, default: "''", note: 'Official website URL']
+  iso3166_2 text [null, note: 'State/region subdivision code']
+  geoLat real [null, note: 'Latitude coordinate']
+  geoLong real [null, note: 'Longitude coordinate']
+  isCustom integer [not null, default: 0, note: 'Boolean (0/1): True if user-added custom station']
+
+  // --- Unified State & Organization Flags ---
+  isFavorite integer [not null, default: 0, note: 'Boolean (0/1): True if saved in user library/favorites']
+  addedAt integer [null, note: 'Epoch timestamp (ms) when added to library (null if not favorite)']
+  orderIndex integer [not null, default: 0, note: 'Custom sorting position in user library']
+  lastPlayedAt integer [null, note: 'Epoch timestamp (ms) when last played (null if never played)']
+
+  Note: 'Unified radio stations repository combining library favorites, recents, and custom stations'
+}
+
+Table track_history {
+  id integer [pk, increment, note: 'Autoincrement primary key']
+  stationUuid text [not null, note: 'UUID of the station where the track played']
+  trackTitle text [not null, note: 'Cleaned track title (e.g. Artist - Song Title)']
+  timestamp integer [not null, note: 'Epoch timestamp (ms) when track was detected']
+  coverArtUrl text [null, default: null, note: 'Fetched iTunes/LastFM cover art URL']
+  rawTrackTitle text [not null, default: "''", note: 'Raw ICY metadata string received from stream']
+
+  Note: 'Log of individual songs/tracks parsed from stream ICY metadata'
+}
+
+Table schedules {
+  id integer [pk, increment, note: 'Autoincrement primary key']
+  stationUuid text [not null, note: 'Target station UUID']
+  stationName text [not null, note: 'Target station name']
+  type schedule_type [not null, note: 'PLAYBACK (Alarm) or RECORD (Scheduled Recording)']
+  triggerTimeInMillis integer [not null, note: 'Epoch timestamp (ms) for the next alarm trigger']
+  durationMinutes integer [not null, note: 'Execution duration in minutes (0 for indefinite)']
+  isRecurring integer [not null, note: 'Boolean (0/1): True if repeats on selected weekdays']
+  daysOfWeek text [not null, note: 'Comma-separated active days of week (e.g. "1,2,3,4,5")']
+  timeHour integer [not null, note: 'Target hour in 24-hour format (0-23)']
+  timeMinute integer [not null, note: 'Target minute (0-59)']
+  isEnabled integer [not null, note: 'Boolean (0/1): Active/inactive toggle state']
+  volumeLevel real [not null, default: 1.0, note: 'Hardware volume level (0.0 to 1.0)']
+  keepPlayback integer [not null, default: 0, note: 'Boolean (0/1): Continue playback after recording finishes']
+  playOnRecording integer [not null, default: 1, note: 'Boolean (0/1): Audible audio while recording']
+  scheduleName text [not null, default: "''", note: 'User-assigned label/name for the schedule']
+
+  Note: 'Alarms and scheduled radio stream recordings'
+}
+
+// Logical Relationships (cross-table stationUuid references)
+Ref: track_history.stationUuid > stations.stationUuid // Track belongs to a station
+Ref: schedules.stationUuid > stations.stationUuid // Schedule targets a station
