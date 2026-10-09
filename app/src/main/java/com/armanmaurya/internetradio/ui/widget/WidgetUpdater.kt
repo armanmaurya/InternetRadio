@@ -135,4 +135,53 @@ class WidgetUpdater @Inject constructor(
             widgetController.cleanStaleWidgetState(lastStation?.name, lastStation?.favicon)
         }
     }
+
+    /**
+     * Handles widget actions forwarded via Intent from WidgetControlReceiver.
+     * Returns true if the action was recognized and handled.
+     */
+    fun handleWidgetAction(action: String, onRestorePlayback: () -> Unit): Boolean {
+        val p = attachedPlayer ?: return false
+        when (action) {
+            ACTION_WIDGET_PLAY_PAUSE -> {
+                when {
+                    p.isPlaying || (p.playbackState == Player.STATE_BUFFERING && p.playWhenReady) -> p.pause()
+                    p.mediaItemCount == 0 -> onRestorePlayback()
+                    else -> {
+                        if (p.playbackState == Player.STATE_IDLE) p.prepare()
+                        p.play()
+                    }
+                }
+                return true
+            }
+            ACTION_WIDGET_NEXT -> {
+                if (p.mediaItemCount == 0) {
+                    onRestorePlayback()
+                } else if (p.hasNextMediaItem()) {
+                    p.seekToNextMediaItem()
+                }
+                return true
+            }
+            ACTION_WIDGET_PREVIOUS -> {
+                if (p.mediaItemCount == 0) {
+                    onRestorePlayback()
+                } else if (p.hasPreviousMediaItem()) {
+                    p.seekToPreviousMediaItem()
+                }
+                return true
+            }
+            ACTION_WIDGET_UPDATE -> {
+                updateWidget()
+                return true
+            }
+            else -> return false
+        }
+    }
+
+    companion object {
+        const val ACTION_WIDGET_PLAY_PAUSE = "com.armanmaurya.internetradio.ACTION_WIDGET_PLAY_PAUSE"
+        const val ACTION_WIDGET_NEXT = "com.armanmaurya.internetradio.ACTION_WIDGET_NEXT"
+        const val ACTION_WIDGET_PREVIOUS = "com.armanmaurya.internetradio.ACTION_WIDGET_PREVIOUS"
+        const val ACTION_WIDGET_UPDATE = "com.armanmaurya.internetradio.ACTION_WIDGET_UPDATE"
+    }
 }

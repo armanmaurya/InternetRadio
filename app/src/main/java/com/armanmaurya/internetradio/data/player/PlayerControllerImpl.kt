@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.armanmaurya.internetradio.service.playback.engine.AudioAmplitudeManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,7 +44,8 @@ class PlayerControllerImpl @Inject constructor(
     private val stationRepository: StationRepository,
     private val recentRepository: RecentRepository,
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
-    private val streamProber: StreamProber
+    private val streamProber: StreamProber,
+    private val audioAmplitudeManager: AudioAmplitudeManager
 ) : PlayerController {
     private var controllerFuture = MediaController.Builder(
         context,
@@ -63,8 +65,7 @@ class PlayerControllerImpl @Inject constructor(
     private val _isFetchingArtwork = MutableStateFlow(false)
     override val isFetchingArtwork: StateFlow<Boolean> = _isFetchingArtwork.asStateFlow()
 
-    private val _amplitude = MutableStateFlow(0f)
-    override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
+    override val amplitude: StateFlow<Float> get() = audioAmplitudeManager.amplitude
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -526,7 +527,7 @@ class PlayerControllerImpl @Inject constructor(
                 sessionResumeTimeMs = null
             )
         }
-        _amplitude.value = 0f
+        audioAmplitudeManager.reset()
     }
 
     private var timerJob: Job? = null
@@ -648,6 +649,6 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun updateAmplitude(rms: Float) {
-        _amplitude.value = rms
+        audioAmplitudeManager.updateAmplitude(rms)
     }
 }
