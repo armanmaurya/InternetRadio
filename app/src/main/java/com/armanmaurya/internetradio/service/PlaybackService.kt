@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
-import android.media.audiofx.LoudnessEnhancer
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -18,16 +17,19 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.armanmaurya.internetradio.R
-import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.ui.widget.WidgetUpdater
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
+import com.armanmaurya.internetradio.service.playback.AudioEffectsManager
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
+import com.armanmaurya.internetradio.service.playback.TrackObserver
+import com.armanmaurya.internetradio.service.playback.createStationMediaItem
 import com.armanmaurya.internetradio.service.playback.engine.AmplitudeAudioProcessor
 import com.armanmaurya.internetradio.service.playback.engine.CoilBitmapLoader
 import com.armanmaurya.internetradio.service.playback.engine.ExponentialBackoffLoadErrorHandlingPolicy
 import com.armanmaurya.internetradio.service.playback.engine.RetryStateTracker
+import com.armanmaurya.internetradio.service.playback.toMediaItem
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -41,8 +43,6 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import com.armanmaurya.internetradio.core.media.player.RadioPlayer
-import com.armanmaurya.internetradio.core.media.player.TrackParser
-import com.armanmaurya.internetradio.domain.repository.CoverArtRepository
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
@@ -62,7 +62,10 @@ class PlaybackService : MediaLibraryService() {
     lateinit var sessionCallback: PlaybackSessionCallback
 
     @Inject
-    lateinit var trackHistoryRepository: TrackHistoryRepository
+    lateinit var trackObserver: TrackObserver
+
+    @Inject
+    lateinit var audioEffectsManager: AudioEffectsManager
 
     @Inject
     lateinit var playerController: PlayerController
@@ -80,9 +83,6 @@ class PlaybackService : MediaLibraryService() {
     lateinit var recentRepository: RecentRepository
 
     @Inject
-    lateinit var coverArtRepository: CoverArtRepository
-
-    @Inject
     lateinit var widgetUpdater: WidgetUpdater
 
     @Inject
@@ -96,16 +96,9 @@ class PlaybackService : MediaLibraryService() {
     private var pauseOnVolumeZero: Boolean = false
     private var previousVolume: Int = -1
     private var ignoreNextVolumeZero: Boolean = false
-    private var showCoverArtInNotification: Boolean = true
     private var showStationThumbnails: Boolean = true
     private var alarmFadeInSeconds: Int = 0
     private var volumeFadeJob: kotlinx.coroutines.Job? = null
-    private var activeTrackTitle: String? = null
-    private var loudnessEnhancer: LoudnessEnhancer? = null
-    private var currentBoostFactor: Float = 0f
-
-    private var lastTrack: String? = null
-    private var stationArtworkUri: android.net.Uri? = null
 
     private val audioNoisyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -125,10 +118,6 @@ class PlaybackService : MediaLibraryService() {
     private val stationChangeListener = @UnstableApi object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             libraryStatusJob?.cancel()
-            lastTrack = null
-            if (mediaItem?.mediaMetadata?.artworkUri != null && mediaItem.mediaMetadata.artworkUri != android.net.Uri.EMPTY) {
-                stationArtworkUri = mediaItem.mediaMetadata.artworkUri
-            }
             val stationUuid = mediaItem?.mediaId
             if (stationUuid != null) {
                 libraryStatusJob = serviceScope.launch {
@@ -156,90 +145,6 @@ class PlaybackService : MediaLibraryService() {
                 }
             }
         }
-
-        override fun onMetadata(metadata: androidx.media3.common.Metadata) {
-            val track = TrackParser.parse(metadata)
-            if (lastTrack == track || track.isNullOrBlank()) return
-
-            lastTrack = track
-            val currentPlayer = player ?: return
-            val currentMediaItem = currentPlayer.currentMediaItem ?: return
-            val stationUuid = currentMediaItem.mediaId
-
-            val fallbackArtUri = stationArtworkUri ?: currentMediaItem.mediaMetadata.artworkUri
-
-            val baseExtras = currentMediaItem.mediaMetadata.extras?.let { android.os.Bundle(it) } ?: android.os.Bundle()
-            baseExtras.remove("track_cover_art_url")
-
-            val baseMetadata = currentMediaItem.mediaMetadata.buildUpon()
-                .setTitle(track)
-                .setArtist(null)
-                .setArtworkUri(fallbackArtUri)
-                .setExtras(baseExtras)
-                .build()
-
-            currentPlayer.replaceMediaItem(
-                currentPlayer.currentMediaItemIndex,
-                currentMediaItem.buildUpon().setMediaMetadata(baseMetadata).build()
-            )
-            widgetUpdater.updateWidget(currentPlayer)
-
-            serviceScope.launch {
-                try {
-                    val trackId = trackHistoryRepository.logTrack(stationUuid, track)
-
-                    val trackMetadata = withTimeoutOrNull(4000L.milliseconds) {
-                        coverArtRepository.getTrackMetadata(track)
-                    }
-
-                    if (lastTrack != track) return@launch
-
-                    val trackName = trackMetadata?.trackName?.takeIf { it.isNotBlank() } ?: track
-                    val artistName = trackMetadata?.artistName?.takeIf { it.isNotBlank() }
-                    val coverArtUrl = trackMetadata?.coverArtUrl?.takeIf { it.isNotBlank() }
-
-                    if (trackId != null) {
-                        val cleanedTitle = if (artistName != null) "$artistName - $trackName" else trackName
-                        trackHistoryRepository.updateTrackMetadata(trackId, cleanedTitle, coverArtUrl)
-                    }
-
-                    val finalArtworkUri = if (showCoverArtInNotification && coverArtUrl != null) {
-                        coverArtUrl.toUri()
-                    } else {
-                        fallbackArtUri
-                    }
-
-                    val finalExtras = currentMediaItem.mediaMetadata.extras?.let { android.os.Bundle(it) } ?: android.os.Bundle()
-                    if (coverArtUrl != null) {
-                        finalExtras.putString("track_cover_art_url", coverArtUrl)
-                    } else {
-                        finalExtras.remove("track_cover_art_url")
-                    }
-
-                    val finalMetadata = currentMediaItem.mediaMetadata.buildUpon()
-                        .setTitle(trackName)
-                        .setArtist(artistName)
-                        .setArtworkUri(finalArtworkUri)
-                        .setExtras(finalExtras)
-                        .build()
-
-                    player?.let { p ->
-                        for (i in 0 until p.mediaItemCount) {
-                            if (p.getMediaItemAt(i).mediaId == stationUuid) {
-                                val itemAtI = p.getMediaItemAt(i)
-                                p.replaceMediaItem(
-                                    i,
-                                    itemAtI.buildUpon().setMediaMetadata(finalMetadata).build()
-                                )
-                            }
-                        }
-                        widgetUpdater.updateWidget(p)
-                    }
-                } catch (e: Exception) {
-                    Log.e("PlaybackService", "Error during cover art fetching", e)
-                }
-            }
-        }
     }
 
     companion object {
@@ -258,7 +163,6 @@ class PlaybackService : MediaLibraryService() {
                 loadErrorHandlingPolicy.maxRetryDurationMs = prefs.maxRetryDuration
                 stopOnAudioBecomingNoisy = prefs.stopOnAudioBecomingNoisy
                 pauseOnVolumeZero = prefs.pauseOnVolumeZero
-                showCoverArtInNotification = prefs.showCoverArtInNotification
                 showStationThumbnails = prefs.showStationThumbnails
                 alarmFadeInSeconds =
                     if (prefs.isAlarmVolumeTransitionEnabled) prefs.alarmVolumeTransitionSeconds else 0
@@ -306,20 +210,7 @@ class PlaybackService : MediaLibraryService() {
             .setMediaSourceFactory(mediaSourceFactory).setAudioAttributes(audioAttributes, true)
             .setDeviceVolumeControlEnabled(true).build()
 
-        exoPlayer.addAnalyticsListener(object :
-            androidx.media3.exoplayer.analytics.AnalyticsListener {
-            override fun onAudioSessionIdChanged(
-                eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
-                audioSessionId: Int
-            ) {
-                if (audioSessionId != androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
-                    setupLoudnessEnhancer(audioSessionId)
-                }
-            }
-        })
-        if (exoPlayer.audioSessionId != androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
-            setupLoudnessEnhancer(exoPlayer.audioSessionId)
-        }
+        audioEffectsManager.attachToPlayer(exoPlayer)
 
         exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
         exoPlayer.setWakeMode(androidx.media3.common.C.WAKE_MODE_NETWORK)
@@ -332,6 +223,7 @@ class PlaybackService : MediaLibraryService() {
         player?.let {
             it.addListener(stationChangeListener)
             widgetUpdater.attachPlayer(it)
+            trackObserver.attachPlayer(it)
             it.addListener(object : androidx.media3.common.Player.Listener {
                 override fun onDeviceVolumeChanged(volume: Int, muted: Boolean) {
                     val isZero = volume == 0 || muted
@@ -365,10 +257,7 @@ class PlaybackService : MediaLibraryService() {
             // Give the callback a reference to the session so it can push
             // custom layout updates (e.g. refreshing the heart icon) at any time
             sessionCallback.activeSession = mediaLibrarySession
-            sessionCallback.onVolumeBoostChanged = { boost ->
-                currentBoostFactor = boost
-                applyBoostGain(loudnessEnhancer, boost)
-            }
+            sessionCallback.onVolumeBoostChanged = audioEffectsManager::setVolumeBoost
         }
     }
 
@@ -378,18 +267,14 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onDestroy() {
         isRunning = false
+        trackObserver.detachPlayer()
         widgetUpdater.detachPlayer()
         widgetUpdater.pushStoppedWidgetUpdate()
         serviceScope.cancel()
         // Clear session ref first so the callback stops pushing updates
         sessionCallback.activeSession = null
         sessionCallback.onVolumeBoostChanged = null
-        try {
-            loudnessEnhancer?.release()
-            loudnessEnhancer = null
-        } catch (e: Exception) {
-            // Ignored
-        }
+        audioEffectsManager.release()
         try {
             unregisterReceiver(audioNoisyReceiver)
         } catch (e: Exception) {
@@ -498,28 +383,14 @@ class PlaybackService : MediaLibraryService() {
         volumeLevel: Float,
         transitionSeconds: Int
     ) {
-        val artworkUri = when {
-            !showStationThumbnails -> android.net.Uri.EMPTY
-            stationFavicon.endsWith(".svg", ignoreCase = true) -> android.net.Uri.parse(
-                SvgProxyProvider.createProxyUri(this, stationFavicon)
-            )
-            stationFavicon.isNotBlank() -> android.net.Uri.parse(stationFavicon)
-            else -> android.net.Uri.EMPTY
-        }
-        stationArtworkUri = artworkUri
-        val mediaItem =
-            androidx.media3.common.MediaItem.Builder().setMediaId(stationUuid).setUri(stationUrl)
-                .setLiveConfiguration(
-                    androidx.media3.common.MediaItem.LiveConfiguration.Builder().build()
-                ).setMediaMetadata(
-                    androidx.media3.common.MediaMetadata.Builder().setTitle(stationName)
-                        .setAlbumTitle(stationName).setArtworkUri(artworkUri)
-                        .setExtras(android.os.Bundle().apply {
-                            putString("stationName", stationName)
-                            putString("stationFavicon", stationFavicon)
-                        }).build()
-                ).setTag(stationFavicon)
-                .build()
+        val mediaItem = createStationMediaItem(
+            context = this,
+            stationUuid = stationUuid,
+            stationUrl = stationUrl,
+            stationName = stationName,
+            stationFavicon = stationFavicon,
+            showThumbnails = showStationThumbnails
+        )
 
         val isSameStation = player?.currentMediaItem?.mediaId == stationUuid
         volumeFadeJob?.cancel()
@@ -608,7 +479,7 @@ class PlaybackService : MediaLibraryService() {
         if (libraryIndex != -1) {
             // Found in library: load the full library as playlist
             mediaItems = libraryStations.map { station ->
-                buildMediaItem(station)
+                station.toMediaItem(this, showThumbnails = showStationThumbnails)
             }
             startIndex = libraryIndex
         } else {
@@ -618,7 +489,7 @@ class PlaybackService : MediaLibraryService() {
                 recentStations.indexOfFirst { it.stationUuid == lastStation.stationUuid }
                     .coerceAtLeast(0)
             mediaItems = recentStations.map { station ->
-                buildMediaItem(station)
+                station.toMediaItem(this, showThumbnails = showStationThumbnails)
             }
             startIndex = recentIndex
         }
@@ -627,61 +498,5 @@ class PlaybackService : MediaLibraryService() {
         p.setMediaItems(mediaItems, startIndex, 0L)
         p.playWhenReady = true
         p.prepare()
-    }
-
-    /**
-     * Builds a MediaItem from a RadioStation, handling SVG artwork proxying.
-     */
-    private fun buildMediaItem(station: RadioStation): androidx.media3.common.MediaItem {
-        val artworkUri = when {
-            !showStationThumbnails -> android.net.Uri.EMPTY
-            station.favicon.endsWith(".svg", ignoreCase = true) -> android.net.Uri.parse(
-                SvgProxyProvider.createProxyUri(this, station.favicon)
-            )
-            station.favicon.isNotBlank() -> android.net.Uri.parse(station.favicon)
-            else -> android.net.Uri.EMPTY
-        }
-        return androidx.media3.common.MediaItem.Builder().setMediaId(station.stationUuid)
-            .setUri(station.urlResolved.ifBlank { station.url }).setLiveConfiguration(
-                androidx.media3.common.MediaItem.LiveConfiguration.Builder().build()
-            ).setMediaMetadata(
-                androidx.media3.common.MediaMetadata.Builder().setTitle(station.name)
-                    .setAlbumTitle(station.name).setArtworkUri(artworkUri)
-                    .setExtras(android.os.Bundle().apply {
-                        putString("stationName", station.name)
-                        putString("stationFavicon", station.favicon)
-                    }).build()
-            ).setTag(station)
-            .build()
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun setupLoudnessEnhancer(audioSessionId: Int) {
-        if (audioSessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) return
-        try {
-            loudnessEnhancer?.release()
-            loudnessEnhancer = android.media.audiofx.LoudnessEnhancer(audioSessionId).apply {
-                applyBoostGain(this, currentBoostFactor)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("PlaybackService", "Failed to initialize LoudnessEnhancer", e)
-            loudnessEnhancer = null
-        }
-    }
-
-    private fun applyBoostGain(enhancer: android.media.audiofx.LoudnessEnhancer?, boost: Float) {
-        if (enhancer == null) return
-        try {
-            if (boost > 0f) {
-                val gainmB = (boost * 1000).toInt() // Up to +1000 mB (+10 dB) at 200%
-                enhancer.setTargetGain(gainmB)
-                enhancer.enabled = true
-            } else {
-                enhancer.setTargetGain(0)
-                enhancer.enabled = false
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("PlaybackService", "Failed to apply LoudnessEnhancer gain", e)
-        }
     }
 }

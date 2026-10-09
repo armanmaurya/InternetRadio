@@ -15,18 +15,23 @@ private val APP_LOGO_URI: Uri =
 /**
  * Converts a [RadioStation] domain model to a Media3 [MediaItem] with artwork proxying.
  */
-fun RadioStation.toMediaItem(context: Context, parentId: String? = null): MediaItem {
-    val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
-        SvgProxyProvider.createProxyUri(context, favicon)
-    } else {
-        favicon.takeIf { it.isNotBlank() }
+fun RadioStation.toMediaItem(
+    context: Context,
+    parentId: String? = null,
+    showThumbnails: Boolean = true
+): MediaItem {
+    val artworkUriStr = when {
+        !showThumbnails -> null
+        favicon.endsWith(".svg", ignoreCase = true) -> SvgProxyProvider.createProxyUri(context, favicon)
+        favicon.isNotBlank() -> favicon
+        else -> null
     }
-    val artworkUri = artworkUriStr?.let { Uri.parse(it) } ?: APP_LOGO_URI
+    val artworkUri = if (!showThumbnails) Uri.EMPTY else (artworkUriStr?.let { Uri.parse(it) } ?: APP_LOGO_URI)
     val id = if (parentId != null) "$parentId|$stationUuid" else stationUuid
 
     return MediaItem.Builder()
         .setMediaId(id)
-        .setUri(urlResolved)
+        .setUri(urlResolved.ifBlank { url })
         .setLiveConfiguration(MediaItem.LiveConfiguration.Builder().build())
         .setMediaMetadata(
             MediaMetadata.Builder()
@@ -42,5 +47,43 @@ fun RadioStation.toMediaItem(context: Context, parentId: String? = null): MediaI
                 .build()
         )
         .setTag(this)
+        .build()
+}
+
+/**
+ * Creates a MediaItem from discrete station parameters (e.g. for ACTION_PLAY_STATION).
+ */
+fun createStationMediaItem(
+    context: Context,
+    stationUuid: String,
+    stationUrl: String,
+    stationName: String,
+    stationFavicon: String,
+    showThumbnails: Boolean = true
+): MediaItem {
+    val artworkUriStr = when {
+        !showThumbnails -> null
+        stationFavicon.endsWith(".svg", ignoreCase = true) -> SvgProxyProvider.createProxyUri(context, stationFavicon)
+        stationFavicon.isNotBlank() -> stationFavicon
+        else -> null
+    }
+    val artworkUri = if (!showThumbnails) Uri.EMPTY else (artworkUriStr?.let { Uri.parse(it) } ?: APP_LOGO_URI)
+
+    return MediaItem.Builder()
+        .setMediaId(stationUuid)
+        .setUri(stationUrl)
+        .setLiveConfiguration(MediaItem.LiveConfiguration.Builder().build())
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(stationName)
+                .setAlbumTitle(stationName)
+                .setArtworkUri(artworkUri)
+                .setExtras(Bundle().apply {
+                    putString("stationName", stationName)
+                    putString("stationFavicon", stationFavicon)
+                })
+                .build()
+        )
+        .setTag(stationFavicon)
         .build()
 }
