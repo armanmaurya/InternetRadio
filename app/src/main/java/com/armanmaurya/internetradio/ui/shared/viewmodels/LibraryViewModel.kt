@@ -2,8 +2,8 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.armanmaurya.internetradio.core.media.prober.StreamProbeResult
-import com.armanmaurya.internetradio.core.media.prober.StreamProber
+import com.armanmaurya.internetradio.core.media.prober.ProbeResult
+import com.armanmaurya.internetradio.core.media.prober.NativeProber
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.RadioStation
@@ -41,8 +41,7 @@ class LibraryViewModel @Inject constructor(
     private val playerController: PlayerController,
     private val okHttpClient: OkHttpClient,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
-    private val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade,
-    private val streamProber: StreamProber
+    private val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade
 ) : ViewModel() {
 
     // Using useFilterOnFavorites and isGridViewFavorites for now, maybe we can rename these in Settings later
@@ -254,8 +253,8 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    suspend fun probeStream(url: String): StreamProbeResult? {
-        return streamProber.probe(url)
+    suspend fun probeStream(url: String): ProbeResult? {
+        return NativeProber.probe(url)
     }
 
     fun addStation(

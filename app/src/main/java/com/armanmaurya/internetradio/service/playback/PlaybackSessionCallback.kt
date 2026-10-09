@@ -66,7 +66,6 @@ class PlaybackSessionCallback @Inject constructor(
         autoBrowseTreeProvider.observeSettingsChanges { activeSession }
     }
 
-    // ─── Connection ───────────────────────────────────────────────────────────
 
     @OptIn(UnstableApi::class)
     override fun onConnect(
@@ -90,7 +89,6 @@ class PlaybackSessionCallback @Inject constructor(
             .build()
     }
 
-    // ─── Library Root & Browsing (Delegated to AutoBrowseTreeProvider) ─────────
 
     override fun onGetLibraryRoot(
         session: MediaLibrarySession,
@@ -129,7 +127,6 @@ class PlaybackSessionCallback @Inject constructor(
         params: LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = autoBrowseTreeProvider.onGetSearchResult(query, params)
 
-    // ─── Custom Commands ──────────────────────────────────────────────────────
 
     @OptIn(UnstableApi::class)
     override fun onCustomCommand(

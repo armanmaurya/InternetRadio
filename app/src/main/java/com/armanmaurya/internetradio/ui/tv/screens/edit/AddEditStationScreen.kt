@@ -32,7 +32,7 @@ import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
-import com.armanmaurya.internetradio.core.media.prober.StreamProbeResult
+import com.armanmaurya.internetradio.core.media.prober.ProbeResult
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.OutlinedTextField
@@ -68,9 +68,9 @@ fun AddEditStationScreen(
     var probedBitrate by remember(station) { mutableStateOf(station?.bitrate ?: 0) }
 
     var showOverwriteDialog by remember { mutableStateOf(false) }
-    var pendingProbeResult by remember { mutableStateOf<StreamProbeResult?>(null) }
+    var pendingProbeResult by remember { mutableStateOf<ProbeResult?>(null) }
 
-    val handleProbeResult: (StreamProbeResult) -> Unit = { result ->
+    val handleProbeResult: (ProbeResult) -> Unit = { result ->
         probedCodec = result.codec
         probedBitrate = result.bitrate
         

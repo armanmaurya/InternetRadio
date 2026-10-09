@@ -139,9 +139,6 @@ dependencies {
 
     implementation(libs.androidx.compose.material.icons.extended)
 
-    implementation("dev.ffmpegkit-maintained:ffmpeg-kit-https:8.1.7")
-    implementation("com.arthenica:smart-exception-java:0.2.1")
-
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.session)

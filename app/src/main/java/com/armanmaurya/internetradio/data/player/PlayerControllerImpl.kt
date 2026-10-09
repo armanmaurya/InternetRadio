@@ -18,7 +18,7 @@ import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
 import com.armanmaurya.internetradio.service.playback.toMediaItem
 import com.google.common.util.concurrent.MoreExecutors
-import com.armanmaurya.internetradio.core.media.prober.StreamProber
+import com.armanmaurya.internetradio.core.media.prober.NativeProber
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -44,7 +44,6 @@ class PlayerControllerImpl @Inject constructor(
     private val stationRepository: StationRepository,
     private val recentRepository: RecentRepository,
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
-    private val streamProber: StreamProber,
     private val audioAmplitudeManager: AudioAmplitudeManager
 ) : PlayerController {
     private var controllerFuture = MediaController.Builder(
@@ -141,7 +140,7 @@ class PlayerControllerImpl @Inject constructor(
                 if (currentStation != null && (needsCodec || needsBitrate)) {
                     val url = currentStation.url
                     scope.launch {
-                        val probeResult = streamProber.probe(url)
+                        val probeResult = NativeProber.probe(url)
                         if (probeResult != null) {
                             _playbackSession.update { s ->
                                 if (s.currentStation?.stationUuid == currentStation.stationUuid) {

@@ -1,6 +1,6 @@
 package com.armanmaurya.internetradio.core.media.prober
 
-data class StreamProbeResult(
+data class ProbeResult(
     val codec: String,
     val bitrate: Int,
     val name: String? = null,
@@ -8,7 +8,3 @@ data class StreamProbeResult(
     val genre: String? = null,
     val homepage: String? = null
 )
-
-interface StreamProber {
-    suspend fun probe(url: String): StreamProbeResult?
-}

@@ -12,8 +12,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-import com.armanmaurya.internetradio.core.media.prober.StreamProber
-import com.armanmaurya.internetradio.core.media.prober.FFmpegStreamProber
 import com.armanmaurya.internetradio.core.media.recorder.DefaultStreamRecorder
 import com.armanmaurya.internetradio.core.media.recorder.StreamRecorder
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
@@ -29,12 +27,6 @@ object MediaModule {
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
-        
-    @Provides
-    @Singleton
-    fun provideStreamProber(): StreamProber {
-        return FFmpegStreamProber()
-    }
 
     @Provides
     @Singleton
