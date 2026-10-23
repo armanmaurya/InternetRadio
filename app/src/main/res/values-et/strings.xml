@@ -454,4 +454,23 @@
     <string name="settings_backup_error_no_folder">Ühtegi varunduskausta pole seadistatud</string>
     <string name="settings_backup_error_permission_revoked">Andmeruumi kasutamise õigused on tühistatud. Palun vali varunduskaust uuesti.</string>
     <string name="settings_backup_error_folder_deleted">Varunduskausta pole enam olemas. Palun vali varunduskaust uuesti.</string>
+    <string name="settings_backup_error_cannot_write">Valitud varunduskausta kirjutamine ei õnnestu. Vajalikud õigused on puudu.</string>
+    <string name="settings_backup_error_create_file">„%1$s“ faili loomine varunduskausta ei õnnestu</string>
+    <string name="settings_backup_error_open_write">„%1$s“ faili kirjutamiseks avamine ei õnnestu</string>
+    <string name="settings_backup_error_file_not_found">„%1$s“ faili ei leidu varunduskaustas</string>
+    <string name="settings_backup_error_open_read">„%1$s“ faili lugemiseks avamine ei õnnestu</string>
+    <string name="settings_backup_error_corrupted_json">„%1$s“ varundusfail on kas katkine või sisaldab vigases vormingus JSON-it</string>
+    <string name="settings_backup_error_no_stations">„%1$s“ failis pole raadiojaamu või tema vorming on vigane</string>
+    <string name="settings_backup_error_invalid_stations">Varukoopiafailis on vigased veebiraadiojaamade kirjed</string>
+    <string name="settings_backup_error_read">„%1$s“ faili lugemine ei õnnestunud</string>
+    <string name="settings_backup_error_permission_denied">Salvestusruumi kasutamise luba on puudu</string>
+    <string name="recording_playback_channel_name">Salvestuse esitus</string>
+    <string name="recording_playback_channel_description">Salvestatud heli esituse teavitused</string>
+    <string name="recording_now_playing">Hetkel esitamisel salvestus</string>
+    <string name="recording_cd_go_to_recording">Mine algse salvestuse juurde</string>
+    <string name="recording_cd_stop_playback">Lõpeta esitus</string>
+    <string name="recording_speed">Esituse kiirus</string>
+    <string name="recording_speed_normal">1.0x (tavaline)</string>
+    <string name="recording_cd_loop_enabled">Lülita lõputu kordus välja</string>
+    <string name="recording_cd_loop_disabled">Lülita lõputu kordus sisse</string>
 </resources>
