@@ -426,4 +426,32 @@
     <string name="settings_malformed_backup_choose_folder_desc">Vali varunuduse jaoks muu kaust</string>
     <string name="settings_malformed_backup_cancel">Jäta fail puutumata</string>
     <string name="shortcut_not_supported">Sinu käivitaja ei toeta linkide esiletõstmise võimalust</string>
+    <string name="settings_backup_error_file_empty">%1$s on tühi</string>
+    <string name="settings_backup_error_not_found">Kausta või varukoopiafaili ei leidunud</string>
+    <string name="settings_backup_error_io">Andmeruumi lugemise või kirjutamise viga</string>
+    <string name="settings_community_section">Kogukond</string>
+    <string name="settings_community_telegram_title">Kogukond Telegramis</string>
+    <string name="settings_community_telegram_desc">Liitu aruteludega, jälgi uuendusi ja jaga veebiraadiojaamu</string>
+    <string name="settings_community_reddit_title">Kogukond Redditis</string>
+    <string name="settings_community_reddit_desc">Liitu r/InternetRadioFolks alamredditiga</string>
+    <string name="about_cd_telegram">Telegram</string>
+    <string name="about_cd_reddit">Reddit</string>
+    <string name="recording_reconnecting">Ühendan uuesti…</string>
+    <string name="recording_notification_reconnecting">Ühendus on katkenud, proovin uuesti… • %1$s</string>
+    <plurals name="settings_sync_backup_created">
+        <item quantity="one">%1$d jaamaga varukoopia on salvestatud</item>
+        <item quantity="other">%1$d jaamaga varukoopia on salvestatud</item>
+    </plurals>
+    <plurals name="settings_sync_restored">
+        <item quantity="one">%1$d jaam on varukoopiast taastatud</item>
+        <item quantity="other">%1$d jaama on varukoopiast taastatud</item>
+    </plurals>
+    <string name="settings_sync_up_to_date">Sünkroonimine on lõppenud: kogu on uuendatud</string>
+    <plurals name="settings_sync_success_merged">
+        <item quantity="one">Sünkroonimine on lõppenud: %1$d jaam on taastatud/uuendatud</item>
+        <item quantity="other">Sünkroonimine on lõppenud: %1$d jaama on taastatud/uuendatud</item>
+    </plurals>
+    <string name="settings_backup_error_no_folder">Ühtegi varunduskausta pole seadistatud</string>
+    <string name="settings_backup_error_permission_revoked">Andmeruumi kasutamise õigused on tühistatud. Palun vali varunduskaust uuesti.</string>
+    <string name="settings_backup_error_folder_deleted">Varunduskausta pole enam olemas. Palun vali varunduskaust uuesti.</string>
 </resources>
