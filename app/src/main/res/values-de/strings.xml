@@ -510,6 +510,8 @@
     <string name="recordings_currently_recording">Aktive Aufnahmen</string>
     <string name="recordings_saved">Gespeicherte Aufnahmen</string>
     <string name="action_stop_recording">Aufnahme beenden</string>
+    <string name="recording_reconnecting">Wiederverbinden…</string>
+    <string name="recording_notification_reconnecting">Verbindung verloren, erneuter Versuch… • %1$s</string>
     <string name="action_record_station">Sender aufnehmen</string>
     <string name="action_create_shortcut">Verknüpfung erstellen</string>
     <string name="shortcut_not_supported">Der Startbildschirm unterstützt keine angehefteten Verknüpfungen</string>
