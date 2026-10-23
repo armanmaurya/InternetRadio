@@ -483,4 +483,6 @@
     <string name="recording_speed_normal">1.0x (Normal)</string>
     <string name="recording_cd_loop_enabled">Dezactivează redarea infinită</string>
     <string name="recording_cd_loop_disabled">Activează redarea infinită</string>
+    <string name="recording_reconnecting">Se reconectează…</string>
+    <string name="recording_notification_reconnecting">Conexiune pierdută, se încearcă din nou… • %1$s</string>
 </resources>
