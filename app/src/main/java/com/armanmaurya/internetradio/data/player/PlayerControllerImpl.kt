@@ -454,9 +454,6 @@ class PlayerControllerImpl @Inject constructor(
         
         val mediaItems = stations.map { it.toMediaItem() }
         player.setMediaItems(mediaItems, startIndex, 0L)
-        player.volume = 1f
-        val boostResetArgs = android.os.Bundle().apply { putFloat("KEY_BOOST", 0f) }
-        player.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, boostResetArgs)
         player.prepare()
         if (playWhenReady) player.play() else player.pause()
     }
@@ -555,6 +552,7 @@ class PlayerControllerImpl @Inject constructor(
         val player = controller ?: return
         player.stop()
         player.clearMediaItems()
+        setVolume(1f)
         cancelSleepTimer()
         _playbackSession.update {
             it.copy(

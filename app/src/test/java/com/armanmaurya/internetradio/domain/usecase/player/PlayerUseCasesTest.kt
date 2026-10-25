@@ -132,8 +132,12 @@ class PlayerUseCasesTest {
 
     @Test
     fun stopPlaybackUseCase_stopsController() {
+        setPlayerVolumeUseCase(0.5f)
+        assertEquals(0.5f, fakePlayerController.currentVolume, 0.001f)
+
         stopPlaybackUseCase()
         assertTrue(fakePlayerController.stopCalled)
+        assertEquals(1f, fakePlayerController.currentVolume, 0.001f)
     }
 
     private class FakePlayerController : PlayerController {
@@ -184,6 +188,7 @@ class PlayerUseCasesTest {
         }
         override fun stop() {
             stopCalled = true
+            currentVolume = 1f
         }
         override fun setSleepTimer(durationMillis: Long) {
             sleepTimerDuration = durationMillis
