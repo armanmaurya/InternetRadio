@@ -326,8 +326,22 @@ class PlayerControllerImpl @Inject constructor(
         }
     }
 
+    private var isVolumeBoostEnabled = false
+
     init {
         initializeController()
+        observeVolumeBoostPreference()
+    }
+
+    private fun observeVolumeBoostPreference() {
+        scope.launch {
+            settingsRepository.appPreferencesFlow.collect { prefs ->
+                isVolumeBoostEnabled = prefs.enableVolumeBoost
+                if (!prefs.enableVolumeBoost && _playbackSession.value.volume > 1.0f) {
+                    setVolume(1.0f)
+                }
+            }
+        }
     }
 
     private fun initializeController() {
@@ -540,12 +554,14 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun setVolume(volume: Float) {
-        val clampedPlayerVolume = volume.coerceIn(0f, 1f)
+        val maxVolume = if (isVolumeBoostEnabled) 2f else 1f
+        val effectiveVolume = volume.coerceIn(0f, maxVolume)
+        val clampedPlayerVolume = effectiveVolume.coerceIn(0f, 1f)
         controller?.volume = clampedPlayerVolume
-        val boost = if (volume > 1f) (volume - 1f).coerceIn(0f, 1f) else 0f
+        val boost = if (isVolumeBoostEnabled && effectiveVolume > 1f) (effectiveVolume - 1f).coerceIn(0f, 1f) else 0f
         val args = android.os.Bundle().apply { putFloat("KEY_BOOST", boost) }
         controller?.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, args)
-        _playbackSession.update { it.copy(volume = volume) }
+        _playbackSession.update { it.copy(volume = effectiveVolume) }
     }
 
     override fun stop() {

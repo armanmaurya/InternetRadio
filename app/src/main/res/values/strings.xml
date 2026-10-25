@@ -94,6 +94,11 @@
     <string name="settings_stop_on_audio_noisy_desc">Pause playback when Bluetooth or wired headphones are disconnected</string>
     <string name="settings_pause_on_volume_zero">Pause on volume zero</string>
     <string name="settings_pause_on_volume_zero_desc">Pause playback when device is muted (does not apply while recording)</string>
+    <string name="settings_enable_volume_boost" formatted="false">Volume boost (up to 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Allow increasing volume above 100% using software amplification</string>
+    <string name="settings_volume_boost_warning_title">Enable Volume Boost?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">Amplifying volume above 100% applies software gain (up to 200%). This may cause audio distortion, clipping, and could potentially damage sensitive hearing or audio equipment. Use at your own risk.</string>
+    <string name="settings_volume_boost_warning_confirm">Enable</string>
     <string name="settings_keep_screen_on_title">Keep screen awake</string>
     <string name="settings_keep_screen_on_desc">Prevent screen from turning off while screen is expanded</string>
     <string name="settings_show_cover_art">Cover Art in Notification</string>

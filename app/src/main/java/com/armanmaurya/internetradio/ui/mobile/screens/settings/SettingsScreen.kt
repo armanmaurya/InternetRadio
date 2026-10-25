@@ -83,6 +83,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Widgets
 import com.armanmaurya.internetradio.ui.widget.NowPlayingWidgetConfigureActivity
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.MalformedBackupBottomSheet
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.VolumeBoostWarningBottomSheet
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
@@ -242,6 +243,7 @@ fun SettingsScreen(
                 onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart,
                 onSetStopOnAudioBecomingNoisy = viewModel::setStopOnAudioBecomingNoisy,
                 onSetPauseOnVolumeZero = viewModel::setPauseOnVolumeZero,
+                onSetEnableVolumeBoost = viewModel::setEnableVolumeBoost,
                 onSetKeepScreenOn = viewModel::setKeepScreenOn,
                 onSetShowCoverArtInNotification = viewModel::setShowCoverArtInNotification,
                 showHistoryLimitDialog = showHistoryLimitDialog,
@@ -580,6 +582,7 @@ private fun PlayerSection(
     onSetAutoPlayOnStart: (Boolean) -> Unit,
     onSetStopOnAudioBecomingNoisy: (Boolean) -> Unit,
     onSetPauseOnVolumeZero: (Boolean) -> Unit,
+    onSetEnableVolumeBoost: (Boolean) -> Unit,
     onSetKeepScreenOn: (Boolean) -> Unit,
     onSetShowCoverArtInNotification: (Boolean) -> Unit,
     showHistoryLimitDialog: Boolean,
@@ -622,6 +625,34 @@ private fun PlayerSection(
             icon = Icons.AutoMirrored.Filled.VolumeOff,
             shape = middleShape
         )
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+
+        var showVolumeBoostWarningSheet by remember { mutableStateOf(false) }
+
+        ToggleItem(
+            title = stringResource(R.string.settings_enable_volume_boost),
+            subtitle = stringResource(R.string.settings_enable_volume_boost_desc),
+            isEnabled = uiState.enableVolumeBoost,
+            onToggle = { enable ->
+                if (enable) {
+                    showVolumeBoostWarningSheet = true
+                } else {
+                    onSetEnableVolumeBoost(false)
+                }
+            },
+            icon = Icons.AutoMirrored.Filled.VolumeUp,
+            shape = middleShape
+        )
+
+        if (showVolumeBoostWarningSheet) {
+            VolumeBoostWarningBottomSheet(
+                onDismissRequest = { showVolumeBoostWarningSheet = false },
+                onConfirm = {
+                    onSetEnableVolumeBoost(true)
+                }
+            )
+        }
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 

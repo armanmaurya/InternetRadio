@@ -19,6 +19,7 @@ interface SettingsRepository {
     suspend fun setDisableUpdateCheck(disabled: Boolean)
     suspend fun setStopOnAudioBecomingNoisy(enabled: Boolean)
     suspend fun setPauseOnVolumeZero(enabled: Boolean)
+    suspend fun setEnableVolumeBoost(enabled: Boolean)
     suspend fun setUseFilterOnFavorites(enabled: Boolean)
     suspend fun setUseFilterOnAdded(enabled: Boolean)
     suspend fun setThemeMode(themeMode: AppTheme)

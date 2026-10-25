@@ -39,7 +39,8 @@ fun SharedTransitionScope.VolumeDialog(
     onDismissRequest: () -> Unit,
     volume: Float,
     onVolumeChange: (Float) -> Unit,
-    isCastActive: Boolean = false
+    isCastActive: Boolean = false,
+    isVolumeBoostEnabled: Boolean = false
 ) {
     var previousVolume by remember { mutableFloatStateOf(volume.takeIf { it > 0f } ?: 0.5f) }
 
@@ -65,8 +66,8 @@ fun SharedTransitionScope.VolumeDialog(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            val maxRange = if (isCastActive) 1.0f else 2.0f
-            val isBoosted = volume > 1.0f
+            val maxRange = if (!isCastActive && isVolumeBoostEnabled) 2.0f else 1.0f
+            val isBoosted = isVolumeBoostEnabled && volume > 1.0f
             val boostAlpha by animateFloatAsState(
                 targetValue = if (isBoosted) 1f else 0f,
                 animationSpec = tween(durationMillis = 200),
@@ -128,7 +129,7 @@ fun SharedTransitionScope.VolumeDialog(
                     Slider(
                         value = volume.coerceIn(0f, maxRange),
                         onValueChange = { rawValue ->
-                            val snapped = if (!isCastActive && rawValue in 0.97f..1.03f) 1.0f else rawValue
+                            val snapped = if (!isCastActive && isVolumeBoostEnabled && rawValue in 0.97f..1.03f) 1.0f else rawValue
                             onVolumeChange(snapped)
                         },
                         valueRange = 0f..maxRange,

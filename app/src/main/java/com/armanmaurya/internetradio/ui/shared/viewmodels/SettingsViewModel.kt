@@ -151,6 +151,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setEnableVolumeBoost(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setEnableVolumeBoost(enabled)
+        }
+    }
+
     fun setKeepScreenOn(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setKeepScreenOn(enabled)

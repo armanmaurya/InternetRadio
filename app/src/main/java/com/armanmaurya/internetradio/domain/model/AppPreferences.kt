@@ -40,6 +40,7 @@ data class AppPreferences(
     val librarySortOption: LibrarySortOption = LibrarySortOption.RECENTLY_ADDED,
     val startOfWeek: StartOfWeek = StartOfWeek.SUNDAY,
     val showCoverArtInNotification: Boolean = true,
+    val enableVolumeBoost: Boolean = false,
     val isAlarmVolumeTransitionEnabled: Boolean = false,
     val alarmVolumeTransitionSeconds: Int = 15,
     val widgetBackgroundAlpha: Float = 1.0f,

@@ -74,6 +74,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val ALARM_VOLUME_TRANSITION_SECONDS = androidx.datastore.preferences.core.intPreferencesKey("alarm_volume_transition_seconds")
         val SELECT_ALL_TEXT_ON_FOCUS = booleanPreferencesKey("select_all_text_on_focus")
         val PAUSE_ON_VOLUME_ZERO = booleanPreferencesKey("pause_on_volume_zero")
+        val ENABLE_VOLUME_BOOST = booleanPreferencesKey("enable_volume_boost")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val WIDGET_BACKGROUND_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("widget_background_alpha")
         val SHOW_STATION_THUMBNAILS = booleanPreferencesKey("show_station_thumbnails")
@@ -112,6 +113,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val selectedTags = preferences[PreferencesKeys.SELECTED_TAGS] ?: emptySet()
             val stopOnAudioBecomingNoisy = preferences[PreferencesKeys.STOP_ON_AUDIO_BECOMING_NOISY] ?: true
             val pauseOnVolumeZero = preferences[PreferencesKeys.PAUSE_ON_VOLUME_ZERO] ?: false
+            val enableVolumeBoost = preferences[PreferencesKeys.ENABLE_VOLUME_BOOST] ?: false
             val keepScreenOn = preferences[PreferencesKeys.KEEP_SCREEN_ON] ?: false
             val order = preferences[PreferencesKeys.SORT_ORDER] ?: "votes"
             val reverse = preferences[PreferencesKeys.SORT_REVERSE] ?: true
@@ -164,6 +166,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 selectedTags = selectedTags,
                 stopOnAudioBecomingNoisy = stopOnAudioBecomingNoisy,
                 pauseOnVolumeZero = pauseOnVolumeZero,
+                enableVolumeBoost = enableVolumeBoost,
                 keepScreenOn = keepScreenOn,
                 order = order,
                 reverse = reverse,
@@ -235,6 +238,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setPauseOnVolumeZero(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.PAUSE_ON_VOLUME_ZERO] = enabled }
+    }
+
+    override suspend fun setEnableVolumeBoost(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.ENABLE_VOLUME_BOOST] = enabled }
     }
 
     override suspend fun setUseFilterOnFavorites(enabled: Boolean) {

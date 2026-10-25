@@ -1331,7 +1331,7 @@ fun PlayerSheetContent(
                                     .width(recordButtonWidth)
                                     .height(64.dp)
                             ) {
-                                val isBoosted = volumeLevel > 1.0f
+                                val isBoosted = appPreferences.enableVolumeBoost && volumeLevel > 1.0f
                                 val volumeIcon = when {
                                     volumeLevel == 0f -> Icons.AutoMirrored.Filled.VolumeOff
                                     volumeLevel < 0.5f -> Icons.AutoMirrored.Filled.VolumeDown
@@ -1616,7 +1616,8 @@ fun PlayerSheetContent(
             onDismissRequest = { showVolumeDialog = false },
             volume = volumeLevel,
             onVolumeChange = onVolumeChange,
-            isCastActive = connectedCastDevice != null
+            isCastActive = connectedCastDevice != null,
+            isVolumeBoostEnabled = appPreferences.enableVolumeBoost
         )
 
         SleepTimerDialog(

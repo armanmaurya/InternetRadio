@@ -351,6 +351,7 @@ class RecordingPlaybackControllerTest {
         override suspend fun setDisableUpdateCheck(disabled: Boolean) {}
         override suspend fun setStopOnAudioBecomingNoisy(enabled: Boolean) {}
         override suspend fun setPauseOnVolumeZero(enabled: Boolean) {}
+        override suspend fun setEnableVolumeBoost(enabled: Boolean) {}
         override suspend fun setUseFilterOnFavorites(enabled: Boolean) {}
         override suspend fun setUseFilterOnAdded(enabled: Boolean) {}
         override suspend fun setThemeMode(themeMode: com.armanmaurya.internetradio.ui.shared.theme.AppTheme) {}
