@@ -483,4 +483,6 @@
     <string name="recording_speed_normal">1.0x (Normale)</string>
     <string name="recording_cd_loop_enabled">Disattiva loop infinito</string>
     <string name="recording_cd_loop_disabled">Attiva loop infinito</string>
+    <string name="recording_reconnecting">Riconnessione…</string>
+    <string name="recording_notification_reconnecting">Connessione persa, nuovo tentativo… • %1$s</string>
 </resources>
