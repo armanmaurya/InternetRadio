@@ -318,7 +318,7 @@
         <item quantity="other">%1$d de secunde</item>
     </plurals>
     <string name="settings_pause_on_volume_zero">Pune pe pauză dacă volumul este zero</string>
-    <string name="settings_pause_on_volume_zero_desc">Pune pe pauză când dispozitivul este pe mut (Nu se pune dacă înregistrezi)</string>
+    <string name="settings_pause_on_volume_zero_desc">Pune pe pauză când dispozitivul este pe mut</string>
     <string name="edit_station_overwrite_title">Suprascrieți metadatele?</string>
     <string name="edit_station_overwrite_message">Doriți să înlocuiți detaliile stației curente cu metadatele preluate din server?</string>
     <string name="edit_station_error_empty_url">URL-ul fluxului nu poate fi gol</string>
@@ -366,7 +366,7 @@
     <string name="settings_update_failed">Nu s-a putut verifica dacă există actualizări</string>
     <string name="settings_support_app">Susține aplicația</string>
     <string name="settings_keep_screen_on_title">Menține ecranul activ</string>
-    <string name="settings_keep_screen_on_desc">Împiedică oprirea ecranului în timp ce ecranul este extins</string>
+    <string name="settings_keep_screen_on_desc">Menține ecranul activ cât timp fereastra player-ului este extinsă</string>
     <string name="settings_widget_section">Widget</string>
     <string name="settings_widget_transparency_title">Opacitatea fundalului</string>
     <string name="settings_widget_transparency_subtitle">Ajustează opacitatea fundalului widget-ului ecranului de pornire</string>
@@ -485,4 +485,9 @@
     <string name="recording_cd_loop_disabled">Activează redarea infinită</string>
     <string name="recording_reconnecting">Se reconectează…</string>
     <string name="recording_notification_reconnecting">Conexiune pierdută, se încearcă din nou… • %1$s</string>
+    <string name="settings_enable_volume_boost" formatted="false">Creștere volum (până la 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Permite creșterea volumului peste 100% prin amplificare software</string>
+    <string name="settings_volume_boost_warning_title">Activezi funcția de amplificare a volumului?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">Amplificarea volumului peste 100% implică aplicarea unui câștig software (până la 200%). Acest lucru poate provoca distorsiuni audio, saturare și ar putea dăuna auzului sensibil sau echipamentelor audio. Utilizează pe propria răspundere.</string>
+    <string name="settings_volume_boost_warning_confirm">Activează</string>
 </resources>
