@@ -23,7 +23,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class DirectStreamRecorder(
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
+    private val onHlsDetected: (suspend (RecordingConfig) -> Unit)? = null
 ) {
 
     suspend fun record(
@@ -38,6 +39,7 @@ class DirectStreamRecorder(
         val requestBuilder = Request.Builder()
             .url(config.url)
             .header("Icy-MetaData", "1")
+            .header("Connection", "close")
 
         if (!config.userAgent.isNullOrBlank()) {
             requestBuilder.header("User-Agent", config.userAgent)
@@ -48,6 +50,21 @@ class DirectStreamRecorder(
             okHttpClient.newCall(request).execute()
         } catch (e: Exception) {
             throw RecorderException.StreamConnectionException(config.url, e)
+        }
+
+        if (!initialResponse.isSuccessful) {
+            initialResponse.close()
+            throw RecorderException.StreamConnectionException(
+                config.url,
+                java.io.IOException("HTTP error ${initialResponse.code}: ${initialResponse.message}")
+            )
+        }
+
+        val contentType = initialResponse.header("Content-Type", "") ?: ""
+        if (AudioFormatUtils.isHlsContentType(contentType) && onHlsDetected != null) {
+            initialResponse.close()
+            onHlsDetected(config)
+            return
         }
 
         val initialIcyBr = initialResponse.header("icy-br")?.toIntOrNull()
@@ -76,6 +93,18 @@ class DirectStreamRecorder(
         val magicRead = bodyStream.read(magic, 0, 4)
         if (magicRead > 0) {
             bodyStream.unread(magic, 0, magicRead)
+        }
+
+        if (magicRead >= 4 &&
+            magic[0] == '#'.code.toByte() &&
+            magic[1] == 'E'.code.toByte() &&
+            magic[2] == 'X'.code.toByte() &&
+            magic[3] == 'T'.code.toByte() &&
+            onHlsDetected != null
+        ) {
+            initialResponse.close()
+            onHlsDetected(config)
+            return
         }
 
         if (initialIcyBr == null && config.bitrateKbps == null) {

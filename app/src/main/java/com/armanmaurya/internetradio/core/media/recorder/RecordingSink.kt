@@ -9,10 +9,10 @@ import java.io.Closeable
 import java.io.FileOutputStream
 import java.io.OutputStream
 
-class RecordingSink(
-    private val fileSystemFacade: FileSystemFacade,
+open class RecordingSink(
+    private val fileSystemFacade: FileSystemFacade? = null,
     private val title: String,
-    private val context: Context
+    private val context: Context? = null
 ) : Closeable {
 
     val safeStationName: String = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
@@ -23,9 +23,11 @@ class RecordingSink(
     var finalFileName: String? = null
         private set
 
-    suspend fun open(ext: String): OutputStream? {
+    open suspend fun open(ext: String): OutputStream? {
+        val ctx = context ?: return null
+        val fs = fileSystemFacade ?: return null
         val safeTitle = safeStationName
-        val timestamp = FormatUtils.getRecordingTimestamp(context)
+        val timestamp = FormatUtils.getRecordingTimestamp(ctx)
         val fileName = "$safeTitle $timestamp.$ext"
         val partFileName = "$fileName.part"
         val folderName = "InternetRadio/$safeTitle"
@@ -37,7 +39,7 @@ class RecordingSink(
             else  -> "audio/mpeg"
         }
 
-        val result = fileSystemFacade.createAudioRecordingFile(folderName, partFileName, mimeType) ?: return null
+        val result = fs.createAudioRecordingFile(folderName, partFileName, mimeType) ?: return null
         uri = result.first
         pfd = result.second
         finalFileName = fileName
@@ -52,7 +54,7 @@ class RecordingSink(
         val targetName = finalFileName
         if (targetUri != null && targetName != null) {
             try {
-                fileSystemFacade.finalizeAudioRecordingFile(targetUri, targetName)
+                fileSystemFacade?.finalizeAudioRecordingFile(targetUri, targetName)
             } catch (_: Exception) {}
         }
     }

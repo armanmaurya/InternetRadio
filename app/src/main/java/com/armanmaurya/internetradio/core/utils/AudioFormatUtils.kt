@@ -11,6 +11,10 @@ object AudioFormatUtils {
         return c.contains("mpegurl") || c.contains("m3u")
     }
 
+    fun isHlsUrl(url: String): Boolean {
+        return url.contains(".m3u8", ignoreCase = true) || url.contains(".mpd", ignoreCase = true)
+    }
+
     fun audioFormatFromMagicBytes(b: ByteArray): AudioFormat {
         if (b.size < 2) return AudioFormat.UNKNOWN
         return when {

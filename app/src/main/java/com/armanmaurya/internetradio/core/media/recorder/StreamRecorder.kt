@@ -6,8 +6,8 @@ import com.armanmaurya.internetradio.core.media.recorder.backend.HlsStreamRecord
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
 import com.armanmaurya.internetradio.core.utils.AudioFormatUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,6 +32,8 @@ class DefaultStreamRecorder @Inject constructor(
 
     private val recordingHttpClient = okHttpClient.newBuilder()
         .readTimeout(0, TimeUnit.MILLISECONDS)
+        .cache(null)
+        .connectionPool(ConnectionPool(0, 1, TimeUnit.MILLISECONDS))
         .build()
 
     override suspend fun record(
@@ -44,7 +46,7 @@ class DefaultStreamRecorder @Inject constructor(
     ) {
         val sink = RecordingSink(fileSystemFacade, config.title, context)
         try {
-            if (isHls(config.url)) {
+            if (isHlsUrl(config.url)) {
                 HlsStreamRecorder(recordingHttpClient).record(
                     config = config,
                     sink = sink,
@@ -55,7 +57,20 @@ class DefaultStreamRecorder @Inject constructor(
                     onReconnectingStateChanged = onReconnectingStateChanged
                 )
             } else {
-                DirectStreamRecorder(recordingHttpClient).record(
+                DirectStreamRecorder(
+                    okHttpClient = recordingHttpClient,
+                    onHlsDetected = { hlsConfig ->
+                        HlsStreamRecorder(recordingHttpClient).record(
+                            config = hlsConfig,
+                            sink = sink,
+                            onBytesWritten = onBytesWritten,
+                            onFileOpened = onFileOpened,
+                            onTrackMetadata = onTrackMetadata,
+                            onAudioProgress = onAudioProgress,
+                            onReconnectingStateChanged = onReconnectingStateChanged
+                        )
+                    }
+                ).record(
                     config = config,
                     sink = sink,
                     onBytesWritten = onBytesWritten,
@@ -70,16 +85,7 @@ class DefaultStreamRecorder @Inject constructor(
         }
     }
 
-    private fun isHls(url: String): Boolean {
-        if (url.contains(".m3u8", ignoreCase = true)) return true
-        return try {
-            val req = Request.Builder().url(url).head().build()
-            val resp = okHttpClient.newCall(req).execute()
-            val ct = resp.header("Content-Type", "") ?: ""
-            resp.close()
-            AudioFormatUtils.isHlsContentType(ct)
-        } catch (_: Exception) {
-            false
-        }
+    companion object {
+        fun isHlsUrl(url: String): Boolean = AudioFormatUtils.isHlsUrl(url)
     }
 }
