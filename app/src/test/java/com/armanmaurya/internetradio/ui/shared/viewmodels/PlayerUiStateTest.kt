@@ -143,4 +143,31 @@ class PlayerUiStateTest {
         val isInfiniteSingle = singleItemSize > 1
         assertFalse(isInfiniteSingle)
     }
+
+    @Test
+    fun playerUiState_savedTracks_defaultsToEmptyAndUnstarred() {
+        val state = PlayerUiState()
+        assertTrue(state.savedTracks.isEmpty())
+        assertFalse(state.isCurrentTrackStarred)
+    }
+
+    @Test
+    fun playerUiState_savedTracks_retainsProvidedState() {
+        val saved = listOf(
+            com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity(
+                id = 1L,
+                stationUuid = "uuid-1",
+                trackTitle = "Favorite Song",
+                timestamp = 1000L,
+                isStarred = true
+            )
+        )
+        val state = PlayerUiState(
+            savedTracks = saved,
+            isCurrentTrackStarred = true
+        )
+        assertEquals(1, state.savedTracks.size)
+        assertTrue(state.isCurrentTrackStarred)
+        assertEquals("Favorite Song", state.savedTracks.first().trackTitle)
+    }
 }

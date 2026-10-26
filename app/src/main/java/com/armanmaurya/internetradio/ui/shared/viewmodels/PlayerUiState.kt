@@ -42,6 +42,8 @@ data class PlayerUiState(
     val retryCountdown: Int? = null,
     val lyricsUiState: PlayerViewModel.LyricsUiState = PlayerViewModel.LyricsUiState.Loading,
     val trackHistory: List<TrackHistoryEntity> = emptyList(),
+    val savedTracks: List<TrackHistoryEntity> = emptyList(),
+    val isCurrentTrackStarred: Boolean = false,
     val stationRecordings: List<RecordingFile>? = null,
     val activeSessions: Map<String, RecordingSession> = emptyMap()
 )

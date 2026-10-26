@@ -187,6 +187,9 @@ class PlayerViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val savedTracks = trackHistoryRepository.getStarredTracks()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val stationRecordings = kotlinx.coroutines.flow.combine(
         playbackSession.map { it.currentStation?.name }.distinctUntilChanged(),
@@ -222,7 +225,8 @@ class PlayerViewModel @Inject constructor(
         val retry: Int?,
         val lyrics: LyricsUiState,
         val history: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>,
-        val recordings: List<RecordingFile>?
+        val recordings: List<RecordingFile>?,
+        val saved: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>
     )
 
     private val basePlayerFlow = combine(
@@ -255,9 +259,10 @@ class PlayerViewModel @Inject constructor(
         retryCountdown,
         lyricsUiState,
         trackHistory,
-        stationRecordings
-    ) { retry, lyrics, history, recordings ->
-        ExtraUiState(retry, lyrics, history, recordings)
+        stationRecordings,
+        savedTracks
+    ) { retry, lyrics, history, recordings, saved ->
+        ExtraUiState(retry, lyrics, history, recordings, saved)
     }
 
     val uiState: StateFlow<PlayerUiState> = combine(
@@ -273,6 +278,14 @@ class PlayerViewModel @Inject constructor(
         val effectiveIsLoading = if (isCasting) cast.playbackState.isBuffering else base.isBuffering
         val hasNext = session.currentPlaylist.size > 1
         val hasPrevious = session.currentPlaylist.size > 1
+
+        val isCurrentTrackStarred = extra.saved.any { saved ->
+            val trackName = session.cleanTrackName ?: session.currentTrack
+            !trackName.isNullOrBlank() && (
+                saved.trackTitle.trim().equals(trackName.trim(), ignoreCase = true) ||
+                (saved.rawTrackTitle.isNotBlank() && session.rawTrackName != null && saved.rawTrackTitle.trim().equals(session.rawTrackName.trim(), ignoreCase = true))
+            )
+        }
 
         PlayerUiState(
             currentStation = session.currentStation,
@@ -307,6 +320,8 @@ class PlayerViewModel @Inject constructor(
             retryCountdown = extra.retry,
             lyricsUiState = extra.lyrics,
             trackHistory = extra.history,
+            savedTracks = extra.saved,
+            isCurrentTrackStarred = isCurrentTrackStarred,
             stationRecordings = extra.recordings,
             sessionActiveDurationMs = session.sessionActiveDurationMs,
             sessionResumeTimeMs = session.sessionResumeTimeMs,
@@ -665,6 +680,18 @@ class PlayerViewModel @Inject constructor(
             }
         } else {
             stations
+        }
+    }
+
+    fun toggleTrackStarred(track: com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity) {
+        viewModelScope.launch {
+            trackHistoryRepository.toggleTrackStarred(track.trackTitle, !track.isStarred)
+        }
+    }
+
+    fun toggleTrackStarred(trackTitle: String, isStarred: Boolean) {
+        viewModelScope.launch {
+            trackHistoryRepository.toggleTrackStarred(trackTitle, isStarred)
         }
     }
 }

@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,11 +63,15 @@ fun SharedTransitionScope.TrackDialog(
     rawTrackName: String?,
     trackCoverArtUri: String?,
     isFetchingArtwork: Boolean,
+    isStarred: Boolean = false,
+    onToggleStar: (() -> Unit)? = null,
     onDismissRequest: () -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     val copiedToClipboardMessage = stringResource(R.string.player_copied_to_clipboard)
+    val trackSavedMessage = stringResource(R.string.player_track_saved)
+    val trackRemovedMessage = stringResource(R.string.player_track_removed)
 
     AnimatedVisibility(
         visible = searchDialogTrack != null,
@@ -186,6 +192,26 @@ fun SharedTransitionScope.TrackDialog(
                             )
                         }
 
+                    }
+                    if (onToggleStar != null) {
+                        IconButton(
+                            onClick = {
+                                onToggleStar()
+                                val msg = if (!isStarred) trackSavedMessage else trackRemovedMessage
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                contentDescription = if (isStarred) {
+                                    stringResource(R.string.player_cd_unstar_track)
+                                } else {
+                                    stringResource(R.string.player_cd_star_track)
+                                },
+                                tint = if (isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                     IconButton(
                         onClick = {

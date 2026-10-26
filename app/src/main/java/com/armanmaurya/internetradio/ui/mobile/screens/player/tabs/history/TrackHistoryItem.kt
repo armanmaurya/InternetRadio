@@ -28,6 +28,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -62,6 +64,7 @@ import java.net.URLEncoder
 fun TrackHistoryItem(
     track: TrackHistoryEntity,
     modifier: Modifier = Modifier,
+    onToggleStar: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
     val time = DateUtils.getRelativeTimeSpanString(
@@ -77,6 +80,8 @@ fun TrackHistoryItem(
         rawTrackTitle = track.rawTrackTitle,
         coverArtUrl = track.coverArtUrl,
         trailingText = time,
+        isStarred = track.isStarred,
+        onToggleStar = onToggleStar,
         isActive = false,
         onClick = onClick,
         modifier = modifier
@@ -112,6 +117,8 @@ fun TrackHistoryItem(
     rawTrackTitle: String = "",
     coverArtUrl: String? = null,
     trailingText: String = "",
+    isStarred: Boolean = false,
+    onToggleStar: (() -> Unit)? = null,
     isActive: Boolean = false,
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -135,6 +142,9 @@ fun TrackHistoryItem(
     val fullTrackName = if (displaySubtitle.isNotEmpty()) "$displayTitle - $displaySubtitle" else displayTitle
 
     var isExpanded by remember { mutableStateOf(false) }
+
+    val showTimeInSupporting = onToggleStar != null && trailingText.isNotBlank()
+    val showTimeInTrailing = onToggleStar == null && trailingText.isNotBlank()
 
     Column(
         modifier = modifier
@@ -187,24 +197,61 @@ fun TrackHistoryItem(
                     modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
                 )
             },
-            supportingContent = if (displaySubtitle.isNotEmpty()) {
+            supportingContent = if (displaySubtitle.isNotEmpty() || showTimeInSupporting) {
                 {
-                    Text(
-                        text = displaySubtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                    )
+                    Column {
+                        if (displaySubtitle.isNotEmpty()) {
+                            Text(
+                                text = displaySubtitle,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                            )
+                        }
+                        if (showTimeInSupporting) {
+                            if (displaySubtitle.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(2.dp))
+                            }
+                            Text(
+                                text = trailingText,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             } else null,
-            trailingContent = if (trailingText.isNotBlank()) {
+            trailingContent = if (onToggleStar != null || showTimeInTrailing) {
                 {
-                    Text(
-                        text = trailingText,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (onToggleStar != null) {
+                        IconButton(
+                            onClick = onToggleStar,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                contentDescription = if (isStarred) {
+                                    stringResource(R.string.player_cd_unstar_track)
+                                } else {
+                                    stringResource(R.string.player_cd_star_track)
+                                },
+                                tint = if (isStarred) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    } else if (showTimeInTrailing) {
+                        Text(
+                            text = trailingText,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else null,
             leadingContent = {

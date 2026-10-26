@@ -31,11 +31,13 @@ class TrackHistoryRepositoryImpl @Inject constructor(
         }
 
         if (latestRawTitle != rawTrackTitle) {
+            val isAlreadyStarred = trackHistoryDao.isTrackStarred(trackTitle, rawTrackTitle)
             val newTrack = TrackHistoryEntity(
                 stationUuid = stationUuid,
                 trackTitle = trackTitle,
                 rawTrackTitle = rawTrackTitle,
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                isStarred = isAlreadyStarred
             )
             val id = trackHistoryDao.insert(newTrack)
             
@@ -49,6 +51,10 @@ class TrackHistoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?) = withContext(Dispatchers.IO) {
+        val isAlreadyStarred = trackHistoryDao.isTrackStarred(newTrackTitle)
+        if (isAlreadyStarred) {
+            trackHistoryDao.setTrackStarredById(id, true)
+        }
         trackHistoryDao.updateTrackMetadata(id, newTrackTitle, coverArtUrl)
     }
 
@@ -64,5 +70,21 @@ class TrackHistoryRepositoryImpl @Inject constructor(
 
     override suspend fun updateCoverArt(stationUuid: String, trackTitle: String, coverArtUrl: String) = withContext(Dispatchers.IO) {
         trackHistoryDao.updateCoverArt(stationUuid, trackTitle, coverArtUrl)
+    }
+
+    override fun getStarredTracks(): Flow<List<TrackHistoryEntity>> {
+        return trackHistoryDao.getAllStarredTracks()
+    }
+
+    override suspend fun toggleTrackStarred(trackTitle: String, isStarred: Boolean) = withContext(Dispatchers.IO) {
+        trackHistoryDao.setTrackStarred(trackTitle, isStarred)
+    }
+
+    override suspend fun setTrackStarredById(id: Long, isStarred: Boolean) = withContext(Dispatchers.IO) {
+        trackHistoryDao.setTrackStarredById(id, isStarred)
+    }
+
+    override suspend fun isTrackStarred(trackTitle: String): Boolean = withContext(Dispatchers.IO) {
+        trackHistoryDao.isTrackStarred(trackTitle)
     }
 }

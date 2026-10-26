@@ -428,6 +428,12 @@
     <string name="player_cast_connected">Connected</string>
     <string name="player_cd_delay_lyrics">Delay Lyrics</string>
     <string name="player_cd_fast_forward_lyrics">Fast Forward Lyrics</string>
+    <string name="player_saved_songs">Saved</string>
+    <string name="player_station_history">History</string>
+    <string name="player_cd_star_track">Save track</string>
+    <string name="player_cd_unstar_track">Remove saved track</string>
+    <string name="player_track_saved">Saved to tracks</string>
+    <string name="player_track_removed">Removed from saved tracks</string>
 
     <!-- ========================================== -->
     <!-- 13. CAST DIALOG                            -->

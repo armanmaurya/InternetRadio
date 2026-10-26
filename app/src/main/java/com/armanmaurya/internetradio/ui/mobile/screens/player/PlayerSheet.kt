@@ -70,14 +70,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.graphics.FilterQuality
 import coil3.compose.SubcomposeAsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.CastDevice
-import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel.LyricsUiState
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerUiState
@@ -88,7 +86,6 @@ import kotlin.math.roundToInt
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import com.armanmaurya.internetradio.domain.model.RecordingSession
 
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -318,7 +315,14 @@ fun PlayerBottomSheet(
                 onDisconnectCastDevice = playerViewModel::disconnectCastDevice,
                 onDeleteRecording = playerViewModel::deleteRecording,
                 onStopRecording = playerViewModel::stopRecording,
-                getCurrentPosition = { playerViewModel.currentPosition }
+                getCurrentPosition = { playerViewModel.currentPosition },
+                onToggleTrackStarred = playerViewModel::toggleTrackStarred,
+                onToggleCurrentTrackStarred = {
+                    val trackTitle = uiState.cleanTrackName ?: uiState.currentTrack
+                    if (!trackTitle.isNullOrBlank()) {
+                        playerViewModel.toggleTrackStarred(trackTitle, !uiState.isCurrentTrackStarred)
+                    }
+                }
             )
         }
     }
@@ -349,6 +353,8 @@ fun PlayerSheetContent(
     onDeleteRecording: (com.armanmaurya.internetradio.domain.model.RecordingFile) -> Unit,
     onStopRecording: (String) -> Unit = {},
     getCurrentPosition: () -> Long,
+    onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
+    onToggleCurrentTrackStarred: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val playbackState = uiState
@@ -1560,8 +1566,10 @@ fun PlayerSheetContent(
                         if (page == 0) {
                             HistoryTab(
                                 trackHistory = trackHistory,
+                                savedTracks = uiState.savedTracks,
                                 listState = historyListState,
-                                nestedScrollConnection = nestedScrollConnection
+                                nestedScrollConnection = nestedScrollConnection,
+                                onToggleStar = onToggleTrackStarred
                             )
                         } else if (page == 1) {
                             RecordingsTab(
@@ -1608,6 +1616,8 @@ fun PlayerSheetContent(
             rawTrackName = playbackState.rawTrackName,
             trackCoverArtUri = playbackState.trackCoverArtUri,
             isFetchingArtwork = playbackState.isFetchingArtwork,
+            isStarred = uiState.isCurrentTrackStarred,
+            onToggleStar = onToggleCurrentTrackStarred,
             onDismissRequest = { searchDialogTrack = null }
         )
 
