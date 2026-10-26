@@ -53,7 +53,7 @@
     <string name="settings_stop_on_audio_noisy">Wstrzymaj po odłączeniu urządzenia</string>
     <string name="settings_stop_on_audio_noisy_desc">Wstrzymaj odtwarzanie, gdy słuchawki Bluetooth lub przewodowe są odłączone</string>
     <string name="settings_pause_on_volume_zero">Wstrzymaj przy zerowej głośności</string>
-    <string name="settings_pause_on_volume_zero_desc">Wstrzymaj odtwarzanie, gdy urządzenie jest wyciszone (nie dotyczy nagrywania)</string>
+    <string name="settings_pause_on_volume_zero_desc">Wstrzymaj odtwarzanie, gdy urządzenie jest wyciszone</string>
     <string name="settings_show_cover_art">Okładka w powiadomieniu</string>
     <string name="settings_show_cover_art_desc">Pokaż okładkę utworu zamiast miniatury stacji na ekranie blokady i w powiadomieniach</string>
     <string name="settings_max_retry_duration">Maksymalny czas ponawiania prób</string>
@@ -384,7 +384,7 @@
     <string name="settings_custom_color_apply">Zastosuj</string>
     <string name="settings_custom_color_cancel">Anuluj</string>
     <string name="settings_keep_screen_on_title">Nie wygaszaj ekranu</string>
-    <string name="settings_keep_screen_on_desc">Zapobiega wygaszaniu ekranu, gdy jest on rozwinięty</string>
+    <string name="settings_keep_screen_on_desc">Utrzymuj ekran włączony, gdy odtwarzacz jest rozwinięty</string>
     <string name="settings_widget_section">Widżet</string>
     <string name="settings_widget_transparency_title">Nieprzezroczystość tła</string>
     <string name="settings_widget_transparency_subtitle">Dostosuj przezroczystość tła widżetu na ekranie głównym</string>
@@ -498,4 +498,9 @@
     <string name="recording_cd_loop_disabled">Włącz nieskończoną pętlę</string>
     <string name="recording_reconnecting">Ponowne łączenie…</string>
     <string name="recording_notification_reconnecting">Utracono połączenie, ponawiam próbę… • %1$s</string>
+    <string name="settings_enable_volume_boost" formatted="false">Podbicie głośności (do 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Zezwalaj na zwiększanie głośności powyżej 100% za pomocą wzmocnienia programowego</string>
+    <string name="settings_volume_boost_warning_title">Włączyć podbicie głośności?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">Zwiększenie głośności powyżej 100% powoduje zastosowanie wzmocnienia programowego (do 200%). Może to prowadzić do zniekształceń dźwięku, przesterowań, a także stanowić zagrożenie dla słuchu lub uszkodzić sprzęt audio. Używasz tej funkcji na własne ryzyko.</string>
+    <string name="settings_volume_boost_warning_confirm">Włącz</string>
 </resources>
