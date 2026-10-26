@@ -478,4 +478,10 @@
     <string name="settings_volume_boost_warning_title">Kas kasutad helivaljuse ülevõimendamist?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Helivaljuse võimendamist tavalisest sajast protsendist kõrgemale toimib tarkvaraliselt (kuni 200%). See võib põhjustada helimoonutusi, klippimist, aga ka kahjustada tundlikku kuulmist või helisüsteeme. Sa kasutad seda võimalust omal vastutusel.</string>
     <string name="settings_volume_boost_warning_confirm">Võta kasutusele</string>
+    <string name="player_saved_songs">Salvestatud</string>
+    <string name="player_station_history">Ajalugu</string>
+    <string name="player_cd_star_track">Salvesta lugu</string>
+    <string name="player_cd_unstar_track">Eemalda salvestatud lugu</string>
+    <string name="player_track_saved">Salvestatud lugude kausta</string>
+    <string name="player_track_removed">Eemaldatud salvestatud lugude kaustast</string>
 </resources>
