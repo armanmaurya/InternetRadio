@@ -312,7 +312,7 @@
     <string name="settings_gradual_volume_enabled">Sissehajutamine: %1$s</string>
     <string name="settings_gradual_volume">Heli järkjärguline muutmine</string>
     <string name="settings_pause_on_volume_zero">Kui helivaljus on nullis, siis peata esitus</string>
-    <string name="settings_pause_on_volume_zero_desc">Seadme helivaljuse summutamisel peata taasesitus (ei kehti salvestamise puhul)</string>
+    <string name="settings_pause_on_volume_zero_desc">Seadme helivaljuse summutamisel peata taasesitus</string>
     <string name="edit_station_overwrite_title">Kas kirjutame metateabe üle?</string>
     <string name="edit_station_overwrite_message">Kas soovid hetkel sisestatud raadiojaama teabe asendada allalaaditud metateabega?</string>
     <string name="edit_station_error_empty_url">Voogedastuse võrguaadress ei tohi olla tühi</string>
@@ -363,7 +363,7 @@
     <string name="settings_custom_color_apply">Rakenda</string>
     <string name="settings_custom_color_cancel">Katkesta</string>
     <string name="settings_keep_screen_on_title">Hoia ekraan sisselülitatuna</string>
-    <string name="settings_keep_screen_on_desc">Kui rakendus on täisvaates, siis takista ekraani väljalülitamist</string>
+    <string name="settings_keep_screen_on_desc">Kui pleier on täisvaates, siis takista ekraani väljalülitamist</string>
     <string name="settings_widget_section">Vidin</string>
     <string name="settings_widget_transparency_title">Tausta läbipaistmatus</string>
     <string name="settings_widget_transparency_subtitle">Kohenda avalehe vidina tausta läbipaistamtust</string>
@@ -473,4 +473,9 @@
     <string name="recording_speed_normal">1.0x (tavaline)</string>
     <string name="recording_cd_loop_enabled">Lülita lõputu kordus välja</string>
     <string name="recording_cd_loop_disabled">Lülita lõputu kordus sisse</string>
+    <string name="settings_enable_volume_boost" formatted="false">Luba helivaljuse ülevõimendamist (kuni 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Luba helivaljuse võimendamist tavalisest sajast protsendist kõrgemale. Kasutusel on tarkvaraline võimendus</string>
+    <string name="settings_volume_boost_warning_title">Kas kasutad helivaljuse ülevõimendamist?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">Helivaljuse võimendamist tavalisest sajast protsendist kõrgemale toimib tarkvaraliselt (kuni 200%). See võib põhjustada helimoonutusi, klippimist, aga ka kahjustada tundlikku kuulmist või helisüsteeme. Sa kasutad seda võimalust omal vastutusel.</string>
+    <string name="settings_volume_boost_warning_confirm">Võta kasutusele</string>
 </resources>
