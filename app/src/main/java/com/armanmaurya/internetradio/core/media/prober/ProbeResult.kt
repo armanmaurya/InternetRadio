@@ -6,5 +6,6 @@ data class ProbeResult(
     val name: String? = null,
     val description: String? = null,
     val genre: String? = null,
-    val homepage: String? = null
+    val homepage: String? = null,
+    val resolvedUrl: String? = null
 )

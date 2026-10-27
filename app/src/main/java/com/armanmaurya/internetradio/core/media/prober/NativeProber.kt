@@ -33,10 +33,22 @@ object NativeProber {
                 val initialName = resolved?.name
 
                 // 2. Delegate to HlsEngine or IcyEngine
-                if (HlsEngine.isHlsOrDash(targetUrl)) {
+                val result = if (HlsEngine.isHlsOrDash(targetUrl)) {
                     HlsEngine.probe(targetUrl, initialName, httpClient)
                 } else {
                     IcyEngine.probe(targetUrl, initialName, httpClient)
+                }
+                if (result != null) {
+                    result.copy(resolvedUrl = targetUrl)
+                } else if (resolved != null) {
+                    ProbeResult(
+                        codec = "",
+                        bitrate = 0,
+                        name = initialName,
+                        resolvedUrl = targetUrl
+                    )
+                } else {
+                    null
                 }
             }
         } catch (_: Exception) {

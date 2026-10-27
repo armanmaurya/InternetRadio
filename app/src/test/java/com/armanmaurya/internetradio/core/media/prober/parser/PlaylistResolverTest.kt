@@ -76,4 +76,40 @@ class PlaylistResolverTest {
         assertNotNull(result)
         assertEquals("http://stream.example.com/sub/stream_live", result?.streamUrl)
     }
+
+    @Test
+    fun testParseSomaFmPlsContent() {
+        val somaPlsContent = """
+            [playlist]
+            numberofentries=3
+            File1=https://ice2.somafm.com/groovesalad-128-mp3
+            Title1=SomaFM: Groove Salad (#1): A nicely chilled plate of ambient/downtempo beats and grooves.
+            Length1=-1
+            File2=https://ice6.somafm.com/groovesalad-128-mp3
+            Title2=SomaFM: Groove Salad (#2): A nicely chilled plate of ambient/downtempo beats and grooves.
+            Length2=-1
+            File3=https://ice5.somafm.com/groovesalad-128-mp3
+            Title3=SomaFM: Groove Salad (#3): A nicely chilled plate of ambient/downtempo beats and grooves.
+            Length3=-1
+            Version=2
+        """.trimIndent()
+
+        val result = PlaylistResolver.parsePlaylistContent(somaPlsContent, "https://somafm.com/groovesalad.pls")
+        assertNotNull(result)
+        assertEquals("https://ice2.somafm.com/groovesalad-128-mp3", result?.streamUrl)
+        assertEquals("SomaFM: Groove Salad (#1): A nicely chilled plate of ambient/downtempo beats and grooves.", result?.name)
+    }
+
+    @Test
+    fun testHlsManifestIsNotTreatedAsSimpleM3uRedirect() {
+        val hlsManifest = """
+            #EXTM3U
+            #EXT-X-VERSION:3
+            #EXTINF:10,
+            segment1.ts
+        """.trimIndent()
+
+        val result = PlaylistResolver.parsePlaylistContent(hlsManifest, "http://stream.example.com/stream")
+        org.junit.Assert.assertNull(result)
+    }
 }

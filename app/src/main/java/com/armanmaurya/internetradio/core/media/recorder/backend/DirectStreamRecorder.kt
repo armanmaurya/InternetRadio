@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.core.media.recorder.backend
 
 import com.armanmaurya.internetradio.core.media.prober.parser.AudioFrameParser
+import com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver
 import com.armanmaurya.internetradio.core.media.recorder.RecordingConfig
 import com.armanmaurya.internetradio.core.media.recorder.RecordingSink
 import com.armanmaurya.internetradio.core.media.recorder.RecorderException
@@ -61,6 +62,44 @@ class DirectStreamRecorder(
         }
 
         val contentType = initialResponse.header("Content-Type", "") ?: ""
+        if (PlaylistResolver.isPlaylistContentType(contentType)) {
+            val bodyStr = try {
+                initialResponse.body.string()
+            } catch (_: Exception) {
+                null
+            } finally {
+                initialResponse.close()
+            }
+            if (!bodyStr.isNullOrBlank()) {
+                val resolved = PlaylistResolver.parsePlaylistContent(bodyStr, config.url, okHttpClient)
+                if (resolved != null && resolved.streamUrl.isNotBlank() && resolved.streamUrl != config.url) {
+                    val updatedConfig = config.copy(url = resolved.streamUrl)
+                    if (AudioFormatUtils.isHlsUrl(resolved.streamUrl) && onHlsDetected != null) {
+                        onHlsDetected(updatedConfig)
+                    } else {
+                        record(
+                            config = updatedConfig,
+                            sink = sink,
+                            onBytesWritten = onBytesWritten,
+                            onFileOpened = onFileOpened,
+                            onTrackMetadata = onTrackMetadata,
+                            onAudioProgress = onAudioProgress,
+                            onReconnectingStateChanged = onReconnectingStateChanged
+                        )
+                    }
+                    return
+                }
+            }
+            if (AudioFormatUtils.isHlsContentType(contentType) && onHlsDetected != null) {
+                onHlsDetected(config)
+                return
+            }
+            throw RecorderException.StreamConnectionException(
+                config.url,
+                java.io.IOException("Failed to resolve playlist stream")
+            )
+        }
+
         if (AudioFormatUtils.isHlsContentType(contentType) && onHlsDetected != null) {
             initialResponse.close()
             onHlsDetected(config)

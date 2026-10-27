@@ -1,11 +1,14 @@
 package com.armanmaurya.internetradio.core.media.recorder
 
 import android.content.Context
+import com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver
 import com.armanmaurya.internetradio.core.media.recorder.backend.DirectStreamRecorder
 import com.armanmaurya.internetradio.core.media.recorder.backend.HlsStreamRecorder
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
 import com.armanmaurya.internetradio.core.utils.AudioFormatUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -44,11 +47,24 @@ class DefaultStreamRecorder @Inject constructor(
         onAudioProgress: (audioDurationMs: Long) -> Unit,
         onReconnectingStateChanged: (Boolean) -> Unit
     ) {
-        val sink = RecordingSink(fileSystemFacade, config.title, context)
+        val resolvedConfig = if (PlaylistResolver.isPlaylistUrl(config.url)) {
+            val resolved = withContext(Dispatchers.IO) {
+                PlaylistResolver.resolve(config.url, okHttpClient)
+            }
+            if (resolved != null && resolved.streamUrl.isNotBlank()) {
+                config.copy(url = resolved.streamUrl)
+            } else {
+                config
+            }
+        } else {
+            config
+        }
+
+        val sink = RecordingSink(fileSystemFacade, resolvedConfig.title, context)
         try {
-            if (isHlsUrl(config.url)) {
+            if (isHlsUrl(resolvedConfig.url)) {
                 HlsStreamRecorder(recordingHttpClient).record(
-                    config = config,
+                    config = resolvedConfig,
                     sink = sink,
                     onBytesWritten = onBytesWritten,
                     onFileOpened = onFileOpened,
@@ -71,7 +87,7 @@ class DefaultStreamRecorder @Inject constructor(
                         )
                     }
                 ).record(
-                    config = config,
+                    config = resolvedConfig,
                     sink = sink,
                     onBytesWritten = onBytesWritten,
                     onFileOpened = onFileOpened,

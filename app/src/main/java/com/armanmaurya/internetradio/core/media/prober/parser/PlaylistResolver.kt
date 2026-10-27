@@ -4,12 +4,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
 
-internal data class ResolvedPlaylist(
+data class ResolvedPlaylist(
     val streamUrl: String,
     val name: String? = null
 )
 
-internal object PlaylistResolver {
+object PlaylistResolver {
 
     private const val MAX_DEPTH = 2
 
@@ -22,12 +22,13 @@ internal object PlaylistResolver {
     fun isPlaylistContentType(contentType: String): Boolean {
         val ct = contentType.lowercase()
         return ct.contains("scpls") ||
-                (ct.contains("mpegurl") && !ct.contains("m3u8")) ||
+                ct.contains("x-pls") ||
+                (ct.contains("mpegurl") && !ct.contains("m3u8") && !ct.contains("apple")) ||
                 ct.contains("x-ms-asf") ||
                 ct.contains("xspf")
     }
 
-    suspend fun resolve(url: String, client: OkHttpClient, depth: Int = 0): ResolvedPlaylist? {
+    fun resolveBlocking(url: String, client: OkHttpClient, depth: Int = 0): ResolvedPlaylist? {
         if (depth > MAX_DEPTH || !url.startsWith("http", ignoreCase = true)) return null
 
         val lowerUrl = url.lowercase().substringBefore("?")
@@ -43,7 +44,7 @@ internal object PlaylistResolver {
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return null
-                val body = response.body?.string() ?: return null
+                val body = response.body.string()
                 parsePlaylistContent(body, url, client, depth)
             }
         } catch (_: Exception) {
@@ -51,13 +52,18 @@ internal object PlaylistResolver {
         }
     }
 
-    internal fun parsePlaylistContent(
+    suspend fun resolve(url: String, client: OkHttpClient, depth: Int = 0): ResolvedPlaylist? {
+        return resolveBlocking(url, client, depth)
+    }
+
+    fun parsePlaylistContent(
         content: String,
         baseUrl: String,
         client: OkHttpClient? = null,
         depth: Int = 0
     ): ResolvedPlaylist? {
         val trimmed = content.trim()
+        var extracted: ResolvedPlaylist? = null
 
         // 1. PLS format
         if (trimmed.contains("[playlist]", ignoreCase = true) || baseUrl.lowercase().contains(".pls")) {
@@ -66,47 +72,63 @@ internal object PlaylistResolver {
             if (fileMatch != null) {
                 val resolvedUrl = resolveRelativeUrl(baseUrl, fileMatch.groupValues[1].trim())
                 val title = titleMatch?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
-                return ResolvedPlaylist(resolvedUrl, title)
+                extracted = ResolvedPlaylist(resolvedUrl, title)
             }
         }
 
         // 2. ASX format
-        if (trimmed.contains("<asx", ignoreCase = true) || baseUrl.lowercase().contains(".asx")) {
+        if (extracted == null && (trimmed.contains("<asx", ignoreCase = true) || baseUrl.lowercase().contains(".asx"))) {
             val refMatch = Regex("""(?i)<ref\s+href\s*=\s*["']([^"']+)["']""").find(content)
             val titleMatch = Regex("""(?i)<title>([^<]+)</title>""").find(content)
             if (refMatch != null) {
                 val resolvedUrl = resolveRelativeUrl(baseUrl, refMatch.groupValues[1].trim())
                 val title = titleMatch?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
-                return ResolvedPlaylist(resolvedUrl, title)
+                extracted = ResolvedPlaylist(resolvedUrl, title)
             }
         }
 
         // 3. XSPF format
-        if (trimmed.contains("<playlist", ignoreCase = true) || baseUrl.lowercase().contains(".xspf")) {
+        if (extracted == null && (trimmed.contains("<playlist", ignoreCase = true) || baseUrl.lowercase().contains(".xspf"))) {
             val locMatch = Regex("""(?i)<location>([^<]+)</location>""").find(content)
             val titleMatch = Regex("""(?i)<title>([^<]+)</title>""").find(content)
             if (locMatch != null) {
                 val resolvedUrl = resolveRelativeUrl(baseUrl, locMatch.groupValues[1].trim())
                 val title = titleMatch?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
-                return ResolvedPlaylist(resolvedUrl, title)
+                extracted = ResolvedPlaylist(resolvedUrl, title)
             }
         }
 
         // 4. M3U format (non-HLS)
-        if (trimmed.startsWith("#EXTM3U", ignoreCase = true) || baseUrl.lowercase().contains(".m3u")) {
-            var title: String? = null
-            for (line in content.lines()) {
-                val trimmedLine = line.trim()
-                if (trimmedLine.startsWith("#EXTINF:", ignoreCase = true)) {
-                    title = trimmedLine.substringAfter(",").trim().takeIf { it.isNotBlank() }
-                } else if (trimmedLine.isNotBlank() && !trimmedLine.startsWith("#")) {
-                    val resolvedUrl = resolveRelativeUrl(baseUrl, trimmedLine)
-                    return ResolvedPlaylist(resolvedUrl, title)
+        if (extracted == null && (trimmed.startsWith("#EXTM3U", ignoreCase = true) || baseUrl.lowercase().contains(".m3u"))) {
+            // Avoid treating an actual HLS media/master manifest as a simple M3U redirect
+            val isHlsManifest = trimmed.contains("#EXT-X-", ignoreCase = true) ||
+                    Regex("""(?i)#EXTINF:\s*\d""").containsMatchIn(trimmed)
+            if (!isHlsManifest) {
+                var title: String? = null
+                for (line in content.lines()) {
+                    val trimmedLine = line.trim()
+                    if (trimmedLine.startsWith("#EXTINF:", ignoreCase = true)) {
+                        title = trimmedLine.substringAfter(",").trim().takeIf { it.isNotBlank() }
+                    } else if (trimmedLine.isNotBlank() && !trimmedLine.startsWith("#")) {
+                        val lowerTarget = trimmedLine.lowercase().substringBefore("?")
+                        if (!lowerTarget.endsWith(".ts") && !lowerTarget.endsWith(".aac") && !lowerTarget.endsWith(".m4s")) {
+                            val resolvedUrl = resolveRelativeUrl(baseUrl, trimmedLine)
+                            extracted = ResolvedPlaylist(resolvedUrl, title)
+                        }
+                        break
+                    }
                 }
             }
         }
 
-        return null
+        if (extracted != null && client != null && depth < MAX_DEPTH && isPlaylistUrl(extracted.streamUrl)) {
+            val nested = resolveBlocking(extracted.streamUrl, client, depth + 1)
+            if (nested != null) {
+                return ResolvedPlaylist(nested.streamUrl, nested.name ?: extracted.name)
+            }
+        }
+
+        return extracted
     }
 
     private fun resolveRelativeUrl(baseUrl: String, targetUrl: String): String {

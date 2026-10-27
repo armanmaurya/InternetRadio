@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.data.repository
 
+import com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver
 import com.armanmaurya.internetradio.data.local.dao.ScheduleDao
 import com.armanmaurya.internetradio.data.local.dao.StationDao
 import com.armanmaurya.internetradio.data.local.entity.StationEntity
@@ -8,8 +9,11 @@ import com.armanmaurya.internetradio.data.local.entity.toEntity
 import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,7 +22,8 @@ import javax.inject.Singleton
 class LibraryRepositoryImpl @Inject constructor(
     private val stationDao: StationDao,
     private val scheduleDao: ScheduleDao,
-    private val radioBrowserApi: RadioBrowserApi
+    private val radioBrowserApi: RadioBrowserApi,
+    private val okHttpClient: OkHttpClient
 ) : LibraryRepository {
     override fun getAllStations(): Flow<List<RadioStation>> {
         return stationDao.getAllFavorites().map { entities ->
@@ -92,6 +97,13 @@ class LibraryRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun resolveUrlIfNeeded(url: String): String {
+        if (!PlaylistResolver.isPlaylistUrl(url)) return url
+        return withContext(Dispatchers.IO) {
+            PlaylistResolver.resolve(url, okHttpClient)?.streamUrl?.takeIf { it.isNotBlank() } ?: url
+        }
+    }
+
     override suspend fun addCustomStation(
         name: String,
         url: String,
@@ -104,11 +116,12 @@ class LibraryRepositoryImpl @Inject constructor(
         codec: String,
         bitrate: Int
     ) {
+        val resolvedUrl = resolveUrlIfNeeded(url)
         val station = StationEntity(
             stationUuid = UUID.randomUUID().toString(),
             name = name,
             url = url,
-            urlResolved = url,
+            urlResolved = resolvedUrl,
             favicon = favicon,
             tags = tags,
             countryCode = countryCode,
@@ -138,10 +151,15 @@ class LibraryRepositoryImpl @Inject constructor(
         bitrate: Int
     ) {
         val existing = stationDao.getStationById(stationUuid) ?: return
+        val resolvedUrl = if (url != existing.url || PlaylistResolver.isPlaylistUrl(existing.urlResolved)) {
+            resolveUrlIfNeeded(url)
+        } else {
+            existing.urlResolved.ifBlank { url }
+        }
         val updated = existing.copy(
             name = name,
             url = url,
-            urlResolved = url,
+            urlResolved = resolvedUrl,
             favicon = favicon,
             tags = tags,
             countryCode = countryCode,
@@ -188,11 +206,12 @@ class LibraryRepositoryImpl @Inject constructor(
             )
             if (response.ok) {
                 val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
+                val resolvedUrl = resolveUrlIfNeeded(url)
                 val newStation = StationEntity(
                     stationUuid = newUuid,
                     name = name,
                     url = url,
-                    urlResolved = url,
+                    urlResolved = resolvedUrl,
                     favicon = favicon,
                     tags = tags,
                     countryCode = countryCode,

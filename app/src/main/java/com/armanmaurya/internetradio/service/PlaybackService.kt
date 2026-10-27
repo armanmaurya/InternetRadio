@@ -131,13 +131,63 @@ class PlaybackService : MediaLibraryService() {
             }
         }
 
-        val streamingOkHttpClient = okHttpClient.newBuilder().addNetworkInterceptor { chain ->
-            val request = chain.request().newBuilder().header("Icy-MetaData", "1").build()
-            chain.proceed(request)
-        }.build()
+        val streamingOkHttpClient = okHttpClient.newBuilder()
+            .addInterceptor { chain ->
+                var request = chain.request()
+                val initialUrl = request.url.toString()
+                if (com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.isPlaylistUrl(initialUrl)) {
+                    val resolved = com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.resolveBlocking(initialUrl, okHttpClient)
+                    if (resolved != null && resolved.streamUrl.isNotBlank() && resolved.streamUrl != initialUrl) {
+                        request = request.newBuilder().url(resolved.streamUrl).build()
+                    }
+                }
+                val response = chain.proceed(request)
+                val contentType = response.header("Content-Type", "") ?: ""
+                if (response.isSuccessful && com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.isPlaylistContentType(contentType)) {
+                    val bodyStr = try {
+                        response.peekBody(65536).string()
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (!bodyStr.isNullOrBlank()) {
+                        val resolved = com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.parsePlaylistContent(
+                            bodyStr,
+                            response.request.url.toString(),
+                            okHttpClient
+                        )
+                        if (resolved != null && resolved.streamUrl.isNotBlank() && resolved.streamUrl != response.request.url.toString()) {
+                            response.close()
+                            val newRequest = request.newBuilder().url(resolved.streamUrl).build()
+                            return@addInterceptor chain.proceed(newRequest)
+                        }
+                    }
+                }
+                response
+            }
+            .addNetworkInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("Icy-MetaData", "1")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android) InternetRadio/1.0")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
 
-        val dataSourceFactory =
+        val okHttpDataSourceFactory =
             androidx.media3.datasource.okhttp.OkHttpDataSource.Factory(streamingOkHttpClient)
+
+        val dataSourceFactory = androidx.media3.datasource.ResolvingDataSource.Factory(
+            okHttpDataSourceFactory
+        ) { dataSpec ->
+            val uriStr = dataSpec.uri.toString()
+            if (com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.isPlaylistUrl(uriStr)) {
+                val resolved = com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver.resolveBlocking(uriStr, okHttpClient)
+                if (resolved != null && resolved.streamUrl.isNotBlank()) {
+                    return@Factory dataSpec.withUri(resolved.streamUrl.toUri())
+                }
+            }
+            dataSpec
+        }
 
         val mediaSourceFactory =
             DefaultMediaSourceFactory(this).setDataSourceFactory(dataSourceFactory)

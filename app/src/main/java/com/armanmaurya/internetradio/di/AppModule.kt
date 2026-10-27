@@ -30,7 +30,7 @@ object AppModule {
      * https://docs.radio-browser.info/#server-selection
      */
     private const val BASE_URL = "https://de1.api.radio-browser.info/"
-    private const val APP_USER_AGENT = "InternetRadio/1.0 ( https://github.com/armanmaurya/InternetRadio )"
+    private const val APP_USER_AGENT = "InternetRadio/1.0"
     private const val CACHE_SIZE = 50 * 1024 * 1024L // 50 MB
 
     @Provides
@@ -70,9 +70,14 @@ object AppModule {
         return OkHttpClient.Builder()
             .cache(cache)
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .header("User-Agent", APP_USER_AGENT)
-                    .build()
+                val original = chain.request()
+                val request = if (original.header("User-Agent") == null) {
+                    original.newBuilder()
+                        .header("User-Agent", APP_USER_AGENT)
+                        .build()
+                } else {
+                    original
+                }
                 chain.proceed(request)
             }
             .addNetworkInterceptor(cacheInterceptor)
