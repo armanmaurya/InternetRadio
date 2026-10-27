@@ -496,4 +496,18 @@
     <string name="player_cd_unstar_track">Rimuovi traccia salvata</string>
     <string name="player_track_saved">Salvata nelle tracce</string>
     <string name="player_track_removed">Rimuovi dalle tracce salvate</string>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d minuto</item>
+        <item quantity="many">%1$d minuti</item>
+        <item quantity="other">%1$d minuti</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d brano</item>
+        <item quantity="many">%1$d brani</item>
+        <item quantity="other">%1$d brani</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$dh %2$dm</string>
+    <string name="player_session_duration_m">%1$dm</string>
+    <string name="player_session_today">Oggi</string>
+    <string name="player_session_yesterday">Ieri</string>
 </resources>
