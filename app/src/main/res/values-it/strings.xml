@@ -53,7 +53,7 @@
     <string name="settings_stop_on_audio_noisy">Metti in pausa alla disconnessione di un dispositivo</string>
     <string name="settings_stop_on_audio_noisy_desc">Interrompe la riproduzione quando il Bluetooth o le cuffie vengono disconnessi</string>
     <string name="settings_pause_on_volume_zero">Metti in pausa con volume a zero</string>
-    <string name="settings_pause_on_volume_zero_desc">Interrompi la riproduzione quando un dispositivo viene silenziato (non viene applicata durante la registrazione)</string>
+    <string name="settings_pause_on_volume_zero_desc">Interrompi la riproduzione quando il dispositivo viene silenziato</string>
     <string name="settings_show_cover_art">Copertina album nelle notifiche</string>
     <string name="settings_show_cover_art_desc">Mostra la copertina della traccia invece che della stazione nella schermata di blocco e nelle notifiche</string>
     <string name="settings_max_retry_duration">Durata massima di tentativi</string>
@@ -375,7 +375,7 @@
     <string name="settings_custom_color_apply">Applica</string>
     <string name="settings_custom_color_cancel">Annulla</string>
     <string name="settings_keep_screen_on_title">Mantieni schermo attivo</string>
-    <string name="settings_keep_screen_on_desc">Impedisci allo schermo di spegnersi mentre la schermata è espansa</string>
+    <string name="settings_keep_screen_on_desc">Mantieni lo schermo attivo quando il player è espanso</string>
     <string name="settings_widget_section">Widget</string>
     <string name="settings_widget_transparency_title">Opacità sfondo</string>
     <string name="settings_widget_transparency_subtitle">Regola l\'opacità dello sfondo del widget della schermata home</string>
@@ -485,4 +485,15 @@
     <string name="recording_cd_loop_disabled">Attiva loop infinito</string>
     <string name="recording_reconnecting">Riconnessione…</string>
     <string name="recording_notification_reconnecting">Connessione persa, nuovo tentativo… • %1$s</string>
+    <string name="settings_enable_volume_boost" formatted="false">Amplificazione del volume (fino al 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Consenti l\'aumento del volume oltre il 100% sfruttando l\'amplificazione software</string>
+    <string name="settings_volume_boost_warning_title">Attivare l\'amplificazione del volume?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">L\'amplificazione del volume oltre il 100% applica un guadagno software (fino al 200%). Ciò potrebbe causare distorsioni audio e clipping, con il rischio di danneggiare l\'udito o i dispositivi audio più sensibili. Usa a tuo rischio e pericolo.</string>
+    <string name="settings_volume_boost_warning_confirm">Attiva</string>
+    <string name="player_saved_songs">Salvato</string>
+    <string name="player_station_history">Cronologia</string>
+    <string name="player_cd_star_track">Salva traccia</string>
+    <string name="player_cd_unstar_track">Rimuovi traccia salvata</string>
+    <string name="player_track_saved">Salvata nelle tracce</string>
+    <string name="player_track_removed">Rimuovi dalle tracce salvate</string>
 </resources>
