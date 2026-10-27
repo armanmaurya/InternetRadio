@@ -484,4 +484,19 @@
     <string name="player_cd_unstar_track">Eemalda salvestatud lugu</string>
     <string name="player_track_saved">Salvestatud lugude kausta</string>
     <string name="player_track_removed">Eemaldatud salvestatud lugude kaustast</string>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d minut</item>
+        <item quantity="other">%1$d minutit</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d lugu</item>
+        <item quantity="other">%1$d lugu</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$d t %2$d min</string>
+    <string name="player_session_duration_m">%1$d min</string>
+    <string name="player_session_gap_minutes">%1$d min paus</string>
+    <string name="player_session_gap_hours">%1$d t paus</string>
+    <string name="player_session_gap_days">%1$d pv paus</string>
+    <string name="player_session_today">Täna</string>
+    <string name="player_session_yesterday">Eile</string>
 </resources>
