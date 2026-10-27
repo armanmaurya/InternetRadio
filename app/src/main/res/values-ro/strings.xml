@@ -490,4 +490,10 @@
     <string name="settings_volume_boost_warning_title">Activezi funcția de amplificare a volumului?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Amplificarea volumului peste 100% implică aplicarea unui câștig software (până la 200%). Acest lucru poate provoca distorsiuni audio, saturare și ar putea dăuna auzului sensibil sau echipamentelor audio. Utilizează pe propria răspundere.</string>
     <string name="settings_volume_boost_warning_confirm">Activează</string>
+    <string name="player_saved_songs">Salvat</string>
+    <string name="player_station_history">Istoric</string>
+    <string name="player_cd_star_track">Salvează melodia</string>
+    <string name="player_cd_unstar_track">Șterge melodia salvată</string>
+    <string name="player_track_saved">Salvată la melodii</string>
+    <string name="player_track_removed">Eliminată din lista melodiilor salvate</string>
 </resources>
