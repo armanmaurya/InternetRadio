@@ -187,7 +187,14 @@ class PlayerViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val savedTracks = trackHistoryRepository.getStarredTracks()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val savedTracks = playbackSession
+        .map { it.currentStation?.stationUuid }
+        .distinctUntilChanged()
+        .flatMapLatest { uuid ->
+            if (uuid == null) flowOf(emptyList())
+            else trackHistoryRepository.getStarredTracks(uuid)
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -221,12 +228,23 @@ class PlayerViewModel @Inject constructor(
         val activeSessions: Map<String, RecordingSession>
     )
 
+    private data class HistoryUiState(
+        val history: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>,
+        val saved: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>
+    )
+
+    private val historyUiFlow = combine(
+        trackHistory,
+        savedTracks
+    ) { history, saved ->
+        HistoryUiState(history, saved)
+    }
+
     private data class ExtraUiState(
         val retry: Int?,
         val lyrics: LyricsUiState,
-        val history: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>,
-        val recordings: List<RecordingFile>?,
-        val saved: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>
+        val historyUi: HistoryUiState,
+        val recordings: List<RecordingFile>?
     )
 
     private val basePlayerFlow = combine(
@@ -258,11 +276,10 @@ class PlayerViewModel @Inject constructor(
     private val extraUiFlow = combine(
         retryCountdown,
         lyricsUiState,
-        trackHistory,
-        stationRecordings,
-        savedTracks
-    ) { retry, lyrics, history, recordings, saved ->
-        ExtraUiState(retry, lyrics, history, recordings, saved)
+        historyUiFlow,
+        stationRecordings
+    ) { retry, lyrics, historyUi, recordings ->
+        ExtraUiState(retry, lyrics, historyUi, recordings)
     }
 
     val uiState: StateFlow<PlayerUiState> = combine(
@@ -279,7 +296,7 @@ class PlayerViewModel @Inject constructor(
         val hasNext = session.currentPlaylist.size > 1
         val hasPrevious = session.currentPlaylist.size > 1
 
-        val isCurrentTrackStarred = extra.saved.any { saved ->
+        val isCurrentTrackStarred = extra.historyUi.saved.any { saved ->
             val trackName = session.cleanTrackName ?: session.currentTrack
             !trackName.isNullOrBlank() && (
                 saved.trackTitle.trim().equals(trackName.trim(), ignoreCase = true) ||
@@ -319,8 +336,8 @@ class PlayerViewModel @Inject constructor(
             amplitude = base.amplitude,
             retryCountdown = extra.retry,
             lyricsUiState = extra.lyrics,
-            trackHistory = extra.history,
-            savedTracks = extra.saved,
+            trackHistory = extra.historyUi.history,
+            savedTracks = extra.historyUi.saved,
             isCurrentTrackStarred = isCurrentTrackStarred,
             stationRecordings = extra.recordings,
             sessionActiveDurationMs = session.sessionActiveDurationMs,
@@ -685,13 +702,14 @@ class PlayerViewModel @Inject constructor(
 
     fun toggleTrackStarred(track: com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity) {
         viewModelScope.launch {
-            trackHistoryRepository.toggleTrackStarred(track.trackTitle, !track.isStarred)
+            trackHistoryRepository.toggleTrackStarred(track.stationUuid, track.trackTitle, !track.isStarred)
         }
     }
 
     fun toggleTrackStarred(trackTitle: String, isStarred: Boolean) {
+        val stationUuid = playbackSession.value.currentStation?.stationUuid ?: return
         viewModelScope.launch {
-            trackHistoryRepository.toggleTrackStarred(trackTitle, isStarred)
+            trackHistoryRepository.toggleTrackStarred(stationUuid, trackTitle, isStarred)
         }
     }
 }

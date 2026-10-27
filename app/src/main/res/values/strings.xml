@@ -507,6 +507,21 @@
         <item quantity="one">%1$d track</item>
         <item quantity="other">%1$d tracks</item>
     </plurals>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d song</item>
+        <item quantity="other">%1$d songs</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$dh %2$dm</string>
+    <string name="player_session_duration_m">%1$dm</string>
+    <string name="player_session_gap_minutes">%1$dm gap</string>
+    <string name="player_session_gap_hours">%1$dh gap</string>
+    <string name="player_session_gap_days">%1$dd gap</string>
+    <string name="player_session_today">Today</string>
+    <string name="player_session_yesterday">Yesterday</string>
     <string name="schedule_keep_playback_subtitle">If off, playback stops when recording ends</string>
 
     <!-- ========================================== -->

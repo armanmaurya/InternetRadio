@@ -46,44 +46,83 @@ class TrackHistoryRepositoryTest {
     }
 
     @Test
-    fun logTrack_inheritsStarredState_whenTitleWasPreviouslyStarred() = runBlocking {
-        // First track is played and starred
+    fun logTrack_inheritsStarredState_onlyOnSameStation() = runBlocking {
+        // First track is played and starred on station-1
         val id1 = repository.logTrack("station-1", "Song A", "Raw Song A")
-        repository.toggleTrackStarred("Song A", true)
+        repository.toggleTrackStarred("station-1", "Song A", true)
         assertTrue(fakeDao.tracks.first().isStarred)
 
-        // Same song plays on a different station
+        // Same song plays on station-2 -> should NOT be starred (station-specific)
         val id2 = repository.logTrack("station-2", "Song A", "Raw Song A")
         assertNotNull(id2)
         val station2Track = fakeDao.tracks.first { it.stationUuid == "station-2" }
-        assertTrue(station2Track.isStarred)
+        assertFalse(station2Track.isStarred)
+
+        // Song B plays on station-1, then Song A plays again on station-1 -> inherits starred state
+        repository.logTrack("station-1", "Song B", "Raw Song B")
+        val id3 = repository.logTrack("station-1", "Song A", "Raw Song A")
+        val latestStation1Track = fakeDao.tracks.first { it.id == id3 }
+        assertTrue(latestStation1Track.isStarred)
     }
 
     @Test
-    fun toggleTrackStarred_updatesAllMatchingTracks() = runBlocking {
+    fun toggleTrackStarred_updatesOnlyMatchingStationTracks() = runBlocking {
         fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s1", trackTitle = "Song A", timestamp = 100))
         fakeDao.insert(TrackHistoryEntity(id = 2, stationUuid = "s2", trackTitle = "Song A", timestamp = 200))
 
-        repository.toggleTrackStarred("Song A", true)
+        repository.toggleTrackStarred("s1", "Song A", true)
 
-        assertTrue(fakeDao.tracks.all { it.isStarred })
+        assertTrue(fakeDao.tracks.first { it.stationUuid == "s1" }.isStarred)
+        assertFalse(fakeDao.tracks.first { it.stationUuid == "s2" }.isStarred)
 
-        repository.toggleTrackStarred("Song A", false)
+        repository.toggleTrackStarred("s1", "Song A", false)
         assertTrue(fakeDao.tracks.none { it.isStarred })
     }
 
     @Test
-    fun updateTrackMetadata_marksStarred_ifCleanedTitleWasAlreadyStarred() = runBlocking {
-        // Pre-star cleaned title
+    fun updateTrackMetadata_marksStarred_ifCleanedTitleWasAlreadyStarredOnSameStation() = runBlocking {
+        // Pre-star cleaned title on s1
         fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s1", trackTitle = "Clean Title", timestamp = 100, isStarred = true))
 
-        // New raw track is logged
-        val id = repository.logTrack("s2", "Raw Title", "Raw Title")!!
+        // New raw track is logged on s1
+        val id = repository.logTrack("s1", "Raw Title", "Raw Title")!!
         assertFalse(fakeDao.tracks.first { it.id == id }.isStarred)
 
-        // Metadata arrives resolving to the starred title
+        // Metadata arrives resolving to the starred title on s1
         repository.updateTrackMetadata(id, "Clean Title", "http://cover.jpg")
         assertTrue(fakeDao.tracks.first { it.id == id }.isStarred)
+    }
+
+    @Test
+    fun logTrack_insertsNewRow_whenSameRawTitleAppearsAfterIdleGapThreshold() = runBlocking {
+        val twentyMinsAgo = System.currentTimeMillis() - 20 * 60 * 1000L
+        fakeDao.insert(
+            TrackHistoryEntity(
+                id = 1,
+                stationUuid = "station-1",
+                trackTitle = "Static Show",
+                rawTrackTitle = "Static Show",
+                timestamp = twentyMinsAgo,
+                endTimestamp = twentyMinsAgo
+            )
+        )
+
+        val id2 = repository.logTrack("station-1", "Static Show", "Static Show")
+        assertNotNull(id2)
+        assertEquals(2, fakeDao.tracks.size)
+    }
+
+    @Test
+    fun recordTrackListeningProgress_updatesEndTimestampAndAccumulatesDuration() = runBlocking {
+        val id = repository.logTrack("station-1", "Song A", "Song A")!!
+        val newEnd = System.currentTimeMillis() + 15_000L
+
+        repository.recordTrackListeningProgress(id, newEnd, 15_000L)
+        repository.recordTrackListeningProgress(id, newEnd + 15_000L, 15_000L)
+
+        val updated = fakeDao.tracks.first { it.id == id }
+        assertEquals(newEnd + 15_000L, updated.endTimestamp)
+        assertEquals(30_000L, updated.durationMs)
     }
 
     // --- Test Doubles ---
@@ -132,22 +171,27 @@ class TrackHistoryRepositoryTest {
             }
         }
 
-        override fun getAllStarredTracks(): Flow<List<TrackHistoryEntity>> {
-            return flowOf(tracks.filter { it.isStarred })
+        override fun getStarredTracksForStation(stationUuid: String): Flow<List<TrackHistoryEntity>> {
+            return flowOf(tracks.filter { it.stationUuid == stationUuid && it.isStarred })
         }
 
-        override suspend fun isTrackStarred(trackTitle: String, rawTrackTitle: String): Boolean {
+        override suspend fun isTrackStarred(stationUuid: String, trackTitle: String, rawTrackTitle: String): Boolean {
             return tracks.any {
-                it.isStarred && (
+                it.stationUuid == stationUuid && it.isStarred && (
                     it.trackTitle.trim().equals(trackTitle.trim(), ignoreCase = true) ||
                     (rawTrackTitle.isNotBlank() && it.rawTrackTitle.isNotBlank() && it.rawTrackTitle.trim().equals(rawTrackTitle.trim(), ignoreCase = true))
                 )
             }
         }
 
-        override suspend fun setTrackStarred(trackTitle: String, isStarred: Boolean) {
+        override suspend fun isTrackStarredForTrackIdStation(id: Long, trackTitle: String): Boolean {
+            val targetStationUuid = tracks.firstOrNull { it.id == id }?.stationUuid ?: return false
+            return isTrackStarred(targetStationUuid, trackTitle, trackTitle)
+        }
+
+        override suspend fun setTrackStarred(stationUuid: String, trackTitle: String, isStarred: Boolean) {
             for (i in tracks.indices) {
-                if (tracks[i].trackTitle.trim().equals(trackTitle.trim(), ignoreCase = true)) {
+                if (tracks[i].stationUuid == stationUuid && tracks[i].trackTitle.trim().equals(trackTitle.trim(), ignoreCase = true)) {
                     tracks[i] = tracks[i].copy(isStarred = isStarred)
                 }
             }
@@ -157,6 +201,17 @@ class TrackHistoryRepositoryTest {
             val index = tracks.indexOfFirst { it.id == id }
             if (index != -1) {
                 tracks[index] = tracks[index].copy(isStarred = isStarred)
+            }
+        }
+
+        override suspend fun recordTrackListeningProgress(id: Long, endTimestamp: Long, addedDurationMs: Long) {
+            val index = tracks.indexOfFirst { it.id == id }
+            if (index != -1) {
+                val cur = tracks[index]
+                tracks[index] = cur.copy(
+                    endTimestamp = endTimestamp,
+                    durationMs = cur.durationMs + addedDurationMs
+                )
             }
         }
     }

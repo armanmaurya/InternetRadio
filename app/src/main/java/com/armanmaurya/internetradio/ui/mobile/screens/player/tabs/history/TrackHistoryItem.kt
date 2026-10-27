@@ -5,6 +5,7 @@ import android.net.Uri
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,15 +66,21 @@ import java.net.URLEncoder
 fun TrackHistoryItem(
     track: TrackHistoryEntity,
     modifier: Modifier = Modifier,
+    showClockTime: Boolean = false,
     onToggleStar: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val time = DateUtils.getRelativeTimeSpanString(
-        track.timestamp,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-        DateUtils.FORMAT_ABBREV_RELATIVE
-    ).toString()
+    val context = LocalContext.current
+    val time = if (showClockTime) {
+        android.text.format.DateFormat.getTimeFormat(context).format(track.timestamp)
+    } else {
+        DateUtils.getRelativeTimeSpanString(
+            track.timestamp,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE
+        ).toString()
+    }
 
     TrackHistoryItem(
         title = track.trackTitle,
@@ -286,8 +294,14 @@ fun TrackHistoryItem(
 
         AnimatedVisibility(
             visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            enter = expandVertically(
+                animationSpec = tween(durationMillis = 250),
+                expandFrom = Alignment.Top
+            ) + fadeIn(animationSpec = tween(durationMillis = 200)),
+            exit = shrinkVertically(
+                animationSpec = tween(durationMillis = 250),
+                shrinkTowards = Alignment.Top
+            ) + fadeOut(animationSpec = tween(durationMillis = 150))
         ) {
             Column {
                 if (rawTrackTitle.isNotBlank() && rawTrackTitle != fullTrackName) {

@@ -47,6 +47,8 @@ class BrowseViewModel @Inject constructor(
 
     private var currentOffset = 0
     private val pageSize = 60
+    private var isInitialSettingsLoad = true
+    private var isDetectingCountry = false
 
     init {
         observeSettings()
@@ -69,6 +71,9 @@ class BrowseViewModel @Inject constructor(
             .distinctUntilChanged()
             .onEach { params ->
                 val oldState = _uiState.value
+                val isFirst = isInitialSettingsLoad
+                isInitialSettingsLoad = false
+
                 _uiState.update {
                     it.copy(
                         selectedCountryCode = params.selectedCountryCode,
@@ -88,7 +93,7 @@ class BrowseViewModel @Inject constructor(
                         oldState.order != params.order ||
                         oldState.reverse != params.reverse
 
-                if (!filtersChanged) return@onEach
+                if (!filtersChanged && !isFirst) return@onEach
 
                 if (_uiState.value.isSearchActive) {
                     searchStations(_uiState.value.searchQuery)
@@ -107,17 +112,23 @@ class BrowseViewModel @Inject constructor(
     }
 
     private fun detectCountryIfNeeded() {
+        if (isDetectingCountry) return
+        isDetectingCountry = true
         viewModelScope.launch {
-            if (_uiState.value.selectedCountryCode == null) {
-                _uiState.update { it.copy(isLoading = true) }
-                repository.getCurrentCountryCode()
-                    .onSuccess { countryCode ->
-                        settingsRepository.setSelectedCountryCode(countryCode)
-                    }
-                    .onFailure {
-                        _uiState.update { it.copy(isLoading = false, selectedCountryCode = null) }
-                        loadStations(null)
-                    }
+            try {
+                if (_uiState.value.selectedCountryCode == null) {
+                    _uiState.update { it.copy(isLoading = true) }
+                    repository.getCurrentCountryCode()
+                        .onSuccess { countryCode ->
+                            settingsRepository.setSelectedCountryCode(countryCode)
+                        }
+                        .onFailure {
+                            _uiState.update { it.copy(isLoading = false, selectedCountryCode = null) }
+                            loadStations(null)
+                        }
+                }
+            } finally {
+                isDetectingCountry = false
             }
         }
     }
@@ -249,6 +260,7 @@ class BrowseViewModel @Inject constructor(
         _uiState
             .map { it.searchQuery }
             .distinctUntilChanged()
+            .drop(1)
             .debounce(400)
             .onEach { query ->
                 if (query.isBlank()) {
@@ -327,6 +339,8 @@ class BrowseViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isSearchActive) {
             searchStations(state.searchQuery)
+        } else if (state.selectedCountryCode == null) {
+            detectCountryIfNeeded()
         } else {
             loadStations(state.selectedCountryCode, state.selectedStateCode, state.selectedLanguage, state.selectedTags)
         }

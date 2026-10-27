@@ -24,9 +24,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,8 +62,13 @@ fun HistoryTab(
     nestedScrollConnection: NestedScrollConnection,
     onToggleStar: (TrackHistoryEntity) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isSavedExpanded by remember { mutableStateOf(true) }
+
+    val sessionGroups = remember(trackHistory) {
+        HistorySessionGrouping.groupTracks(trackHistory)
+    }
 
     val savedArrowRotation by animateFloatAsState(
         targetValue = if (isSavedExpanded) 0f else 180f,
@@ -179,40 +185,6 @@ fun HistoryTab(
                 }
             }
 
-            stickyHeader(key = "header_history") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(headerBg)
-                        .padding(vertical = 4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = if (trackHistory.isNotEmpty()) {
-                                "${stringResource(R.string.player_station_history)} (${trackHistory.size})"
-                            } else {
-                                stringResource(R.string.player_station_history)
-                            },
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-
             if (trackHistory.isEmpty()) {
                 item(key = "empty_history") {
                     Box(
@@ -229,14 +201,32 @@ fun HistoryTab(
                     }
                 }
             } else {
-                items(
-                    items = trackHistory,
-                    key = { "history_${it.id}" }
-                ) { track ->
-                    TrackHistoryItem(
-                        track = track,
-                        onToggleStar = { onToggleStar(track) }
-                    )
+                sessionGroups.forEachIndexed { sessionIndex, session ->
+                    if (sessionIndex > 0) {
+                        item(key = "gap_${session.id}") {
+                            val gapMs = (sessionGroups[sessionIndex - 1].startTime - session.endTime).coerceAtLeast(0L)
+                            val gapText = remember(gapMs) {
+                                HistorySessionGrouping.formatGap(context, gapMs)
+                            }
+                            TimelineGapPill(gapText = gapText)
+                        }
+                    }
+
+                    item(key = "node_${session.id}") {
+                        TimelineSessionNode(session = session)
+                    }
+
+                    itemsIndexed(
+                        items = session.tracks,
+                        key = { _, track -> "history_${track.id}" }
+                    ) { trackIndex, track ->
+                        val isLast = trackIndex == session.tracks.lastIndex
+                        TimelineTrackRow(
+                            track = track,
+                            isLastInSession = isLast,
+                            onToggleStar = { onToggleStar(track) }
+                        )
+                    }
                 }
             }
         }

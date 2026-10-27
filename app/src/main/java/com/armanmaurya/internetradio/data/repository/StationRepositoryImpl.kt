@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.data.repository
 
 import android.content.Context
+import android.telephony.TelephonyManager
 import com.armanmaurya.internetradio.domain.model.Country
 import com.armanmaurya.internetradio.domain.model.Language
 import com.armanmaurya.internetradio.domain.model.RadioStation
@@ -117,11 +118,22 @@ class StationRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentCountryCode(): Result<String> =
         runCatching {
-            val countryCode = context.resources.configuration.locales[0].country
-            if (countryCode.isBlank()) {
-                throw IllegalStateException("Country code not available in locale")
+            val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            val networkCountry = telephonyManager?.networkCountryIso?.takeIf { it.isNotBlank() && it.length == 2 }
+            val simCountry = telephonyManager?.simCountryIso?.takeIf { it.isNotBlank() && it.length == 2 }
+            val localeCountry = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                context.resources.configuration.locales.takeIf { !it.isEmpty }?.get(0)?.country
+            } else {
+                @Suppress("DEPRECATION")
+                context.resources.configuration.locale?.country
+            }?.takeIf { it.isNotBlank() && it.length == 2 }
+            val defaultLocaleCountry = java.util.Locale.getDefault().country.takeIf { it.isNotBlank() && it.length == 2 }
+
+            val countryCode = networkCountry ?: simCountry ?: localeCountry ?: defaultLocaleCountry
+            if (countryCode.isNullOrBlank()) {
+                throw IllegalStateException("Country code not available")
             }
-            countryCode
+            countryCode.uppercase(java.util.Locale.US)
         }
 
     /**

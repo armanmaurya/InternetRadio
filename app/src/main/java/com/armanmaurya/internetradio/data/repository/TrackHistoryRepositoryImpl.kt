@@ -20,6 +20,7 @@ class TrackHistoryRepositoryImpl @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : TrackHistoryRepository {
     override suspend fun logTrack(stationUuid: String, trackTitle: String, rawTrackTitle: String): Long? = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
         val latestTrack = trackHistoryDao.getLatestTrackForStation(stationUuid)
         
         // Use rawTrackTitle for duplicate detection to avoid inserting duplicates 
@@ -30,13 +31,22 @@ class TrackHistoryRepositoryImpl @Inject constructor(
             latestTrack?.trackTitle // Fallback for old rows before migration
         }
 
-        if (latestRawTitle != rawTrackTitle) {
-            val isAlreadyStarred = trackHistoryDao.isTrackStarred(trackTitle, rawTrackTitle)
+        val latestEndTime = if (latestTrack != null) {
+            maxOf(latestTrack.timestamp, latestTrack.endTimestamp)
+        } else {
+            0L
+        }
+        val idleGapMs = if (latestTrack != null) (now - latestEndTime).coerceAtLeast(0L) else Long.MAX_VALUE
+
+        if (latestRawTitle != rawTrackTitle || idleGapMs >= com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.history.HistorySessionGrouping.DEFAULT_GAP_MS) {
+            val isAlreadyStarred = trackHistoryDao.isTrackStarred(stationUuid, trackTitle, rawTrackTitle)
             val newTrack = TrackHistoryEntity(
                 stationUuid = stationUuid,
                 trackTitle = trackTitle,
                 rawTrackTitle = rawTrackTitle,
-                timestamp = System.currentTimeMillis(),
+                timestamp = now,
+                endTimestamp = now,
+                durationMs = 0L,
                 isStarred = isAlreadyStarred
             )
             val id = trackHistoryDao.insert(newTrack)
@@ -51,7 +61,7 @@ class TrackHistoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?) = withContext(Dispatchers.IO) {
-        val isAlreadyStarred = trackHistoryDao.isTrackStarred(newTrackTitle)
+        val isAlreadyStarred = trackHistoryDao.isTrackStarredForTrackIdStation(id, newTrackTitle)
         if (isAlreadyStarred) {
             trackHistoryDao.setTrackStarredById(id, true)
         }
@@ -72,19 +82,23 @@ class TrackHistoryRepositoryImpl @Inject constructor(
         trackHistoryDao.updateCoverArt(stationUuid, trackTitle, coverArtUrl)
     }
 
-    override fun getStarredTracks(): Flow<List<TrackHistoryEntity>> {
-        return trackHistoryDao.getAllStarredTracks()
+    override fun getStarredTracks(stationUuid: String): Flow<List<TrackHistoryEntity>> {
+        return trackHistoryDao.getStarredTracksForStation(stationUuid)
     }
 
-    override suspend fun toggleTrackStarred(trackTitle: String, isStarred: Boolean) = withContext(Dispatchers.IO) {
-        trackHistoryDao.setTrackStarred(trackTitle, isStarred)
+    override suspend fun toggleTrackStarred(stationUuid: String, trackTitle: String, isStarred: Boolean) = withContext(Dispatchers.IO) {
+        trackHistoryDao.setTrackStarred(stationUuid, trackTitle, isStarred)
     }
 
     override suspend fun setTrackStarredById(id: Long, isStarred: Boolean) = withContext(Dispatchers.IO) {
         trackHistoryDao.setTrackStarredById(id, isStarred)
     }
 
-    override suspend fun isTrackStarred(trackTitle: String): Boolean = withContext(Dispatchers.IO) {
-        trackHistoryDao.isTrackStarred(trackTitle)
+    override suspend fun isTrackStarred(stationUuid: String, trackTitle: String): Boolean = withContext(Dispatchers.IO) {
+        trackHistoryDao.isTrackStarred(stationUuid, trackTitle)
+    }
+
+    override suspend fun recordTrackListeningProgress(id: Long, endTimestamp: Long, addedDurationMs: Long) = withContext(Dispatchers.IO) {
+        trackHistoryDao.recordTrackListeningProgress(id, endTimestamp, addedDurationMs)
     }
 }

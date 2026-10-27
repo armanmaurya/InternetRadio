@@ -33,7 +33,6 @@
         android:banner="@mipmap/ic_banner"
         tools:targetApi="31">
 
-        <!-- Android Auto: declare this app as a media app -->
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
@@ -78,11 +77,6 @@
             android:exported="true"
             android:grantUriPermissions="true" />
 
-        <!--
-            exported="true" is required so the Android Auto host process can
-            bind to the service. MediaBrowserService intent-filter lets Auto
-            discover this app in the media section.
-        -->
         <service
             android:name=".service.PlaybackService"
             android:foregroundServiceType="mediaPlayback"
