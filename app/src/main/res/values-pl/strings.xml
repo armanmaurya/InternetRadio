@@ -503,4 +503,10 @@
     <string name="settings_volume_boost_warning_title">Włączyć podbicie głośności?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Zwiększenie głośności powyżej 100% powoduje zastosowanie wzmocnienia programowego (do 200%). Może to prowadzić do zniekształceń dźwięku, przesterowań, a także stanowić zagrożenie dla słuchu lub uszkodzić sprzęt audio. Używasz tej funkcji na własne ryzyko.</string>
     <string name="settings_volume_boost_warning_confirm">Włącz</string>
+    <string name="player_saved_songs">Zapisano</string>
+    <string name="player_station_history">Historia</string>
+    <string name="player_cd_star_track">Zapisz utwór</string>
+    <string name="player_cd_unstar_track">Usuń zapisany utwór</string>
+    <string name="player_track_saved">Zapisano w utworach</string>
+    <string name="player_track_removed">Usunięto z zapisanych utworów</string>
 </resources>
