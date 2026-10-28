@@ -92,6 +92,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import android.view.WindowManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 fun Modifier.collapseHeight(progress: Float) = this
@@ -214,11 +215,31 @@ fun PlayerBottomSheet(
         }
     }
 
-    // Hide software keyboard when sheet expands
+    // Hide software keyboard when sheet settles in Expanded state and clear any stuck dragTarget
     val keyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(scaffoldState.bottomSheetState.targetValue) {
-        if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) {
-            keyboardController?.hide()
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(
+        scaffoldState.bottomSheetState.currentValue,
+        scaffoldState.bottomSheetState.isAnimationRunning
+    ) {
+        when (scaffoldState.bottomSheetState.currentValue) {
+            SheetValue.Expanded -> {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+                if (scaffoldState.bottomSheetState.isAnimationRunning &&
+                    scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
+                ) {
+                    scaffoldState.bottomSheetState.expand()
+                }
+            }
+            SheetValue.PartiallyExpanded -> {
+                if (scaffoldState.bottomSheetState.isAnimationRunning &&
+                    scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded
+                ) {
+                    scaffoldState.bottomSheetState.partialExpand()
+                }
+            }
+            SheetValue.Hidden -> Unit
         }
     }
 
