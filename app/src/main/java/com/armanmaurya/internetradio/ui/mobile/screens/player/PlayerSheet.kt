@@ -314,7 +314,6 @@ fun PlayerBottomSheet(
                 onConnectCastDevice = playerViewModel::connectToCastDevice,
                 onDisconnectCastDevice = playerViewModel::disconnectCastDevice,
                 onDeleteRecording = playerViewModel::deleteRecording,
-                onStopRecording = playerViewModel::stopRecording,
                 getCurrentPosition = { playerViewModel.currentPosition },
                 onToggleTrackStarred = playerViewModel::toggleTrackStarred,
                 onToggleCurrentTrackStarred = {
@@ -351,7 +350,6 @@ fun PlayerSheetContent(
     onConnectCastDevice: (CastDevice) -> Unit = {},
     onDisconnectCastDevice: () -> Unit = {},
     onDeleteRecording: (com.armanmaurya.internetradio.domain.model.RecordingFile) -> Unit,
-    onStopRecording: (String) -> Unit = {},
     getCurrentPosition: () -> Long,
     onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
     onToggleCurrentTrackStarred: () -> Unit = {},
@@ -361,7 +359,6 @@ fun PlayerSheetContent(
     val isFavorite = uiState.isFavorite
     val trackHistory = uiState.trackHistory
     val stationRecordings = uiState.stationRecordings
-    val activeSessions = uiState.activeSessions
     val retryCountdown = uiState.retryCountdown
     val lyricsUiState = uiState.lyricsUiState
     val isRecording = uiState.isRecording
@@ -1573,11 +1570,9 @@ fun PlayerSheetContent(
                             )
                         } else if (page == 1) {
                             RecordingsTab(
-                                activeSessions = activeSessions,
                                 stationRecordings = stationRecordings,
                                 listState = recordingsListState,
                                 nestedScrollConnection = nestedScrollConnection,
-                                onStopRecording = onStopRecording,
                                 onDeleteRecording = onDeleteRecording
                             )
                         } else if (page == 2) {

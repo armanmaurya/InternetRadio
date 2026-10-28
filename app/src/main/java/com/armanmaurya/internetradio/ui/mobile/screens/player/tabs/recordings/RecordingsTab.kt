@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,9 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RecordingFile
-import com.armanmaurya.internetradio.domain.model.RecordingSession
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
-import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,11 +58,9 @@ import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel
 
 @Composable
 fun RecordingsTab(
-    activeSessions: Map<String, RecordingSession>,
     stationRecordings: List<RecordingFile>?,
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
-    onStopRecording: (String) -> Unit,
     onDeleteRecording: (RecordingFile) -> Unit,
     viewModel: RecordingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
 ) {
@@ -362,59 +357,6 @@ fun RecordingsTab(
                         }
                     }
                 }
-                if (activeSessions.isNotEmpty()) {
-                    item(key = "active_recordings_header") {
-                        Text(
-                            text = stringResource(R.string.recordings_currently_recording),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                    }
-                    
-                    items(
-                        items = activeSessions.values.chunked(2),
-                        key = { rowSessions -> "active_sessions_row_" + rowSessions.joinToString { it.station.stationUuid } }
-                    ) { rowSessions ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            for (session in rowSessions) {
-                                val duration by session.durationSeconds.collectAsState(initial = 0L)
-                                val isReconnecting by session.isReconnecting.collectAsState(initial = false)
-                                Box(modifier = Modifier.weight(1f)) {
-                                    StationCard(
-                                        station = session.station,
-                                        onClick = {}, // No action on click for now
-                                        isRecordingOverlay = true,
-                                        recordingDuration = duration,
-                                        isReconnecting = isReconnecting,
-                                        onStopRecordingClick = { onStopRecording(session.station.stationUuid) }
-                                    )
-                                }
-                            }
-                            if (rowSessions.size == 1) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
-                    
-                    item(key = "active_recordings_divider") {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                        if (stationRecordings.isNotEmpty()) {
-                            Text(
-                                text = stringResource(R.string.recordings_saved),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                        }
-                    }
-                }
-        
                 if (stationRecordings.isNotEmpty()) {
                     items(
                         items = stationRecordings,
@@ -462,7 +404,7 @@ fun RecordingsTab(
                 }
             }
             
-            if (stationRecordings.isEmpty() && activeSessions.isEmpty() && !shouldShowStickyHeader) {
+            if (stationRecordings.isEmpty() && !shouldShowStickyHeader) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
