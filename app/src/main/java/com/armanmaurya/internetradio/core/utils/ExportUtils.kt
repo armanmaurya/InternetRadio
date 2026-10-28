@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.core.utils
 
 import android.content.Context
 import android.net.Uri
+import com.armanmaurya.internetradio.core.exception.StorageException
 import com.armanmaurya.internetradio.data.local.entity.toEntity
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toBackupStation
@@ -29,7 +30,7 @@ object ExportUtils {
             val json = Gson().toJson(backup)
             fileSystemFacade.openOutputStream(uri)?.use { stream ->
                 stream.write(json.toByteArray())
-            } ?: return Result.failure(Exception("Could not open file for writing"))
+            } ?: return Result.failure(StorageException.StreamWriteFailed("Could not open file for writing"))
 
             Result.success(Unit)
         } catch (e: Exception) {

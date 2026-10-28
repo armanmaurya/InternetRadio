@@ -154,6 +154,18 @@ fun TrackHistoryItem(
     val showTimeInSupporting = onToggleStar != null && trailingText.isNotBlank()
     val showTimeInTrailing = onToggleStar == null && trailingText.isNotBlank()
 
+    val supportingText = remember(displaySubtitle, trailingText, showTimeInSupporting) {
+        if (showTimeInSupporting) {
+            if (displaySubtitle.isNotEmpty()) {
+                "$displaySubtitle | $trailingText"
+            } else {
+                trailingText
+            }
+        } else {
+            displaySubtitle
+        }
+    }
+
     Column(
         modifier = modifier
             .padding(vertical = 4.dp)
@@ -205,29 +217,15 @@ fun TrackHistoryItem(
                     modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
                 )
             },
-            supportingContent = if (displaySubtitle.isNotEmpty() || showTimeInSupporting) {
+            supportingContent = if (supportingText.isNotEmpty()) {
                 {
-                    Column {
-                        if (displaySubtitle.isNotEmpty()) {
-                            Text(
-                                text = displaySubtitle,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                            )
-                        }
-                        if (showTimeInSupporting) {
-                            if (displaySubtitle.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(2.dp))
-                            }
-                            Text(
-                                text = trailingText,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    Text(
+                        text = supportingText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                    )
                 }
             } else null,
             trailingContent = if (onToggleStar != null || showTimeInTrailing) {

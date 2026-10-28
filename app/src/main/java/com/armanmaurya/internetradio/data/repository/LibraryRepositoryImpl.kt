@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.data.repository
 
+import com.armanmaurya.internetradio.core.exception.NetworkException
 import com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver
 import com.armanmaurya.internetradio.data.local.dao.ScheduleDao
 import com.armanmaurya.internetradio.data.local.dao.StationDao
@@ -227,7 +228,7 @@ class LibraryRepositoryImpl @Inject constructor(
                 stationDao.insertStation(newStation)
                 Result.success(newUuid)
             } else {
-                Result.failure(Exception(response.message ?: "Unknown API error"))
+                Result.failure(NetworkException.ApiException(message = response.message ?: "Unknown API error"))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -278,7 +279,7 @@ class LibraryRepositoryImpl @Inject constructor(
                 )
                 Result.success(newUuid)
             } else {
-                Result.failure(Exception(response.message ?: "Unknown API error"))
+                Result.failure(NetworkException.ApiException(message = response.message ?: "Unknown API error"))
             }
         } catch (e: Exception) {
             Result.failure(e)
