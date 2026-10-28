@@ -496,4 +496,21 @@
     <string name="player_cd_unstar_track">Șterge melodia salvată</string>
     <string name="player_track_saved">Salvată la melodii</string>
     <string name="player_track_removed">Eliminată din lista melodiilor salvate</string>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d minut</item>
+        <item quantity="few">%1$d minute</item>
+        <item quantity="other">%1$d de minute</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d melodie</item>
+        <item quantity="few">%1$d melodii</item>
+        <item quantity="other">%1$d de melodii</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$dh %2$dm</string>
+    <string name="player_session_duration_m">%1$dm</string>
+    <string name="player_session_gap_minutes">%1$dm interval</string>
+    <string name="player_session_gap_hours">%1$dh interval</string>
+    <string name="player_session_gap_days">%1$dd interval</string>
+    <string name="player_session_today">Astăzi</string>
+    <string name="player_session_yesterday">Ieri</string>
 </resources>
