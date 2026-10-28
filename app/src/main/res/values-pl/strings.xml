@@ -308,10 +308,10 @@
     </plurals>
     <string name="recordings_selected">%1$d wybrano</string>
     <plurals name="tracks_count">
-        <item quantity="one">%1$d utwór</item>
-        <item quantity="few">%1$d utwory</item>
-        <item quantity="many">%1$d utworów</item>
-        <item quantity="other">%1$d utworów</item>
+        <item quantity="one">%1$d ścieżka</item>
+        <item quantity="few">%1$d ścieżki</item>
+        <item quantity="many">%1$d ścieżek</item>
+        <item quantity="other">%1$d ścieżek</item>
     </plurals>
     <string name="schedule_keep_playback_subtitle">Jeśli wyłączone, odtwarzanie zostanie zatrzymane po zakończeniu nagrywania</string>
     <string name="auto_for_you">Dla Ciebie</string>
@@ -509,4 +509,23 @@
     <string name="player_cd_unstar_track">Usuń zapisany utwór</string>
     <string name="player_track_saved">Zapisano w utworach</string>
     <string name="player_track_removed">Usunięto z zapisanych utworów</string>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d minuta</item>
+        <item quantity="few">%1$d minuty</item>
+        <item quantity="many">%1$d minut</item>
+        <item quantity="other">%1$d minut</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d utwór</item>
+        <item quantity="few">%1$d utwory</item>
+        <item quantity="many">%1$d utworów</item>
+        <item quantity="other">%1$d utworów</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$dh %2$dm</string>
+    <string name="player_session_duration_m">%1$dm</string>
+    <string name="player_session_gap_minutes">%1$d min odstępu</string>
+    <string name="player_session_gap_hours">%1$d godz odstępu</string>
+    <string name="player_session_gap_days">%1$d dni odstępu</string>
+    <string name="player_session_today">Dzisiaj</string>
+    <string name="player_session_yesterday">Wczoraj</string>
 </resources>
