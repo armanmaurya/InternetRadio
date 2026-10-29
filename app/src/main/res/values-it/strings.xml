@@ -510,4 +510,13 @@
     <string name="player_session_duration_m">%1$dm</string>
     <string name="player_session_today">Oggi</string>
     <string name="player_session_yesterday">Ieri</string>
+    <string name="recording_add_note">Aggiungi nota</string>
+    <string name="recording_edit_note">Modifica nota</string>
+    <string name="recording_note_placeholder">Aggiungi una nota…</string>
+    <string name="recording_save_note">Salva nota</string>
+    <string name="recording_cancel_note">Annulla</string>
+    <string name="recording_folder_access_title">Richiesto accesso alla cartella</string>
+    <string name="recording_folder_access_message">Consenti l\'accesso a Music/InternetRadio per associare l\'elenco delle tracce e le note alle registrazioni e per visualizzare le registrazioni precedenti.</string>
+    <string name="recording_folder_access_grant">Concedi accesso</string>
+    <string name="recording_folder_access_wrong_folder">Seleziona la cartella Music/InternetRadio</string>
 </resources>
