@@ -12,6 +12,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.armanmaurya.internetradio.data.recording.RecordingFolderAccess
 import com.armanmaurya.internetradio.data.recording.RecordingSidecarStore
 import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.domain.model.RecordingFolder
@@ -21,15 +22,36 @@ import com.armanmaurya.internetradio.domain.repository.RecordingRepository
 class RecordingRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
-    private val sidecarStore: RecordingSidecarStore
+    private val sidecarStore: RecordingSidecarStore,
+    private val folderAccess: RecordingFolderAccess
 ) : RecordingRepository {
 
     private data class FileCacheKey(val lastModified: Long, val sizeBytes: Long)
     private val durationCache = ConcurrentHashMap<String, Pair<FileCacheKey, Long>>()
 
-    private fun getAudioDurationMs(file: File): Long {
-        val currentKey = FileCacheKey(file.lastModified(), file.length())
-        val cached = durationCache[file.absolutePath]
+    private val recordingsRoot: File
+        get() = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "InternetRadio")
+
+    private val supportedExtensions = listOf(".mp3", ".aac", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".ts")
+
+    private fun isRecordingFileName(name: String): Boolean =
+        !name.startsWith(".") && supportedExtensions.any { ext -> name.endsWith(ext, ignoreCase = true) }
+
+    private fun sanitizeFolderName(name: String): String =
+        name.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
+
+    // Keyed by station folder + file name so the cache survives switching between file and SAF URIs
+    private fun durationCacheKey(stationFolderName: String, fileName: String): String =
+        "$stationFolderName/$fileName"
+
+    private fun getAudioDurationMs(
+        cacheKey: String,
+        lastModified: Long,
+        sizeBytes: Long,
+        setDataSource: (MediaMetadataRetriever) -> Unit
+    ): Long {
+        val currentKey = FileCacheKey(lastModified, sizeBytes)
+        val cached = durationCache[cacheKey]
         if (cached != null && cached.first == currentKey) {
             return cached.second
         }
@@ -37,7 +59,7 @@ class RecordingRepositoryImpl @Inject constructor(
         var durationMs = 0L
         val retriever = MediaMetadataRetriever()
         try {
-            retriever.setDataSource(file.absolutePath)
+            setDataSource(retriever)
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             durationMs = durationStr?.toLongOrNull() ?: 0L
         } catch (e: Exception) {
@@ -50,64 +72,91 @@ class RecordingRepositoryImpl @Inject constructor(
             }
         }
 
-        durationCache[file.absolutePath] = Pair(currentKey, durationMs)
+        durationCache[cacheKey] = Pair(currentKey, durationMs)
         return durationMs
     }
 
     override suspend fun getRecordingFolders(): List<RecordingFolder> = withContext(Dispatchers.IO) {
-        val rootDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "InternetRadio")
-        if (!rootDir.exists() || !rootDir.isDirectory) return@withContext emptyList()
-
-        val folders = mutableListOf<RecordingFolder>()
-        val stationDirs = rootDir.listFiles { file -> file.isDirectory } ?: emptyArray()
-        
-        val supportedExtensions = listOf(".mp3", ".aac", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".ts")
-        for (dir in stationDirs) {
-            val files = dir.listFiles { file -> 
-                file.isFile && !file.name.startsWith(".") && supportedExtensions.any { ext -> file.name.endsWith(ext, ignoreCase = true) } 
-            } ?: emptyArray()
-            if (files.isNotEmpty()) {
-                val recordings = files.map {
-                    RecordingFile(
-                        fileName = it.name,
-                        file = it,
-                        uri = Uri.fromFile(it),
-                        lastModified = it.lastModified(),
-                        sizeBytes = it.length(),
-                        durationMs = getAudioDurationMs(it),
-                        stationName = dir.name,
-                        tracks = sidecarStore.readTracks(it, dir.name)
-                    )
-                }.sortedByDescending { it.lastModified }
-                
-                folders.add(RecordingFolder(stationName = dir.name, recordings = recordings))
-            }
+        val treeUri = folderAccess.grantedTreeUri()
+        treeUri?.let(sidecarStore::migrateAppSidecars)
+        val stationNames = if (treeUri != null) {
+            folderAccess.listStationFolders(treeUri).map { it.name }
+        } else {
+            recordingsRoot.listFiles { file -> file.isDirectory }?.map { it.name }.orEmpty()
         }
-        
-        folders.sortedBy { it.stationName }
+
+        stationNames
+            .mapNotNull { stationName ->
+                val recordings = listRecordings(stationName, stationName, treeUri)
+                if (recordings.isEmpty()) null else RecordingFolder(stationName = stationName, recordings = recordings)
+            }
+            .sortedBy { it.stationName }
     }
-    
+
     override suspend fun getRecordingsForStation(stationName: String): List<RecordingFile> = withContext(Dispatchers.IO) {
-        val safeStationName = stationName.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
-        val stationDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "InternetRadio/$safeStationName")
-        if (!stationDir.exists() || !stationDir.isDirectory) return@withContext emptyList()
-        
-        val supportedExtensions = listOf(".mp3", ".aac", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".ts")
-        val files = stationDir.listFiles { file -> 
-            file.isFile && !file.name.startsWith(".") && supportedExtensions.any { ext -> file.name.endsWith(ext, ignoreCase = true) } 
-        } ?: emptyArray()
-        files.map {
+        val treeUri = folderAccess.grantedTreeUri()
+        treeUri?.let(sidecarStore::migrateAppSidecars)
+        listRecordings(sanitizeFolderName(stationName), stationName, treeUri)
+    }
+
+    private fun listRecordings(stationFolderName: String, stationName: String, treeUri: Uri?): List<RecordingFile> {
+        val recordings = if (treeUri != null) {
+            listRecordingsFromTree(treeUri, stationFolderName, stationName)
+        } else {
+            listRecordingsFromFiles(stationFolderName, stationName)
+        }
+        return recordings.sortedByDescending { it.lastModified }
+    }
+
+    private fun listRecordingsFromTree(treeUri: Uri, stationFolderName: String, stationName: String): List<RecordingFile> {
+        val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName) ?: return emptyList()
+        val children = folderAccess.listChildren(treeUri, stationFolder.documentId).filter { !it.isDirectory }
+        val childrenByName = children.associateBy { it.name }
+
+        return children.filter { isRecordingFileName(it.name) }.map { entry ->
+            val sidecar = childrenByName[sidecarStore.sidecarFileName(entry.name)]
+                ?.let { sidecarStore.readSidecar(it.uri) }
+            RecordingFile(
+                fileName = entry.name,
+                file = File(File(recordingsRoot, stationFolderName), entry.name),
+                uri = entry.uri,
+                lastModified = entry.lastModified,
+                sizeBytes = entry.sizeBytes,
+                durationMs = getAudioDurationMs(
+                    durationCacheKey(stationFolderName, entry.name),
+                    entry.lastModified,
+                    entry.sizeBytes
+                ) { it.setDataSource(context, entry.uri) },
+                stationName = stationName,
+                tracks = sidecar?.tracks.orEmpty(),
+                note = sidecar?.note
+            )
+        }
+    }
+
+    private fun listRecordingsFromFiles(stationFolderName: String, stationName: String): List<RecordingFile> {
+        val stationDir = File(recordingsRoot, stationFolderName)
+        if (!stationDir.isDirectory) return emptyList()
+        val files = stationDir.listFiles { file -> file.isFile && isRecordingFileName(file.name) } ?: emptyArray()
+
+        return files.map {
+            val sidecar = sidecarStore.readSidecar(stationFolderName, it.name)
             RecordingFile(
                 fileName = it.name,
                 file = it,
                 uri = Uri.fromFile(it),
                 lastModified = it.lastModified(),
                 sizeBytes = it.length(),
-                durationMs = getAudioDurationMs(it),
+                durationMs = getAudioDurationMs(
+                    durationCacheKey(stationFolderName, it.name),
+                    it.lastModified(),
+                    it.length()
+                ) { retriever -> retriever.setDataSource(it.absolutePath) },
                 stationName = stationName,
-                tracks = sidecarStore.readTracks(it, safeStationName)
+                tracks = sidecar?.tracks.orEmpty(),
+                note = sidecar?.note
             )
-        }.sortedByDescending { it.lastModified }
+        }
     }
 
     private val _recordingsChangedEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -118,17 +167,8 @@ class RecordingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteRecording(recording: RecordingFile): Boolean = withContext(Dispatchers.IO) {
-        val deleted = fileSystemFacade.deleteAudioRecording(recording.uri)
+        val deleted = deleteRecordingWithSidecar(recording)
         if (deleted) {
-            sidecarStore.deleteSidecar(recording.file, recording.stationName)
-            durationCache.remove(recording.file.absolutePath)
-            val parent = recording.file.parentFile
-            if (parent != null && parent.isDirectory) {
-                val files = parent.listFiles()
-                if (files != null && files.isEmpty()) {
-                    parent.delete()
-                }
-            }
             notifyRecordingsChanged()
         }
         deleted
@@ -137,17 +177,55 @@ class RecordingRepositoryImpl @Inject constructor(
     override suspend fun deleteRecordings(recordings: List<RecordingFile>): Boolean = withContext(Dispatchers.IO) {
         var allDeleted = true
         recordings.forEach { recording ->
-            val deleted = fileSystemFacade.deleteAudioRecording(recording.uri)
+            if (!deleteRecordingWithSidecar(recording)) {
+                allDeleted = false
+            }
+        }
+        notifyRecordingsChanged()
+        allDeleted
+    }
+
+    private suspend fun deleteRecordingWithSidecar(recording: RecordingFile): Boolean {
+        val deleted = fileSystemFacade.deleteAudioRecording(recording.uri)
+        if (!deleted) return false
+
+        val stationFolderName = sanitizeFolderName(recording.stationName)
+        sidecarStore.deleteSidecar(stationFolderName, recording.fileName)
+        durationCache.remove(durationCacheKey(stationFolderName, recording.fileName))
+        deleteStationFolderIfEmpty(stationFolderName)
+        return true
+    }
+
+    private fun deleteStationFolderIfEmpty(stationFolderName: String) {
+        val treeUri = folderAccess.grantedTreeUri()
+        if (treeUri != null) {
+            val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName) ?: return
+            if (folderAccess.listChildren(treeUri, stationFolder.documentId).isEmpty()) {
+                folderAccess.delete(stationFolder.uri)
+            }
+            return
+        }
+
+        val stationDir = File(recordingsRoot, stationFolderName)
+        if (stationDir.isDirectory && stationDir.listFiles()?.isEmpty() == true) {
+            stationDir.delete()
+        }
+    }
+
+    override suspend fun deleteRecordingFolders(stationNames: List<String>): Boolean = withContext(Dispatchers.IO) {
+        var allDeleted = true
+        val treeUri = folderAccess.grantedTreeUri()
+        stationNames.forEach { stationName ->
+            val safeStationName = sanitizeFolderName(stationName)
+            val deleted = if (treeUri != null) {
+                // Deleting the folder document removes the recordings and sidecars inside it
+                folderAccess.findStationFolder(treeUri, safeStationName)?.let { folderAccess.delete(it.uri) } ?: false
+            } else {
+                sidecarStore.deleteStationSidecars(safeStationName)
+                fileSystemFacade.deleteAudioRecordingFolder(safeStationName)
+            }
             if (deleted) {
-                sidecarStore.deleteSidecar(recording.file, recording.stationName)
-                durationCache.remove(recording.file.absolutePath)
-                val parent = recording.file.parentFile
-                if (parent != null && parent.isDirectory) {
-                    val files = parent.listFiles()
-                    if (files != null && files.isEmpty()) {
-                        parent.delete()
-                    }
-                }
+                durationCache.keys.removeAll { it.startsWith("$safeStationName/") }
             } else {
                 allDeleted = false
             }
@@ -156,29 +234,8 @@ class RecordingRepositoryImpl @Inject constructor(
         allDeleted
     }
 
-    override suspend fun deleteRecordingFolders(stationNames: List<String>): Boolean = withContext(Dispatchers.IO) {
-        var allDeleted = true
-        stationNames.forEach { stationName ->
-            val safeStationName = stationName.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
-            sidecarStore.deleteStationSidecars(safeStationName)
-            val deleted = fileSystemFacade.deleteAudioRecordingFolder(safeStationName)
-            if (deleted) {
-                val folderPrefix = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
-                    "InternetRadio/$safeStationName"
-                ).absolutePath
-                val iterator = durationCache.keys.iterator()
-                while (iterator.hasNext()) {
-                    if (iterator.next().startsWith(folderPrefix)) {
-                        iterator.remove()
-                    }
-                }
-            } else {
-                // If it failed to delete (e.g. not empty, or doesn't exist), maybe it's fine.
-                // We'll trust the caller to refresh.
-            }
-        }
+    override suspend fun updateRecordingNote(recording: RecordingFile, note: String?) = withContext(Dispatchers.IO) {
+        sidecarStore.saveNote(sanitizeFolderName(recording.stationName), recording.fileName, note)
         notifyRecordingsChanged()
-        allDeleted
     }
 }

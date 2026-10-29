@@ -29,4 +29,10 @@ interface RecordingPlaybackController {
     fun requestRouteToPlayingRecording()
     fun routeToRecording(stationName: String, recordingUri: String)
     fun clearRouteTarget()
+
+    /**
+     * Swaps the current recording for its entry in a freshly loaded list, so the UI keeps matching
+     * it when its URI changes (e.g. listing switches to the granted folder) or its note/tracks update.
+     */
+    fun syncCurrentRecording(recordings: List<RecordingFile>)
 }

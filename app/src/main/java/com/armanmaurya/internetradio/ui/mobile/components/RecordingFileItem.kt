@@ -1,27 +1,35 @@
 package com.armanmaurya.internetradio.ui.mobile.components
 
 import android.text.format.DateUtils
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import com.armanmaurya.internetradio.R
 import androidx.compose.ui.unit.dp
 import com.armanmaurya.internetradio.domain.model.RecordingFile
@@ -38,6 +46,7 @@ fun RecordingFileItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     onDelete: () -> Unit,
+    onSaveNote: ((String?) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val sizeMb = recording.sizeBytes / (1024 * 1024f)
@@ -50,12 +59,50 @@ fun RecordingFileItem(
 
     var showMenu by remember(recording.uri) { mutableStateOf(false) }
     var isDeleting by remember(recording.uri) { mutableStateOf(false) }
+    var isEditingNote by remember(recording.uri) { mutableStateOf(false) }
+    var isNoteExpanded by remember(recording.uri) { mutableStateOf(false) }
+    var noteDraft by remember(recording.uri, recording.note) { mutableStateOf(recording.note.orEmpty()) }
+    val focusRequester = remember { FocusRequester() }
     val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
+
+    LaunchedEffect(selectionMode) {
+        if (selectionMode && isEditingNote) {
+            isEditingNote = false
+        }
+    }
+
+    LaunchedEffect(isEditingNote) {
+        if (isEditingNote) {
+            runCatching { focusRequester.requestFocus() }
+        }
+    }
+
+    BackHandler(enabled = isEditingNote) {
+        isEditingNote = false
+        noteDraft = recording.note.orEmpty()
+    }
 
     val alpha by animateFloatAsState(
         targetValue = if (isDeleting) 0.5f else 1f,
         label = "deletingAlpha"
     )
+
+    val durationStr = if (recording.durationMs > 0L) {
+        DateUtils.formatElapsedTime(recording.durationMs / 1000L)
+    } else null
+    val detailsStr = if (durationStr != null) {
+        String.format(Locale.getDefault(), "%s • %.1f MB • %s", durationStr, sizeMb, timeStr)
+    } else {
+        String.format(Locale.getDefault(), "%.1f MB • %s", sizeMb, timeStr)
+    }
+
+    val hasNote = !recording.note.isNullOrBlank()
+    val hasBottomContent = (isEditingNote && onSaveNote != null) || (!isEditingNote && hasNote)
+    val saveAction = {
+        val clean = noteDraft.trim().takeIf { it.isNotEmpty() }
+        onSaveNote?.invoke(clean)
+        isEditingNote = false
+    }
 
     Column(
         modifier = modifier
@@ -82,77 +129,155 @@ fun RecordingFileItem(
                 onLongClick = onLongClick
             )
     ) {
-        ListItem(
-            headlineContent = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 16.dp,
+                    end = 4.dp,
+                    top = 12.dp,
+                    bottom = if (hasBottomContent) 4.dp else 12.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = recording.fileName,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
                 )
-            },
-            supportingContent = {
-                val durationStr = if (recording.durationMs > 0L) {
-                    DateUtils.formatElapsedTime(recording.durationMs / 1000L)
-                } else null
-                val detailsStr = if (durationStr != null) {
-                    String.format(Locale.getDefault(), "%s • %.1f MB • %s", durationStr, sizeMb, timeStr)
-                } else {
-                    String.format(Locale.getDefault(), "%.1f MB • %s", sizeMb, timeStr)
-                }
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = detailsStr,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            },
-            trailingContent = {
-                if (selectionMode) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = null,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                } else {
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.more_options)
-                            )
+            }
+
+            if (selectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = null,
+                    modifier = Modifier.padding(start = 8.dp, end = 12.dp)
+                )
+            } else if (isEditingNote && onSaveNote != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            isEditingNote = false
+                            noteDraft = recording.note.orEmpty()
                         }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.recording_cancel_note),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = saveAction
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = stringResource(R.string.recording_save_note),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            } else {
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.more_options),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        if (onSaveNote != null) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.delete_recording)) },
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            if (recording.note.isNullOrBlank()) R.string.recording_add_note
+                                            else R.string.recording_edit_note
+                                        )
+                                    )
+                                },
                                 onClick = {
                                     showMenu = false
-                                    isDeleting = true
-                                    onDelete()
+                                    noteDraft = recording.note.orEmpty()
+                                    isEditingNote = true
                                 },
                                 leadingIcon = {
-                                    Icon(Icons.Default.Delete, contentDescription = null)
+                                    Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null)
                                 }
                             )
                         }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete_recording)) },
+                            onClick = {
+                                showMenu = false
+                                isDeleting = true
+                                onDelete()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Delete, contentDescription = null)
+                            }
+                        )
                     }
                 }
-            },
-            leadingContent = {
-                Icon(
-                    imageVector = when {
-                        isCurrentlyPlaying && playbackIsPlaying -> Icons.Default.GraphicEq
-                        isCurrentlyPlaying -> Icons.Default.Pause
-                        else -> Icons.Default.Mic
-                    },
-                    contentDescription = null,
-                    tint = if (isSelected || isCurrentlyPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            colors = ListItemDefaults.colors(
-                containerColor = androidx.compose.ui.graphics.Color.Transparent
+            }
+        }
+
+        if (!isEditingNote && !recording.note.isNullOrBlank()) {
+            Text(
+                text = recording.note,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = if (isNoteExpanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .then(
+                        if (!selectionMode) {
+                            Modifier.clickable { isNoteExpanded = !isNoteExpanded }
+                        } else {
+                            Modifier
+                        }
+                    )
             )
-        )
+        } else if (isEditingNote && onSaveNote != null) {
+            OutlinedTextField(
+                value = noteDraft,
+                onValueChange = { noteDraft = it },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.recording_note_placeholder),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                maxLines = 4,
+                shape = RoundedCornerShape(10.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { saveAction() }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp)
+                    .focusRequester(focusRequester)
+            )
+        }
     }
 }

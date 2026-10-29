@@ -572,4 +572,13 @@
     <string name="recording_speed_normal">1.0x (Normal)</string>
     <string name="recording_cd_loop_enabled">Disable infinite loop</string>
     <string name="recording_cd_loop_disabled">Enable infinite loop</string>
+    <string name="recording_add_note">Add note</string>
+    <string name="recording_edit_note">Edit note</string>
+    <string name="recording_note_placeholder">Add a note…</string>
+    <string name="recording_save_note">Save note</string>
+    <string name="recording_cancel_note">Cancel</string>
+    <string name="recording_folder_access_title">Folder access needed</string>
+    <string name="recording_folder_access_message">Allow access to Music/InternetRadio to keep track lists and notes next to your recordings and to show your older recordings.</string>
+    <string name="recording_folder_access_grant">Grant access</string>
+    <string name="recording_folder_access_wrong_folder">Please select the Music/InternetRadio folder</string>
 </resources>

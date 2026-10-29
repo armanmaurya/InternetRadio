@@ -256,6 +256,15 @@ class RecordingPlaybackControllerImpl @Inject constructor(
         context.startService(intent)
     }
 
+    override fun syncCurrentRecording(recordings: List<RecordingFile>) {
+        val current = _currentRecording.value ?: return
+        // The file path is the same whether the recording was listed by file or through SAF
+        val latest = recordings.firstOrNull { it.file.absolutePath == current.file.absolutePath } ?: return
+        if (latest != current) {
+            _currentRecording.value = latest
+        }
+    }
+
     override fun requestRouteToPlayingRecording() {
         val rec = _currentRecording.value ?: return
         routeToRecording(rec.stationName, rec.uri.toString())

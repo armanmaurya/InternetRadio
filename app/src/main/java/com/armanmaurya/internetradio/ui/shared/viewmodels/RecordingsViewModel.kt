@@ -1,7 +1,9 @@
 package com.armanmaurya.internetradio.ui.shared.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.armanmaurya.internetradio.data.recording.RecordingFolderAccess
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.domain.model.RecordingFolder
@@ -31,8 +33,15 @@ class RecordingsViewModel @Inject constructor(
     private val stopRecordingUseCase: StopRecordingUseCase,
     private val recordingRepository: RecordingRepository,
     private val libraryRepository: LibraryRepository,
-    private val recordingPlaybackController: RecordingPlaybackController
+    private val recordingPlaybackController: RecordingPlaybackController,
+    private val recordingFolderAccess: RecordingFolderAccess
 ) : ViewModel() {
+
+    private val _hasFolderAccess = MutableStateFlow(recordingFolderAccess.hasAccess())
+    val hasFolderAccess: StateFlow<Boolean> = _hasFolderAccess.asStateFlow()
+
+    val folderAccessInitialUri: Uri
+        get() = recordingFolderAccess.initialPickerUri
 
     private val _folders = MutableStateFlow<List<RecordingFolder>>(emptyList())
     val folders: StateFlow<List<RecordingFolder>> = _folders.asStateFlow()
@@ -92,6 +101,7 @@ class RecordingsViewModel @Inject constructor(
         viewModelScope.launch {
             val loadedFolders = getRecordingFoldersUseCase()
             _folders.value = loadedFolders
+            recordingPlaybackController.syncCurrentRecording(loadedFolders.flatMap { it.recordings })
             _isLoaded.value = true
             val currentSelected = _selectedStationName.value
             if (currentSelected != null && loadedFolders.none { it.stationName == currentSelected }) {
@@ -181,6 +191,44 @@ class RecordingsViewModel @Inject constructor(
                 _expandedRecordingUri.value = null
             }
         }
+    }
+
+    fun updateRecordingNote(recording: RecordingFile, note: String?) {
+        val cleanNote = note?.trim()?.takeIf { it.isNotEmpty() }
+        _folders.value = _folders.value.map { folder ->
+            if (folder.stationName == recording.stationName) {
+                folder.copy(
+                    recordings = folder.recordings.map { item ->
+                        if (item.uri == recording.uri) item.copy(note = cleanNote) else item
+                    }
+                )
+            } else {
+                folder
+            }
+        }
+        viewModelScope.launch {
+            recordingRepository.updateRecordingNote(recording, cleanNote)
+        }
+    }
+
+    fun refreshFolderAccess() {
+        val hasAccess = recordingFolderAccess.hasAccess()
+        if (_hasFolderAccess.value != hasAccess) {
+            _hasFolderAccess.value = hasAccess
+            // Recordings are listed through the granted folder, so the visible set changes with access
+            loadFolders()
+        }
+    }
+
+    fun prepareFolderAccessRequest() {
+        recordingFolderAccess.ensureFolderExists()
+    }
+
+    /** Returns false when the picked folder is not Music/InternetRadio. */
+    fun onFolderAccessResult(treeUri: Uri): Boolean {
+        val granted = recordingFolderAccess.grantAccess(treeUri)
+        refreshFolderAccess()
+        return granted
     }
 
     fun toggleLibrary(station: RadioStation) {

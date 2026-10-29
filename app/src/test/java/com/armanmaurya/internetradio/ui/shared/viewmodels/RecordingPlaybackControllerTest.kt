@@ -313,6 +313,8 @@ class RecordingPlaybackControllerTest {
         override fun clearRouteTarget() {
             _routeToRecordingTarget.value = null
         }
+
+        override fun syncCurrentRecording(recordings: List<RecordingFile>) = Unit
     }
 
     private open class EmptyPlayerController : PlayerController {

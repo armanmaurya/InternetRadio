@@ -12,4 +12,5 @@ interface RecordingRepository {
     suspend fun deleteRecording(recording: RecordingFile): Boolean
     suspend fun deleteRecordings(recordings: List<RecordingFile>): Boolean
     suspend fun deleteRecordingFolders(stationNames: List<String>): Boolean
+    suspend fun updateRecordingNote(recording: RecordingFile, note: String?)
 }

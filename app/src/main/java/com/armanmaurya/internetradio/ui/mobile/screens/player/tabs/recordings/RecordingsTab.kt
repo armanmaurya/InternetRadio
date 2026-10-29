@@ -49,8 +49,10 @@ import androidx.compose.ui.unit.dp
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
+import com.armanmaurya.internetradio.ui.mobile.components.RecordingFolderAccessWarning
 
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingRecordingCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingTrackQueue
@@ -65,6 +67,12 @@ fun RecordingsTab(
     viewModel: RecordingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
 ) {
     val currentPlayingRecording by viewModel.currentPlayingRecording.collectAsStateWithLifecycle()
+    val hasFolderAccess by viewModel.hasFolderAccess.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshFolderAccess()
+        onPauseOrDispose { }
+    }
     val isPlayingRecording by viewModel.isPlayingRecording.collectAsStateWithLifecycle()
     val recordingPositionMs by viewModel.recordingPositionMs.collectAsStateWithLifecycle()
     val recordingDurationMs by viewModel.recordingDurationMs.collectAsStateWithLifecycle()
@@ -180,6 +188,19 @@ fun RecordingsTab(
                     bottom = 80.dp
                 )
             ) {
+                if (!hasFolderAccess) {
+                    item(key = "folder_access_warning") {
+                        RecordingFolderAccessWarning(
+                            initialPickerUri = viewModel.folderAccessInitialUri,
+                            onBeforeRequest = viewModel::prepareFolderAccessRequest,
+                            onFolderPicked = viewModel::onFolderAccessResult,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        )
+                    }
+                }
+
                 if (shouldShowStickyHeader) {
                     if (shouldShowNowPlayingCard) {
                         stickyHeader(key = "sticky_recording_tab_header") {
@@ -397,6 +418,9 @@ fun RecordingsTab(
                             },
                             onDelete = {
                                 onDeleteRecording(recording)
+                            },
+                            onSaveNote = { newNote ->
+                                viewModel.updateRecordingNote(recording, newNote)
                             },
                             modifier = Modifier.animateItem()
                         )

@@ -181,6 +181,26 @@ class RecordingTrackMetadataTest {
         assertEquals("Nightcall", restored.tracks[0].title)
         assertEquals("Kavinsky", restored.tracks[0].artist)
         assertEquals(215000L, restored.tracks[1].offsetMs)
+        assertEquals(null, restored.note)
+    }
+
+    @Test
+    fun sidecarDto_roundTripSerialization_preservesNoteWithOrWithoutTracks() {
+        val gson = Gson()
+        val dto = RecordingSidecarDto(
+            stationName = "Jazz FM",
+            fileName = "Jazz FM 2026-10-29.mp3",
+            tracks = emptyList(),
+            note = "Great sax solo around 02:15"
+        )
+
+        val json = gson.toJson(dto)
+        val restored = gson.fromJson(json, RecordingSidecarDto::class.java)
+
+        assertEquals("Jazz FM", restored.stationName)
+        assertEquals("Jazz FM 2026-10-29.mp3", restored.fileName)
+        assertEquals(0, restored.tracks.size)
+        assertEquals("Great sax solo around 02:15", restored.note)
     }
 
     private fun buildIcyMetaBlock(meta: String): ByteArray {

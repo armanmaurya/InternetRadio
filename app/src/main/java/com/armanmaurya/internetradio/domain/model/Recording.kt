@@ -26,7 +26,8 @@ data class RecordingFile(
     val sizeBytes: Long,
     val durationMs: Long = 0L,
     val stationName: String = file.parentFile?.name ?: "",
-    val tracks: List<RecordingTrack> = emptyList()
+    val tracks: List<RecordingTrack> = emptyList(),
+    val note: String? = null
 )
 
 data class RecordingSession(

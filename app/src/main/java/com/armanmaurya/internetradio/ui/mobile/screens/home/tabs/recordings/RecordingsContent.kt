@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.model.RadioStation
@@ -47,6 +48,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
+import com.armanmaurya.internetradio.ui.mobile.components.RecordingFolderAccessWarning
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingRecordingCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingTrackQueue
@@ -76,6 +78,7 @@ fun RecordingsContent(
     val recordingDurationMs by viewModel.recordingDurationMs.collectAsStateWithLifecycle()
     val recordingPlaybackSpeed by viewModel.recordingPlaybackSpeed.collectAsStateWithLifecycle()
     val isRecordingLooping by viewModel.isRecordingLooping.collectAsStateWithLifecycle()
+    val hasFolderAccess by viewModel.hasFolderAccess.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -149,6 +152,12 @@ fun RecordingsContent(
             selectedFolders = emptySet()
             selectedFiles = emptySet()
         }
+    }
+
+    // Access can be revoked from system settings while the app is in the background
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshFolderAccess()
+        onPauseOrDispose { }
     }
 
     LaunchedEffect(Unit) {
@@ -301,6 +310,17 @@ fun RecordingsContent(
                     )
                 }
             }
+        }
+
+        if (!hasFolderAccess) {
+            RecordingFolderAccessWarning(
+                initialPickerUri = viewModel.folderAccessInitialUri,
+                onBeforeRequest = viewModel::prepareFolderAccessRequest,
+                onFolderPicked = viewModel::onFolderAccessResult,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            )
         }
 
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
@@ -728,6 +748,9 @@ fun RecordingsContent(
                                                 },
                                                 onDelete = {
                                                     viewModel.deleteRecording(recording)
+                                                },
+                                                onSaveNote = { newNote ->
+                                                    viewModel.updateRecordingNote(recording, newNote)
                                                 },
                                                 modifier = Modifier.padding(horizontal = 16.dp)
                                             )
