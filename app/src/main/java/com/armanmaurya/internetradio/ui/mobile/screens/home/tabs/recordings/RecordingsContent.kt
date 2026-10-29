@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.SelectAll
@@ -32,6 +31,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import com.armanmaurya.internetradio.ui.shared.theme.LocalAppPreferences
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -668,13 +676,12 @@ fun RecordingsContent(
                                                             topEnd = 8.dp,
                                                             bottomEnd = 8.dp
                                                         ))
-                                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Folder,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                    RecordingFolderArtwork(
+                                                        artworkUri = folder.artworkUri,
+                                                        stationName = folder.stationName
                                                     )
                                                 }
                                                 
@@ -778,5 +785,35 @@ fun RecordingsContent(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun RecordingFolderArtwork(artworkUri: Uri?, stationName: String) {
+    val showThumbnails = LocalAppPreferences.current.showStationThumbnails
+    val placeholder: @Composable () -> Unit = {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    if (showThumbnails && artworkUri != null) {
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(artworkUri)
+                .build(),
+            contentDescription = stringResource(R.string.home_cd_station_logo, stationName),
+            contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.High,
+            modifier = Modifier.fillMaxSize(),
+            error = { placeholder() },
+            loading = { placeholder() }
+        )
+    } else {
+        placeholder()
     }
 }

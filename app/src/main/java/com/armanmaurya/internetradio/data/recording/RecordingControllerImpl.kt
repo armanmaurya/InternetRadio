@@ -47,6 +47,7 @@ class RecordingControllerImpl @Inject constructor(
     private val streamRecorder: StreamRecorder,
     private val coverArtRepository: CoverArtRepository,
     private val sidecarStore: RecordingSidecarStore,
+    private val artworkStore: RecordingArtworkStore,
     private val settingsRepository: SettingsRepository
 ) : RecordingController {
 
@@ -89,6 +90,7 @@ class RecordingControllerImpl @Inject constructor(
         var openedStationFolder: String = station.name.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
         var openedFileName: String? = null
         var lastRawTrack: String? = null
+        var artworkRequested = false
 
         val job = scope.launch {
             var currentMaxRetryDuration = 300_000L
@@ -119,6 +121,14 @@ class RecordingControllerImpl @Inject constructor(
                         val snapshot = synchronized(recordedTracks) { recordedTracks.toList() }
                         if (snapshot.isNotEmpty()) {
                             sidecarStore.saveTracks(stationFolder, fileName, snapshot)
+                        }
+                        if (!artworkRequested) {
+                            artworkRequested = true
+                            scope.launch {
+                                if (artworkStore.saveStationArtwork(stationFolder, station)) {
+                                    recordingRepository.notifyRecordingsChanged()
+                                }
+                            }
                         }
                     },
                     onTrackMetadata = { rawTrack, audioOffsetMs ->

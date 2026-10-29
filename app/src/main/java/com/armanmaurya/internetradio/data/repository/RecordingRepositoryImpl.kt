@@ -12,6 +12,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.armanmaurya.internetradio.data.recording.RecordingArtworkStore
 import com.armanmaurya.internetradio.data.recording.RecordingFolderAccess
 import com.armanmaurya.internetradio.data.recording.RecordingSidecarStore
 import com.armanmaurya.internetradio.domain.model.RecordingFile
@@ -23,7 +24,8 @@ class RecordingRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
     private val sidecarStore: RecordingSidecarStore,
-    private val folderAccess: RecordingFolderAccess
+    private val folderAccess: RecordingFolderAccess,
+    private val artworkStore: RecordingArtworkStore
 ) : RecordingRepository {
 
     private data class FileCacheKey(val lastModified: Long, val sizeBytes: Long)
@@ -78,7 +80,7 @@ class RecordingRepositoryImpl @Inject constructor(
 
     override suspend fun getRecordingFolders(): List<RecordingFolder> = withContext(Dispatchers.IO) {
         val treeUri = folderAccess.grantedTreeUri()
-        treeUri?.let(sidecarStore::migrateAppSidecars)
+        treeUri?.let { migrateAppFiles(it) }
         val stationNames = if (treeUri != null) {
             folderAccess.listStationFolders(treeUri).map { it.name }
         } else {
@@ -87,33 +89,52 @@ class RecordingRepositoryImpl @Inject constructor(
 
         stationNames
             .mapNotNull { stationName ->
-                val recordings = listRecordings(stationName, stationName, treeUri)
-                if (recordings.isEmpty()) null else RecordingFolder(stationName = stationName, recordings = recordings)
+                val listing = listStation(stationName, stationName, treeUri)
+                if (listing.recordings.isEmpty()) {
+                    null
+                } else {
+                    RecordingFolder(
+                        stationName = stationName,
+                        recordings = listing.recordings,
+                        artworkUri = listing.artworkUri
+                    )
+                }
             }
             .sortedBy { it.stationName }
     }
 
     override suspend fun getRecordingsForStation(stationName: String): List<RecordingFile> = withContext(Dispatchers.IO) {
         val treeUri = folderAccess.grantedTreeUri()
-        treeUri?.let(sidecarStore::migrateAppSidecars)
-        listRecordings(sanitizeFolderName(stationName), stationName, treeUri)
+        treeUri?.let { migrateAppFiles(it) }
+        listStation(sanitizeFolderName(stationName), stationName, treeUri).recordings
     }
 
-    private fun listRecordings(stationFolderName: String, stationName: String, treeUri: Uri?): List<RecordingFile> {
-        val recordings = if (treeUri != null) {
-            listRecordingsFromTree(treeUri, stationFolderName, stationName)
+    private suspend fun migrateAppFiles(treeUri: Uri) {
+        sidecarStore.migrateAppSidecars(treeUri)
+        artworkStore.migrateAppArtwork(treeUri)
+    }
+
+    private data class StationListing(val recordings: List<RecordingFile>, val artworkUri: Uri?)
+
+    private fun listStation(stationFolderName: String, stationName: String, treeUri: Uri?): StationListing {
+        val listing = if (treeUri != null) {
+            listStationFromTree(treeUri, stationFolderName, stationName)
         } else {
-            listRecordingsFromFiles(stationFolderName, stationName)
+            StationListing(
+                recordings = listRecordingsFromFiles(stationFolderName, stationName),
+                artworkUri = artworkStore.appArtworkUri(stationFolderName)
+            )
         }
-        return recordings.sortedByDescending { it.lastModified }
+        return listing.copy(recordings = listing.recordings.sortedByDescending { it.lastModified })
     }
 
-    private fun listRecordingsFromTree(treeUri: Uri, stationFolderName: String, stationName: String): List<RecordingFile> {
-        val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName) ?: return emptyList()
+    private fun listStationFromTree(treeUri: Uri, stationFolderName: String, stationName: String): StationListing {
+        val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName)
+            ?: return StationListing(emptyList(), null)
         val children = folderAccess.listChildren(treeUri, stationFolder.documentId).filter { !it.isDirectory }
         val childrenByName = children.associateBy { it.name }
 
-        return children.filter { isRecordingFileName(it.name) }.map { entry ->
+        val recordings = children.filter { isRecordingFileName(it.name) }.map { entry ->
             val sidecar = childrenByName[sidecarStore.sidecarFileName(entry.name)]
                 ?.let { sidecarStore.readSidecar(it.uri) }
             RecordingFile(
@@ -132,6 +153,7 @@ class RecordingRepositoryImpl @Inject constructor(
                 note = sidecar?.note
             )
         }
+        return StationListing(recordings, childrenByName[RecordingArtworkStore.ARTWORK_FILE_NAME]?.uri)
     }
 
     private fun listRecordingsFromFiles(stationFolderName: String, stationName: String): List<RecordingFile> {
@@ -200,15 +222,21 @@ class RecordingRepositoryImpl @Inject constructor(
         val treeUri = folderAccess.grantedTreeUri()
         if (treeUri != null) {
             val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName) ?: return
-            if (folderAccess.listChildren(treeUri, stationFolder.documentId).isEmpty()) {
+            // The station logo alone does not keep the folder around
+            val children = folderAccess.listChildren(treeUri, stationFolder.documentId)
+            if (children.all { RecordingArtworkStore.isArtworkFileName(it.name) }) {
                 folderAccess.delete(stationFolder.uri)
+                artworkStore.deleteAppArtwork(stationFolderName)
             }
             return
         }
 
         val stationDir = File(recordingsRoot, stationFolderName)
-        if (stationDir.isDirectory && stationDir.listFiles()?.isEmpty() == true) {
+        if (!stationDir.isDirectory) {
+            artworkStore.deleteAppArtwork(stationFolderName)
+        } else if (stationDir.listFiles()?.isEmpty() == true) {
             stationDir.delete()
+            artworkStore.deleteAppArtwork(stationFolderName)
         }
     }
 
@@ -222,6 +250,7 @@ class RecordingRepositoryImpl @Inject constructor(
                 folderAccess.findStationFolder(treeUri, safeStationName)?.let { folderAccess.delete(it.uri) } ?: false
             } else {
                 sidecarStore.deleteStationSidecars(safeStationName)
+                artworkStore.deleteAppArtwork(safeStationName)
                 fileSystemFacade.deleteAudioRecordingFolder(safeStationName)
             }
             if (deleted) {

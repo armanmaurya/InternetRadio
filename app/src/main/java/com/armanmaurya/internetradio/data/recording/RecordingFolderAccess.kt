@@ -114,7 +114,11 @@ class RecordingFolderAccess @Inject constructor(
     }.getOrNull()
 
     /** Creates or truncates [fileName] inside the station folder, creating the folder if needed. */
-    fun writeText(treeUri: Uri, stationFolderName: String, fileName: String, mimeType: String, text: String): Boolean {
+    fun writeText(treeUri: Uri, stationFolderName: String, fileName: String, mimeType: String, text: String): Boolean =
+        writeBytes(treeUri, stationFolderName, fileName, mimeType, text.toByteArray(Charsets.UTF_8))
+
+    /** Creates or truncates [fileName] inside the station folder, creating the folder if needed. */
+    fun writeBytes(treeUri: Uri, stationFolderName: String, fileName: String, mimeType: String, bytes: ByteArray): Boolean {
         return runCatching {
             val stationFolder = findStationFolder(treeUri, stationFolderName)
                 ?: createDocument(treeUri, DocumentsContract.getTreeDocumentId(treeUri), DocumentsContract.Document.MIME_TYPE_DIR, stationFolderName)
@@ -123,7 +127,7 @@ class RecordingFolderAccess @Inject constructor(
                 ?: createDocument(treeUri, stationFolder.documentId, mimeType, fileName)?.uri
                 ?: return false
             context.contentResolver.openOutputStream(target, "wt")?.use {
-                it.write(text.toByteArray(Charsets.UTF_8))
+                it.write(bytes)
             } != null
         }.getOrDefault(false)
     }

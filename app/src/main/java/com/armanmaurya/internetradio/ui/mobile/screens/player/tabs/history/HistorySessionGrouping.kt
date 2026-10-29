@@ -21,7 +21,7 @@ data class HistorySessionGroup(
 
 object HistorySessionGrouping {
 
-    const val DEFAULT_GAP_MINUTES: Int = 15
+    const val DEFAULT_GAP_MINUTES: Int = 1
     const val DEFAULT_GAP_MS: Long = DEFAULT_GAP_MINUTES * 60 * 1000L
 
     /**

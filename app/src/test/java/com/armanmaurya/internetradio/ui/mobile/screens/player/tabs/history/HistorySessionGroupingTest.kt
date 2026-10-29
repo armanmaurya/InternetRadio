@@ -64,16 +64,16 @@ class HistorySessionGroupingTest {
     fun groupTracks_pausedTimeWithinThreshold_isExcludedFromActiveDuration() {
         val start = 10000000L
         val fiveMins = 5 * 60 * 1000L
-        val tenMinsPause = 10 * 60 * 1000L
+        val shortPause = 30 * 1000L
 
-        // Track 1 played 5 mins, paused 10 mins (< 15m default gap), then Track 2 played 5 mins
+        // Track 1 played 5 mins, paused 30s (< 1m default gap), then Track 2 played 5 mins
         val t1 = createTrack(
             id = 1,
             timestamp = start,
             endTimestamp = start + fiveMins,
             durationMs = fiveMins
         )
-        val t2Start = start + fiveMins + tenMinsPause
+        val t2Start = start + fiveMins + shortPause
         val t2 = createTrack(
             id = 2,
             timestamp = t2Start,
@@ -85,7 +85,7 @@ class HistorySessionGroupingTest {
 
         assertEquals(1, sessions.size)
         assertEquals(2, sessions.first().trackCount)
-        // Wall-clock span is 20m, but active listening duration is 10m (5m + 5m)
+        // Wall-clock span is 10m30s, but active listening duration is 10m (5m + 5m)
         assertEquals(start, sessions.first().startTime)
         assertEquals(t2Start + fiveMins, sessions.first().endTime)
         assertEquals(2 * fiveMins, sessions.first().durationMs)
@@ -215,7 +215,8 @@ class HistorySessionGroupingTest {
             durationMs = 3 * 60 * 1000L
         )
 
-        val sessions = HistorySessionGrouping.groupTracks(listOf(legacyTrack, newTrack))
+        // Legacy rows have no end time, so they only group under a gap wider than a song
+        val sessions = HistorySessionGrouping.groupTracks(listOf(legacyTrack, newTrack), gapMs = 15 * 60 * 1000L)
 
         assertEquals(1, sessions.size)
         // Legacy track span to next track (5m) + new track active duration (3m) = 8m
@@ -247,5 +248,18 @@ class HistorySessionGroupingTest {
             7L,
             HistorySessionGrouping.computeCalendarDaysDiff(calNow.timeInMillis, calSevenDaysAgo.timeInMillis)
         )
+    }
+
+    @Test
+    fun groupTracks_pauseOfOneMinuteOrMore_startsNewSession() {
+        val start = 10000000L
+        val fiveMins = 5 * 60 * 1000L
+        val t1 = createTrack(id = 1, timestamp = start, endTimestamp = start + fiveMins, durationMs = fiveMins)
+        val t2Start = start + fiveMins + 60 * 1000L
+        val t2 = createTrack(id = 2, timestamp = t2Start, endTimestamp = t2Start + fiveMins, durationMs = fiveMins)
+
+        val sessions = HistorySessionGrouping.groupTracks(listOf(t1, t2))
+
+        assertEquals(2, sessions.size)
     }
 }

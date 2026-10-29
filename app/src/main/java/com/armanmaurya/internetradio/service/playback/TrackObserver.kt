@@ -24,6 +24,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,8 +52,21 @@ class TrackObserver @Inject constructor(
     private var lastTrack: String? = null
     private var currentTrackId: Long? = null
     private var activeSliceStartMs: Long? = null
+    private var historyTrack: HistoryTrack? = null
+    private var resumeJob: Job? = null
+    // Serialises history logging so a resume and a metadata event can't both insert a row
+    private val historyMutex = Mutex()
     private var stationArtworkUri: Uri? = null
     private var showCoverArtInNotification: Boolean = true
+
+    /** The track currently credited in history, kept across pauses so resuming can continue it. */
+    private data class HistoryTrack(
+        val stationUuid: String,
+        val title: String,
+        val rawTitle: String,
+        val cleanedTitle: String? = null,
+        val coverArtUrl: String? = null
+    )
 
     init {
         scope.launch {
@@ -79,9 +94,12 @@ class TrackObserver @Inject constructor(
         attachedPlayer = null
         activeFetchJob?.cancel()
         activeFetchJob = null
+        resumeJob?.cancel()
+        resumeJob = null
         lastTrack = null
         currentTrackId = null
         activeSliceStartMs = null
+        historyTrack = null
         stationArtworkUri = null
     }
 
@@ -90,9 +108,12 @@ class TrackObserver @Inject constructor(
         stopProgressHeartbeat()
         activeFetchJob?.cancel()
         activeFetchJob = null
+        resumeJob?.cancel()
+        resumeJob = null
         lastTrack = null
         currentTrackId = null
         activeSliceStartMs = null
+        historyTrack = null
         if (mediaItem?.mediaMetadata?.artworkUri != null && mediaItem.mediaMetadata.artworkUri != Uri.EMPTY) {
             stationArtworkUri = mediaItem.mediaMetadata.artworkUri
         }
@@ -100,9 +121,8 @@ class TrackObserver @Inject constructor(
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         if (isPlaying) {
-            if (currentTrackId != null && activeSliceStartMs == null) {
-                activeSliceStartMs = System.currentTimeMillis()
-                startProgressHeartbeat()
+            if (activeSliceStartMs == null) {
+                resumeHistoryTrack()
             }
         } else {
             flushActiveProgressAsync()
@@ -120,6 +140,31 @@ class TrackObserver @Inject constructor(
             stopProgressHeartbeat()
             lastTrack = null
             currentTrackId = null
+        }
+    }
+
+    /**
+     * Streams usually don't resend the title after a pause, so resuming re-logs the last track.
+     * [TrackHistoryRepository.logTrack] continues the same row after a short pause and starts a
+     * new one once the pause reaches the session gap.
+     */
+    private fun resumeHistoryTrack() {
+        val track = historyTrack ?: return
+        resumeJob?.cancel()
+        resumeJob = scope.launch {
+            historyMutex.withLock {
+                if (activeSliceStartMs != null || historyTrack?.rawTitle != track.rawTitle) return@withLock
+                val trackId = trackHistoryRepository.logTrack(track.stationUuid, track.title, track.rawTitle)
+                currentTrackId = trackId
+                // A row started after a long pause needs the cleaned title and cover art; reapplying is harmless
+                if (trackId != null && track.cleanedTitle != null) {
+                    trackHistoryRepository.updateTrackMetadata(trackId, track.cleanedTitle, track.coverArtUrl)
+                }
+                if (trackId != null && attachedPlayer?.isPlaying == true) {
+                    activeSliceStartMs = System.currentTimeMillis()
+                    startProgressHeartbeat()
+                }
+            }
         }
     }
 
@@ -178,6 +223,7 @@ class TrackObserver @Inject constructor(
         val currentPlayer = attachedPlayer ?: return
         val currentMediaItem = currentPlayer.currentMediaItem ?: return
         val stationUuid = currentMediaItem.mediaId
+        historyTrack = HistoryTrack(stationUuid = stationUuid, title = track, rawTitle = rawTrack)
 
         val fallbackArtUri = stationArtworkUri ?: currentMediaItem.mediaMetadata.artworkUri
 
@@ -202,23 +248,27 @@ class TrackObserver @Inject constructor(
         activeFetchJob?.cancel()
         activeFetchJob = scope.launch {
             try {
-                flushActiveProgressSuspend(keepSliceActive = false)
-                stopProgressHeartbeat()
+                val trackId = historyMutex.withLock {
+                    flushActiveProgressSuspend(keepSliceActive = false)
+                    stopProgressHeartbeat()
 
-                val trackId = trackHistoryRepository.logTrack(stationUuid, track, rawTrack)
-                currentTrackId = trackId
-                if (trackId != null && currentPlayer.isPlaying) {
-                    activeSliceStartMs = System.currentTimeMillis()
-                    startProgressHeartbeat()
-                } else {
-                    activeSliceStartMs = null
+                    val loggedId = trackHistoryRepository.logTrack(stationUuid, track, rawTrack)
+                    currentTrackId = loggedId
+                    if (loggedId != null && currentPlayer.isPlaying) {
+                        activeSliceStartMs = System.currentTimeMillis()
+                        startProgressHeartbeat()
+                    } else {
+                        activeSliceStartMs = null
+                    }
+                    loggedId
                 }
 
                 val trackMetadata = withTimeoutOrNull(4000L.milliseconds) {
                     coverArtRepository.getTrackMetadata(track)
                 }
 
-                if (lastTrack != rawTrack) return@launch
+                // lastTrack is cleared on pause, so check the history track to see if this song is still current
+                if (historyTrack?.rawTitle != rawTrack) return@launch
 
                 val trackName = trackMetadata?.trackName?.takeIf { it.isNotBlank() } ?: track
                 val artistName = trackMetadata?.artistName?.takeIf { it.isNotBlank() }
@@ -227,6 +277,9 @@ class TrackObserver @Inject constructor(
                 if (trackId != null) {
                     val cleanedTitle = if (artistName != null) "$trackName - $artistName" else trackName
                     trackHistoryRepository.updateTrackMetadata(trackId, cleanedTitle, coverArtUrl)
+                    // Remembered so a row started on resume gets the same cleaned title and cover art
+                    historyTrack = historyTrack?.takeIf { it.rawTitle == rawTrack }
+                        ?.copy(cleanedTitle = cleanedTitle, coverArtUrl = coverArtUrl)
                 }
 
                 val finalArtworkUri = if (showCoverArtInNotification && coverArtUrl != null) {

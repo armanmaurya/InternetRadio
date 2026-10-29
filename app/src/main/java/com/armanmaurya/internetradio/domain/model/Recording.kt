@@ -6,7 +6,8 @@ import java.io.File
 
 data class RecordingFolder(
     val stationName: String,
-    val recordings: List<RecordingFile>
+    val recordings: List<RecordingFile>,
+    val artworkUri: Uri? = null
 )
 
 data class RecordingTrack(
