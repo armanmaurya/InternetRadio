@@ -121,7 +121,7 @@
     <string name="settings_retry_indefinitely">Lõputult</string>
     <string name="settings_check_updates">Kontrolli uuendusi</string>
     <string name="settings_max_retry_duration">Uuesti proovimise ülempiir</string>
-    <string name="settings_number_of_tracks">Lugude arv</string>
+    <string name="settings_number_of_tracks">Saadete/lugude arv</string>
     <string name="about_us">Teave meie kohta</string>
     <string name="about_app_description">Avasta ja kuula raadiojaamu kogu maailmast</string>
     <string name="about_contribute_msg">Internetiraadio (Internet Radio) rakendus on alles oma teekonna alguses. Kaastööd on teretulnud 💡</string>
@@ -149,7 +149,7 @@
     <string name="edit_station_cd_reset_to_original">Lähtesta algandmeteks</string>
     <string name="edit_station_fields_reset_message">Lähtesta algandmeteks</string>
     <string name="player_buffering">Puhverdan andmeid</string>
-    <string name="player_no_track_data">Loo kohta pole andmeid</string>
+    <string name="player_no_track_data">Saate/loo kohta pole andmeid</string>
     <string name="player_station_info">Veebiraadiojaama teave</string>
     <string name="player_label_tags">Sildid</string>
     <string name="player_label_website">Veebisait</string>
@@ -162,14 +162,14 @@
         <item quantity="other">Taimeeri töö lõppeb %1$d minuti möödumisel.</item>
     </plurals>
     <string name="player_recording_saved">Salvestis on talletatud!</string>
-    <string name="player_copied_track_to_clipboard">Lugu on kopeeritud lõikelauale</string>
+    <string name="player_copied_track_to_clipboard">Saade/lugu on kopeeritud lõikelauale</string>
     <string name="player_copied_to_clipboard">Kopeeritud lõikelauale</string>
     <string name="player_website_copied">Veebisait on kopeeritud</string>
     <string name="app_name">Internetiraadio</string>
     <string name="general_hours">Tunnid</string>
     <string name="general_minutes">Minutid</string>
     <string name="settings_rate_review">Hinda ja koosta arvustus</string>
-    <string name="settings_track_history_limit">Lugude ajaloo ülempiir</string>
+    <string name="settings_track_history_limit">Saadete/lugude ajaloo ülempiir</string>
     <string name="settings_system_default">Süsteemi vaikeseadistus</string>
     <string name="settings_start_week_title">Nädala algus on</string>
     <string name="settings_start_week_sunday">Pühapäeval</string>
@@ -192,13 +192,13 @@
     <string name="player_cd_collapse">Ahenda vaadet</string>
     <string name="player_cd_homepage">Avaleht</string>
     <string name="player_cd_record">Salvesta</string>
-    <string name="player_cd_copy_track_name">Kopeeri loo nimi</string>
+    <string name="player_cd_copy_track_name">Kopeeri saate/loo nimi</string>
     <string name="player_cd_search_youtube">Otsi YouTube\'ist</string>
     <string name="player_cd_search_spotify">Otsi Spotify\'st</string>
     <string name="player_cd_search_google">Otsi Google\'st</string>
-    <string name="player_no_tracks_played">Sa pole veel ühtegi lugu kuulanud</string>
+    <string name="player_no_tracks_played">Sa pole veel ühtegi saadet/lugu kuulanud</string>
     <string name="player_tab_about">Teave</string>
-    <string name="player_tab_tracks">Lood</string>
+    <string name="player_tab_tracks">Saated/lood</string>
     <string name="player_retrying_in">Proovin uuesti %1$d sekundi pärast…</string>
     <string name="player_retrying_connection">Proovin uuesti ühendada…</string>
     <string name="player_tab_lyrics">Laulusõnad</string>
@@ -239,7 +239,7 @@
     <string name="delete_recording">Kustuta</string>
     <string name="more_options">Lisavalikud</string>
     <string name="settings_show_cover_art">Kaanepilt teavituses</string>
-    <string name="settings_show_cover_art_desc">Näita lukustusvaates ja teavitustes raadiojaama logo asemel esitamisel loo kaanepilti</string>
+    <string name="settings_show_cover_art_desc">Näita lukustusvaates ja teavitustes raadiojaama logo asemel esitamisel saate/loo kaanepilti</string>
     <string name="home_verified">Verifitseeritud</string>
     <string name="auto_for_you">Sinu jaoks</string>
     <string name="cd_delete">Kustuta</string>
@@ -272,8 +272,8 @@
     </plurals>
     <string name="recordings_selected">%1$d on valitud</string>
     <plurals name="tracks_count">
-        <item quantity="one">%1$d lugu</item>
-        <item quantity="other">%1$d lugu</item>
+        <item quantity="one">%1$d saade/lugu</item>
+        <item quantity="other">%1$d saade/lugu</item>
     </plurals>
     <string name="nav_all_languages">Kõik keeled</string>
     <string name="player_cd_stop">Lõpeta</string>
@@ -480,10 +480,10 @@
     <string name="settings_volume_boost_warning_confirm">Võta kasutusele</string>
     <string name="player_saved_songs">Salvestatud</string>
     <string name="player_station_history">Ajalugu</string>
-    <string name="player_cd_star_track">Salvesta lugu</string>
-    <string name="player_cd_unstar_track">Eemalda salvestatud lugu</string>
-    <string name="player_track_saved">Salvestatud lugude kausta</string>
-    <string name="player_track_removed">Eemaldatud salvestatud lugude kaustast</string>
+    <string name="player_cd_star_track">Salvesta saade/lugu</string>
+    <string name="player_cd_unstar_track">Eemalda salvestatud saade/lugu</string>
+    <string name="player_track_saved">Salvestatud saadete/lugude kausta</string>
+    <string name="player_track_removed">Eemaldatud salvestatud saadete/lugude kaustast</string>
     <plurals name="minutes_count">
         <item quantity="one">%1$d minut</item>
         <item quantity="other">%1$d minutit</item>
@@ -499,4 +499,13 @@
     <string name="player_session_gap_days">%1$d pv paus</string>
     <string name="player_session_today">Täna</string>
     <string name="player_session_yesterday">Eile</string>
+    <string name="recording_add_note">Lisa märge</string>
+    <string name="recording_edit_note">Muuda märget</string>
+    <string name="recording_note_placeholder">Lisa märge…</string>
+    <string name="recording_save_note">Salvesta märge</string>
+    <string name="recording_cancel_note">Katkesta</string>
+    <string name="recording_folder_access_title">Vajalik on ligipääs kaustadele</string>
+    <string name="recording_folder_access_message">Luba ligipääs kaustale „Music/InternetRadio“ - see võimaldab hallata lugude/saadete loendit ja märkmeid koos sinu salvestistega ning saad ka näha vanemaid salvestisi.</string>
+    <string name="recording_folder_access_grant">Luba juurdepääs</string>
+    <string name="recording_folder_access_wrong_folder">Palun vali „Music/InternetRadio“ kaust</string>
 </resources>
