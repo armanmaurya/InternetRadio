@@ -528,4 +528,13 @@
     <string name="player_session_gap_days">%1$d dni odstępu</string>
     <string name="player_session_today">Dzisiaj</string>
     <string name="player_session_yesterday">Wczoraj</string>
+    <string name="recording_add_note">Dodaj notatkę</string>
+    <string name="recording_edit_note">Edytuj notatkę</string>
+    <string name="recording_note_placeholder">Dodaj notatkę…</string>
+    <string name="recording_save_note">Zapisz notatkę</string>
+    <string name="recording_cancel_note">Anuluj</string>
+    <string name="recording_folder_access_title">Wymagany dostęp do folderu</string>
+    <string name="recording_folder_access_message">Zezwól na dostęp do folderu Music/InternetRadio, aby zapisywać listy utworów i notatki przy nagraniach oraz wyświetlać starsze nagrania.</string>
+    <string name="recording_folder_access_grant">Przyznaj dostęp</string>
+    <string name="recording_folder_access_wrong_folder">Proszę wybrać folder Music/InternetRadio</string>
 </resources>
