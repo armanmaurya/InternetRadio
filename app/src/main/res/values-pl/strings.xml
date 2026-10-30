@@ -537,4 +537,24 @@
     <string name="recording_folder_access_message">Zezwól na dostęp do folderu Music/InternetRadio, aby zapisywać listy utworów i notatki przy nagraniach oraz wyświetlać starsze nagrania.</string>
     <string name="recording_folder_access_grant">Przyznaj dostęp</string>
     <string name="recording_folder_access_wrong_folder">Proszę wybrać folder Music/InternetRadio</string>
+    <string name="library_remove_title">Usunąć %1$s z biblioteki?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Ta stacja ma %1$d harmonogram. On również zostanie usunięty.</item>
+        <item quantity="few">Ta stacja ma %1$d harmonogramy. One również zostaną usunięte.</item>
+        <item quantity="many">Ta stacja ma %1$d harmonogramów. One również zostaną usunięte.</item>
+        <item quantity="other">Ta stacja ma %1$d harmonogramów. One również zostaną usunięte.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Skrót na ekranie głównym przestanie działać, dopóki nie dodasz stacji ponownie.</string>
+    <string name="library_remove_confirm">Usuń</string>
+    <string name="action_shortcut_added">Dodano skrót</string>
+    <string name="shortcut_disabled_station_removed">Stacja została usunięta z biblioteki</string>
+    <string name="shortcut_station_not_in_library">Tej stacji nie ma już w Twojej bibliotece</string>
+    <string name="settings_recent_limit">Limit ostatnich stacji</string>
+    <string name="settings_number_of_stations">Liczba stacji</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d stacja</item>
+        <item quantity="few">%1$d stacje</item>
+        <item quantity="many">%1$d stacji</item>
+        <item quantity="other">%1$d stacji</item>
+    </plurals>
 </resources>
