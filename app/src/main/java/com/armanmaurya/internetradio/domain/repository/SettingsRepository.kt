@@ -40,6 +40,7 @@ interface SettingsRepository {
     suspend fun setGridViewFavorites(isGrid: Boolean)
     suspend fun setGridViewAdded(isGrid: Boolean)
     suspend fun setTrackHistoryLimit(limit: Int)
+    suspend fun setRecentLimit(limit: Int)
     suspend fun setDefaultTab(tabIndex: Int)
     suspend fun setLastUpdateCheckTime(timeInMillis: Long)
     suspend fun setMaxRetryDuration(durationInMillis: Long)

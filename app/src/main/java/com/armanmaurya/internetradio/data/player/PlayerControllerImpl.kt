@@ -13,6 +13,7 @@ import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.domain.model.isSameVersionAs
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
@@ -216,7 +217,7 @@ class PlayerControllerImpl @Inject constructor(
             } else {
                 // Fallback for scheduled cold start: get FULL RadioStation from library DB
                 scope.launch {
-                    val dbStation = libraryRepository.getStationById(originalId)
+                    val dbStation = libraryRepository.getLibraryStationById(originalId)
                     if (dbStation != null) {
                         linkSingleItemToContext(dbStation)
                     }
@@ -392,7 +393,9 @@ class PlayerControllerImpl @Inject constructor(
                     }
                     if (currentPlaylist.isEmpty()) {
                         scope.launch {
-                            val dbStation = station ?: libraryRepository.getStationById(originalId)
+                            val dbStation = station
+                                ?: libraryRepository.getLibraryStationById(originalId)
+                                ?: recentRepository.getStationById(originalId)
                             if (dbStation != null) {
                                 linkSingleItemToContext(dbStation)
                             }
@@ -437,7 +440,7 @@ class PlayerControllerImpl @Inject constructor(
         currentPlaybackSource = source
         val station = stations[startIndex]
 
-        if (activeStation?.stationUuid == station.stationUuid) {
+        if (station.isSameVersionAs(activeStation)) {
             if (player.playbackState == Player.STATE_IDLE) {
                 player.prepare()
             }

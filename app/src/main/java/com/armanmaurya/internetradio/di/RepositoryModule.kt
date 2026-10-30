@@ -85,6 +85,11 @@ abstract class RepositoryModule {
     ): com.armanmaurya.internetradio.domain.controller.ScheduleController
 
     @Binds
+    abstract fun bindShortcutController(
+        impl: com.armanmaurya.internetradio.data.shortcut.ShortcutControllerImpl
+    ): com.armanmaurya.internetradio.domain.controller.ShortcutController
+
+    @Binds
     abstract fun bindScheduleRepository(
         impl: ScheduleRepositoryImpl
     ): ScheduleRepository

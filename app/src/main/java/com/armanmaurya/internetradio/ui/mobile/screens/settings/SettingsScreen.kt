@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.material.icons.filled.ContentCopy
 import coil3.compose.AsyncImage
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AccessTime
@@ -159,6 +160,7 @@ fun SettingsScreen(
     }
 
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
+    var showRecentLimitDialog by remember { mutableStateOf(false) }
 
     // Toast feedback for backup/restore operations
     val context = LocalContext.current
@@ -234,6 +236,9 @@ fun SettingsScreen(
                 onSetDefaultTab = viewModel::setDefaultTab,
                 onSetAutoRouteToBrowseOnSearch = viewModel::setAutoRouteToBrowseOnSearch,
                 onSetSelectAllTextOnFocus = viewModel::setSelectAllTextOnFocus,
+                showRecentLimitDialog = showRecentLimitDialog,
+                onToggleRecentLimitDialog = { showRecentLimitDialog = !showRecentLimitDialog },
+                onSetRecentLimit = viewModel::setRecentLimit,
                 topShape = topShape,
                 middleShape = middleShape,
                 bottomShape = bottomShape
@@ -496,6 +501,9 @@ private fun GeneralSection(
     onSetDefaultTab: (Int) -> Unit,
     onSetAutoRouteToBrowseOnSearch: (Boolean) -> Unit,
     onSetSelectAllTextOnFocus: (Boolean) -> Unit,
+    showRecentLimitDialog: Boolean,
+    onToggleRecentLimitDialog: () -> Unit,
+    onSetRecentLimit: (Int) -> Unit,
     topShape: RoundedCornerShape,
     middleShape: RoundedCornerShape,
     bottomShape: RoundedCornerShape
@@ -571,8 +579,55 @@ private fun GeneralSection(
             isEnabled = uiState.selectAllTextOnFocus,
             onToggle = onSetSelectAllTextOnFocus,
             icon = Icons.Default.Search,
+            shape = middleShape
+        )
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+
+        Item(
+            title = stringResource(R.string.settings_recent_limit),
+            subtitle = androidx.compose.ui.res.pluralStringResource(R.plurals.stations_count, uiState.recentLimit, uiState.recentLimit),
+            onClick = onToggleRecentLimitDialog,
+            icon = Icons.Default.Restore,
             shape = bottomShape
         )
+
+        if (showRecentLimitDialog) {
+            var inputLimit by remember { mutableStateOf(uiState.recentLimit.toString()) }
+            AlertDialog(
+                onDismissRequest = onToggleRecentLimitDialog,
+                title = { Text(stringResource(R.string.settings_recent_limit)) },
+                text = {
+                    OutlinedTextField(
+                        value = inputLimit,
+                        onValueChange = { newValue ->
+                            if (newValue.all { it.isDigit() }) {
+                                inputLimit = newValue
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settings_number_of_stations)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val limitInt = inputLimit.toIntOrNull() ?: 50
+                            onSetRecentLimit(limitInt.coerceIn(1, 500))
+                            onToggleRecentLimitDialog()
+                        }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onToggleRecentLimitDialog) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                }
+            )
+        }
     }
 }
 

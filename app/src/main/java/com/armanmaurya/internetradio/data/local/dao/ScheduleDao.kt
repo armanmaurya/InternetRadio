@@ -26,6 +26,12 @@ interface ScheduleDao {
     @Delete
     suspend fun deleteSchedule(schedule: ScheduleEntity)
 
+    @Query("SELECT * FROM schedules WHERE stationUuid = :stationUuid ORDER BY timeHour ASC, timeMinute ASC")
+    suspend fun getSchedulesForStation(stationUuid: String): List<ScheduleEntity>
+
+    @Query("DELETE FROM schedules WHERE stationUuid = :stationUuid")
+    suspend fun deleteSchedulesForStation(stationUuid: String)
+
     @Query("UPDATE schedules SET stationUuid = :newUuid WHERE stationUuid = :oldUuid")
     suspend fun updateStationUuid(oldUuid: String, newUuid: String)
 

@@ -20,6 +20,9 @@ class RadioApplication : Application(), SingletonImageLoader.Factory {
     @Inject
     lateinit var autoBackupManager: com.armanmaurya.internetradio.domain.controller.AutoBackupManager
 
+    @Inject
+    lateinit var shortcutController: com.armanmaurya.internetradio.domain.controller.ShortcutController
+
     override fun onCreate() {
         super.onCreate()
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -27,6 +30,7 @@ class RadioApplication : Application(), SingletonImageLoader.Factory {
             GlobalExceptionHandler(this, defaultHandler)
         )
         autoBackupManager.initialize()
+        shortcutController.initialize()
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

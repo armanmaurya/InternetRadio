@@ -20,6 +20,12 @@ class ScheduleRepositoryImpl @Inject constructor(
     override suspend fun getScheduleById(id: Int): Schedule? =
         scheduleDao.getScheduleById(id)?.toDomain()
 
+    override suspend fun getSchedulesForStation(stationUuid: String): List<Schedule> =
+        scheduleDao.getSchedulesForStation(stationUuid).map { it.toDomain() }
+
+    override suspend fun deleteSchedulesForStation(stationUuid: String) =
+        scheduleDao.deleteSchedulesForStation(stationUuid)
+
     override suspend fun insertSchedule(schedule: Schedule): Long =
         scheduleDao.insertSchedule(schedule.toEntity())
 

@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material3.AlertDialog
@@ -56,6 +57,7 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
+    var showRecentLimitDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -109,6 +111,16 @@ fun SettingsScreen(
                 icon = Icons.Default.History,
                 onClick = { showHistoryLimitDialog = true }
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Recent Stations Limit
+            TvSettingsClickItem(
+                title = stringResource(id = R.string.settings_recent_limit),
+                subtitle = pluralStringResource(id = R.plurals.stations_count, uiState.recentLimit, uiState.recentLimit),
+                icon = Icons.Default.Restore,
+                onClick = { showRecentLimitDialog = true }
+            )
         }
 
         // ── About Section ────────────────────────────────────────────
@@ -121,6 +133,40 @@ fun SettingsScreen(
             )
         }
         }
+    }
+
+    // Recent stations limit dialog
+    if (showRecentLimitDialog) {
+        var inputLimit by remember { mutableStateOf(uiState.recentLimit.toString()) }
+        AlertDialog(
+            onDismissRequest = { showRecentLimitDialog = false },
+            title = { androidx.compose.material3.Text(stringResource(id = R.string.settings_recent_limit)) },
+            text = {
+                OutlinedTextField(
+                    value = inputLimit,
+                    onValueChange = { newValue ->
+                        if (newValue.all { it.isDigit() }) inputLimit = newValue
+                    },
+                    label = { androidx.compose.material3.Text(stringResource(id = R.string.settings_number_of_stations)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val limitInt = inputLimit.toIntOrNull() ?: 50
+                        viewModel.setRecentLimit(limitInt.coerceIn(1, 500))
+                        showRecentLimitDialog = false
+                    }
+                ) { androidx.compose.material3.Text(stringResource(id = R.string.general_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRecentLimitDialog = false }) {
+                    androidx.compose.material3.Text(stringResource(id = R.string.general_cancel))
+                }
+            }
+        )
     }
 
     // Track history limit dialog

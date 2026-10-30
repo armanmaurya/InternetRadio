@@ -1,7 +1,6 @@
 package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import android.content.ContextWrapper
-import com.armanmaurya.internetradio.data.local.entity.StationEntity
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.Country
@@ -11,7 +10,7 @@ import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.domain.model.StationAddResult
 import com.armanmaurya.internetradio.domain.model.Tag
-import com.armanmaurya.internetradio.domain.repository.LibraryRepository
+import com.armanmaurya.internetradio.domain.usecase.library.RemoveStationFromLibraryUseCase
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
@@ -44,6 +43,7 @@ class BrowseViewModelTest {
     private lateinit var fakeStationRepository: FakeStationRepository
     private lateinit var fakeSettingsRepository: FakeSettingsRepository
     private lateinit var fakeLibraryRepository: FakeLibraryRepository
+    private lateinit var libraryRemovalCoordinator: LibraryRemovalCoordinator
     private val fakeContext = ContextWrapper(null)
 
     @Before
@@ -52,6 +52,17 @@ class BrowseViewModelTest {
         fakeStationRepository = FakeStationRepository()
         fakeSettingsRepository = FakeSettingsRepository()
         fakeLibraryRepository = FakeLibraryRepository()
+        val fakeScheduleRepository = FakeScheduleRepository()
+        libraryRemovalCoordinator = LibraryRemovalCoordinator(
+            libraryRepository = fakeLibraryRepository,
+            scheduleRepository = fakeScheduleRepository,
+            shortcutController = FakeShortcutController(),
+            removeStationFromLibrary = RemoveStationFromLibraryUseCase(
+                fakeLibraryRepository,
+                fakeScheduleRepository,
+                FakeScheduleController()
+            )
+        )
     }
 
     @After
@@ -68,6 +79,7 @@ class BrowseViewModelTest {
             repository = fakeStationRepository,
             settingsRepository = fakeSettingsRepository,
             libraryRepository = fakeLibraryRepository,
+            libraryRemovalCoordinator = libraryRemovalCoordinator,
             context = fakeContext
         )
 
@@ -89,6 +101,7 @@ class BrowseViewModelTest {
             repository = fakeStationRepository,
             settingsRepository = fakeSettingsRepository,
             libraryRepository = fakeLibraryRepository,
+            libraryRemovalCoordinator = libraryRemovalCoordinator,
             context = fakeContext
         )
 
@@ -111,6 +124,7 @@ class BrowseViewModelTest {
             repository = fakeStationRepository,
             settingsRepository = fakeSettingsRepository,
             libraryRepository = fakeLibraryRepository,
+            libraryRemovalCoordinator = libraryRemovalCoordinator,
             context = fakeContext
         )
 
@@ -231,6 +245,7 @@ class BrowseViewModelTest {
         override suspend fun setGridViewFavorites(isGrid: Boolean) {}
         override suspend fun setGridViewAdded(isGrid: Boolean) {}
         override suspend fun setTrackHistoryLimit(limit: Int) {}
+        override suspend fun setRecentLimit(limit: Int) {}
         override suspend fun setDefaultTab(tabIndex: Int) {}
         override suspend fun setLastUpdateCheckTime(timeInMillis: Long) {}
         override suspend fun setMaxRetryDuration(durationInMillis: Long) {}
@@ -250,30 +265,5 @@ class BrowseViewModelTest {
             status: com.armanmaurya.internetradio.domain.model.AutoBackupStatus,
             errorMessage: String?
         ) {}
-    }
-
-    private class FakeLibraryRepository : LibraryRepository {
-        val stationsFlow = MutableStateFlow<List<RadioStation>>(emptyList())
-        override fun getAllStations(): Flow<List<RadioStation>> = stationsFlow
-        override fun getAllStationEntitiesFlow(): Flow<List<StationEntity>> = flowOf(emptyList())
-        override suspend fun getAllStationEntities(): List<StationEntity> = emptyList()
-        override suspend fun getStationById(stationUuid: String): RadioStation? = null
-        override suspend fun getEntityById(stationUuid: String): StationEntity? = null
-        override fun isStationInLibrary(stationUuid: String): Flow<Boolean> = flowOf(false)
-        override suspend fun isStationInLibraryDirect(stationUuid: String): Boolean = false
-        override suspend fun addStationToLibrary(station: RadioStation) {}
-        override suspend fun insertEntity(entity: StationEntity) {}
-        override suspend fun removeStationFromLibrary(stationUuid: String) {}
-        override suspend fun updateStations(stations: List<StationEntity>) {}
-        override suspend fun addCustomStation(name: String, url: String, favicon: String, tags: List<String>, countryCode: String, languageCodes: List<String>, homepage: String, iso31662: String?, codec: String, bitrate: Int) {}
-        override suspend fun updateStation(stationUuid: String, name: String, url: String, favicon: String, tags: List<String>, countryCode: String, languageCodes: List<String>, homepage: String, iso31662: String?, codec: String, bitrate: Int) {}
-        override suspend fun uploadAndSaveNewStation(name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String> = Result.success("")
-        override suspend fun uploadExistingCustomStation(stationUuid: String, name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String> = Result.success("")
-        override fun getStationsByName(): Flow<List<RadioStation>> = flowOf(emptyList())
-        override fun getStationsByNameDescending(): Flow<List<RadioStation>> = flowOf(emptyList())
-        override fun getStationsByRecentlyPlayed(): Flow<List<RadioStation>> = flowOf(emptyList())
-        override fun getStationsByLeastRecentlyPlayed(): Flow<List<RadioStation>> = flowOf(emptyList())
-        override fun getStationsByCustomOrder(): Flow<List<RadioStation>> = flowOf(emptyList())
-        override fun getStationsByOldestAdded(): Flow<List<RadioStation>> = flowOf(emptyList())
     }
 }

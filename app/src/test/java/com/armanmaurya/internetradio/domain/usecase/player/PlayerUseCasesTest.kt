@@ -220,6 +220,7 @@ class PlayerUseCasesTest {
         }
         override suspend fun removeRecent(stationUuid: String) {}
         override suspend fun clearAllRecent() {}
+        override suspend fun trimToLimit() {}
         override suspend fun getStationById(stationUuid: String): RadioStation? =
             recentStations.find { it.stationUuid == stationUuid }
     }

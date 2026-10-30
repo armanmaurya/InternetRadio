@@ -25,6 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecentViewModel @Inject constructor(
+    private val libraryRemovalCoordinator: LibraryRemovalCoordinator,
     @ApplicationContext private val context: Context,
     private val recentRepository: RecentRepository,
     private val settingsRepository: SettingsRepository,
@@ -127,7 +128,7 @@ class RecentViewModel @Inject constructor(
     fun toggleLibrary(station: RadioStation) {
         viewModelScope.launch {
             if (libraryStationUuids.value.contains(station.stationUuid)) {
-                libraryRepository.removeStationFromLibrary(station.stationUuid)
+                libraryRemovalCoordinator.requestRemoval(station.stationUuid)
             } else {
                 libraryRepository.addStationToLibrary(station)
             }

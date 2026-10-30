@@ -14,6 +14,7 @@ import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toBackupStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
+import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
@@ -45,6 +46,7 @@ private const val TAG = "SettingsViewModel"
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val libraryRepository: LibraryRepository,
+    private val recentRepository: RecentRepository,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
     private val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade,
     private val widgetController: WidgetController,
@@ -184,6 +186,14 @@ class SettingsViewModel @Inject constructor(
     fun setTrackHistoryLimit(limit: Int) {
         viewModelScope.launch {
             settingsRepository.setTrackHistoryLimit(limit)
+        }
+    }
+
+    fun setRecentLimit(limit: Int) {
+        viewModelScope.launch {
+            settingsRepository.setRecentLimit(limit)
+            // Lowering the limit removes the oldest recents right away, so raising it later doesn't bring them back
+            recentRepository.trimToLimit()
         }
     }
 

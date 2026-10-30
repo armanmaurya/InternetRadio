@@ -57,41 +57,11 @@ interface StationDao {
     @Update
     suspend fun updateStations(stations: List<StationEntity>)
 
-    @Query("UPDATE stations SET isFavorite = :isFavorite, addedAt = :addedAt WHERE stationUuid = :stationUuid")
-    suspend fun updateFavoriteStatus(stationUuid: String, isFavorite: Boolean, addedAt: Long?)
 
     @Query("DELETE FROM stations WHERE stationUuid = :stationUuid")
     suspend fun deleteStationById(stationUuid: String)
 
-    // --- Recents Queries ---
-
-    @Query("SELECT * FROM stations WHERE lastPlayedAt IS NOT NULL ORDER BY lastPlayedAt DESC LIMIT 50")
-    fun getAllRecent(): Flow<List<StationEntity>>
-
+    // Play time used by the library "recently played" sort; recents live in RecentStationDao
     @Query("UPDATE stations SET lastPlayedAt = :timestamp WHERE stationUuid = :stationUuid")
     suspend fun updateLastPlayed(stationUuid: String, timestamp: Long)
-
-    @Query("UPDATE stations SET lastPlayedAt = NULL WHERE stationUuid = :stationUuid")
-    suspend fun clearLastPlayed(stationUuid: String)
-
-    @Query("UPDATE stations SET lastPlayedAt = NULL")
-    suspend fun clearAllLastPlayed()
-
-    @Query("DELETE FROM stations WHERE stationUuid = :stationUuid AND isFavorite = 0")
-    suspend fun deleteNonFavoriteStation(stationUuid: String)
-
-    @Query("DELETE FROM stations WHERE isFavorite = 0 AND lastPlayedAt IS NOT NULL")
-    suspend fun deleteAllNonFavoriteRecents()
-
-    @Transaction
-    suspend fun removeRecentStation(stationUuid: String) {
-        clearLastPlayed(stationUuid)
-        deleteNonFavoriteStation(stationUuid)
-    }
-
-    @Transaction
-    suspend fun clearAllRecentStations() {
-        deleteAllNonFavoriteRecents()
-        clearAllLastPlayed()
-    }
 }

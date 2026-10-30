@@ -50,6 +50,9 @@ fun RadioStation.toMediaItem(
         .build()
 }
 
+/** Marks items started by a schedule alarm, which only play library stations. */
+const val EXTRA_SCHEDULED_PLAYBACK = "scheduled_playback"
+
 /**
  * Creates a MediaItem from discrete station parameters (e.g. for ACTION_PLAY_STATION).
  */
@@ -81,6 +84,7 @@ fun createStationMediaItem(
                 .setExtras(Bundle().apply {
                     putString("stationName", stationName)
                     putString("stationFavicon", stationFavicon)
+                    putBoolean(EXTRA_SCHEDULED_PLAYBACK, true)
                 })
                 .build()
         )

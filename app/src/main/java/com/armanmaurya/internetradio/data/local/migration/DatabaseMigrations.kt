@@ -105,5 +105,53 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11)
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // 1. Recents get their own table, so playing a station never overwrites a library edit
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS `recent_stations` (
+                    `stationUuid` TEXT NOT NULL,
+                    `name` TEXT NOT NULL,
+                    `url` TEXT NOT NULL,
+                    `urlResolved` TEXT NOT NULL,
+                    `favicon` TEXT NOT NULL,
+                    `tags` TEXT NOT NULL,
+                    `countryCode` TEXT NOT NULL,
+                    `languageCodes` TEXT NOT NULL,
+                    `codec` TEXT NOT NULL,
+                    `bitrate` INTEGER NOT NULL,
+                    `homepage` TEXT NOT NULL,
+                    `iso3166_2` TEXT,
+                    `geoLat` REAL,
+                    `geoLong` REAL,
+                    `isCustom` INTEGER NOT NULL,
+                    `lastPlayedAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`stationUuid`)
+                )
+            """.trimIndent())
+
+            // 2. Copy every played station into recents
+            database.execSQL("""
+                INSERT OR REPLACE INTO `recent_stations` (
+                    `stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`,
+                    `countryCode`, `languageCodes`, `codec`, `bitrate`, `homepage`,
+                    `iso3166_2`, `geoLat`, `geoLong`, `isCustom`, `lastPlayedAt`
+                )
+                SELECT
+                    `stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`,
+                    `countryCode`, `languageCodes`, `codec`, `bitrate`, `homepage`,
+                    `iso3166_2`, `geoLat`, `geoLong`, `isCustom`, `lastPlayedAt`
+                FROM `stations`
+                WHERE `lastPlayedAt` IS NOT NULL
+            """.trimIndent())
+
+            // 3. Stations only kept for recents leave the library table; library rows keep lastPlayedAt for sorting
+            database.execSQL("DELETE FROM `stations` WHERE `isFavorite` = 0")
+
+            // 4. Schedules only use library stations, so ones left pointing at a removed station go too
+            database.execSQL("DELETE FROM `schedules` WHERE `stationUuid` NOT IN (SELECT `stationUuid` FROM `stations`)")
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11, MIGRATION_13_14)
 }

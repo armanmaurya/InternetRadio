@@ -10,11 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
-import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.domain.controller.ShortcutController
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
-import com.armanmaurya.internetradio.ui.shared.utils.ShortcutHelper
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
-import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -55,22 +53,12 @@ fun AppIntentHandler(
 
     LaunchedEffect(Unit) {
         intentFlow.collect { intent ->
-            if (intent.action == ShortcutHelper.ACTION_PLAY_STATION) {
+            if (intent.action == ShortcutController.ACTION_PLAY_STATION) {
                 intent.action = null
                 playerViewModel.markShortcutPlaybackInitiated()
-                val stationUuid = intent.getStringExtra(ShortcutHelper.EXTRA_STATION_UUID)
-                val json = intent.getStringExtra(ShortcutHelper.EXTRA_STATION_JSON)
-                val fallbackStation = if (!json.isNullOrBlank()) {
-                    try {
-                        Gson().fromJson(json, RadioStation::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-                } else null
-
-                val targetUuid = stationUuid ?: fallbackStation?.stationUuid
-                if (targetUuid != null) {
-                    playerViewModel.playFromShortcut(targetUuid, fallbackStation)
+                // Older shortcuts also carry a station JSON copy; shortcuts only play library stations, so it is ignored
+                intent.getStringExtra(ShortcutController.EXTRA_STATION_UUID)?.let { stationUuid ->
+                    playerViewModel.playFromShortcut(stationUuid)
                 }
             } else if (intent.getStringExtra("open_tab") == "recordings") {
                 intent.removeExtra("open_tab")

@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.armanmaurya.internetradio.domain.controller.ShortcutController
 import com.armanmaurya.internetradio.domain.model.GithubRelease
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.UpdateRepository
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val updateRepository: UpdateRepository,
     private val settingsRepository: SettingsRepository,
-    val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade
+    val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade,
+    val shortcutController: ShortcutController
 ) : ViewModel() {
 
     private val _updateAvailable = MutableStateFlow<GithubRelease?>(null)

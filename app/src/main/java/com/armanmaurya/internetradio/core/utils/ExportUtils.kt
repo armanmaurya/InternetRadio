@@ -20,7 +20,7 @@ object ExportUtils {
             val exportedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                 .format(Date())
 
-            val backupStation = station.toEntity(isFavorite = true).toBackupStation()
+            val backupStation = station.toEntity().toBackupStation()
 
             val backup = LibraryBackup(
                 exportedAt = exportedAt,

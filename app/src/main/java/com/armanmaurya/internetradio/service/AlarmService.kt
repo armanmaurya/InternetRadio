@@ -106,7 +106,7 @@ class AlarmService : Service() {
                 return@launch
             }
 
-            val libraryStation = libraryRepository.getStationById(schedule.stationUuid)
+            val libraryStation = libraryRepository.getLibraryStationById(schedule.stationUuid)
             val prefs = settingsRepository.appPreferencesFlow.first()
 
             withContext(Dispatchers.Main) {

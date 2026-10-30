@@ -29,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.ui.mobile.components.AppOverlays
+import com.armanmaurya.internetradio.ui.mobile.components.LocalShortcutController
 import com.armanmaurya.internetradio.ui.mobile.components.rememberManualUpdateChecker
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppDestination
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppIntentHandler
@@ -55,7 +56,10 @@ fun MobileApp(
     val appPreferences by mainViewModel.appPreferences.collectAsStateWithLifecycle(initialValue = AppPreferences())
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
 
-    CompositionLocalProvider(LocalAppPreferences provides appPreferences) {
+    CompositionLocalProvider(
+        LocalAppPreferences provides appPreferences,
+        LocalShortcutController provides mainViewModel.shortcutController
+    ) {
         InternetRadioTheme(appPreferences = appPreferences) {
         AppOverlays(
             mainViewModel = mainViewModel
@@ -82,6 +86,13 @@ fun MobileApp(
         LaunchedEffect(Unit) {
             playerViewModel.recordingSavedEvent.collect {
                 Toast.makeText(localContext, recordingSavedMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val shortcutStationMissingMessage = stringResource(R.string.shortcut_station_not_in_library)
+        LaunchedEffect(Unit) {
+            playerViewModel.shortcutStationMissingEvent.collect {
+                Toast.makeText(localContext, shortcutStationMissingMessage, Toast.LENGTH_SHORT).show()
             }
         }
 

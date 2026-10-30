@@ -150,6 +150,11 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideRecentStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.RecentStationDao =
+        database.recentStationDao
+
+    @Provides
+    @Singleton
     fun provideTrackHistoryDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.TrackHistoryDao =
         database.trackHistoryDao
 

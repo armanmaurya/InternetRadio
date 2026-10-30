@@ -395,6 +395,10 @@ fun EditStationScreen(
                                             }
                                         )
                                     } else {
+                                        val finishSave = {
+                                            Toast.makeText(context, savedMessage, Toast.LENGTH_SHORT).show()
+                                            onNavigateBack()
+                                        }
                                         if (isEditing && station != null) {
                                             val tagList = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                                             val langList = languageCodes.split(",").map { it.trim() }.filter { it.isNotEmpty() }
@@ -409,7 +413,9 @@ fun EditStationScreen(
                                                 homepage = homepage,
                                                 iso31662 = iso3166_2.ifBlank { null },
                                                 codec = probedCodec,
-                                                bitrate = probedBitrate
+                                                bitrate = probedBitrate,
+                                                // Leaving first would clear the view model and cancel the save
+                                                onDone = finishSave
                                             )
                                         } else {
                                             viewModel.addStation(
@@ -424,9 +430,8 @@ fun EditStationScreen(
                                                 codec = probedCodec,
                                                 bitrate = probedBitrate
                                             )
+                                            finishSave()
                                         }
-                                        Toast.makeText(context, savedMessage, Toast.LENGTH_SHORT).show()
-                                        onNavigateBack()
                                     }
                                 },
                                 enabled = canSave && (!isEditing || hasUnsavedChanges || (station?.isCustom == true && uploadMode)) && !isUploading,

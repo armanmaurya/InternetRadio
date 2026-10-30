@@ -205,11 +205,10 @@ class AutoBrowseTreeProvider @Inject constructor(
         }
     }
 
+    // Recents first, then the library; Radio Browser is never searched for a single station
     fun findStationByUuid(uuid: String): RadioStation? = runBlocking {
         recentRepository.getStationById(uuid)
-            ?: libraryRepository.getAllStations().first().find { it.stationUuid == uuid }
-            ?: stationRepository.filterStations(order = "votes", reverse = true, limit = 30)
-                .getOrNull()?.find { it.stationUuid == uuid }
+            ?: libraryRepository.getLibraryStationById(uuid)
     }
 
     private fun rootChildren(): List<MediaItem> = listOf(

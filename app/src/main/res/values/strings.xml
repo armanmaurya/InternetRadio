@@ -272,6 +272,16 @@
     <string name="home_toggle_view">Toggle View</string>
     <string name="home_add_to_library">Add to library</string>
     <string name="home_remove_from_library">Remove from library</string>
+    <string name="library_remove_title">Remove %1$s from library?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">This station has %1$d schedule. It will be deleted too.</item>
+        <item quantity="other">This station has %1$d schedules. They will be deleted too.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Its home screen shortcut will stop working until you add the station back.</string>
+    <string name="library_remove_confirm">Remove</string>
+    <string name="action_shortcut_added">Shortcut added</string>
+    <string name="shortcut_disabled_station_removed">Station removed from library</string>
+    <string name="shortcut_station_not_in_library">This station is no longer in your library</string>
     <string name="home_remove_from_recent">Remove from recent</string>
     <string name="home_descending">Descending</string>
     <string name="home_ascending">Ascending</string>
@@ -503,6 +513,12 @@
         <item quantity="other">%1$d recordings</item>
     </plurals>
     <string name="recordings_selected">%1$d selected</string>
+    <string name="settings_recent_limit">Recent stations limit</string>
+    <string name="settings_number_of_stations">Number of stations</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d station</item>
+        <item quantity="other">%1$d stations</item>
+    </plurals>
     <plurals name="tracks_count">
         <item quantity="one">%1$d track</item>
         <item quantity="other">%1$d tracks</item>

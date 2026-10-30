@@ -8,6 +8,7 @@ import com.armanmaurya.internetradio.domain.model.LrcLine
 import com.armanmaurya.internetradio.domain.model.Lyrics
 import com.armanmaurya.internetradio.domain.model.PlaybackSession
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.domain.model.isSameVersionAs
 import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.domain.model.RecordingSession
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
@@ -55,6 +56,7 @@ import com.armanmaurya.internetradio.domain.usecase.cast.DisconnectCastDeviceUse
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    private val libraryRemovalCoordinator: LibraryRemovalCoordinator,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val playerController: PlayerController,
     private val castController: CastController,
@@ -351,14 +353,6 @@ class PlayerViewModel @Inject constructor(
     )
 
     init {
-        playerController.isError
-            .onEach { isError ->
-                if (isError) {
-                    handlePlaybackFailure()
-                }
-            }
-            .launchIn(viewModelScope)
-
         kotlinx.coroutines.flow.combine(
             playbackSession.map { it.currentStation }.distinctUntilChanged { old, new -> old?.stationUuid == new?.stationUuid },
             connectedCastDevice
@@ -395,50 +389,6 @@ class PlayerViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun handlePlaybackFailure() {
-        val currentStation = playbackSession.value.currentStation ?: return
-        viewModelScope.launch {
-            stationRepository.getStationsByUuid(listOf(currentStation.stationUuid))
-                .onSuccess { freshStations ->
-                    val freshStation = freshStations.firstOrNull() ?: return@onSuccess
-
-                    val hasChanged = freshStation.name != currentStation.name ||
-                            freshStation.url != currentStation.url ||
-                            freshStation.urlResolved != currentStation.urlResolved ||
-                            freshStation.favicon != currentStation.favicon ||
-                            freshStation.tags != currentStation.tags ||
-                            freshStation.country != currentStation.country ||
-                            freshStation.language != currentStation.language ||
-                            freshStation.codec != currentStation.codec ||
-                            freshStation.bitrate != currentStation.bitrate
-
-                    if (hasChanged) {
-                        // Update Favorite if it exists
-                        if (libraryRepository.isStationInLibraryDirect(currentStation.stationUuid)) {
-                            libraryRepository.addStationToLibrary(freshStation)
-                        }
-
-                        // Update Recent
-                        recentRepository.addRecentStation(freshStation)
-
-                        // Re-trigger playback, preserving the full playlist so ExoPlayer
-                        // doesn't collapse to a single item and trigger linkSingleItemToContext.
-                        val fullPlaylist = playerController.currentPlaylistSnapshot
-                        val idx = fullPlaylist.indexOfFirst { it.stationUuid == freshStation.stationUuid }
-                        if (idx != -1) {
-                            val updatedPlaylist = fullPlaylist.map {
-                                if (it.stationUuid == freshStation.stationUuid) freshStation else it
-                            }
-                            play(updatedPlaylist, idx)
-                        } else {
-                            play(listOf(freshStation), 0)
-                        }
-                    }
-
-                }
-        }
-    }
-
     fun deleteRecording(recording: com.armanmaurya.internetradio.domain.model.RecordingFile) {
         viewModelScope.launch {
             recordingRepository.deleteRecording(recording)
@@ -450,7 +400,7 @@ class PlayerViewModel @Inject constructor(
         val station = session.currentStation ?: return
         viewModelScope.launch {
             if (isFavorite.value) {
-                libraryRepository.removeStationFromLibrary(station.stationUuid)
+                libraryRemovalCoordinator.requestRemoval(station.stationUuid)
             } else {
                 val codecToSave = session.streamCodec ?: station.codec
                 val bitrateToSave = session.streamBitrate ?: station.bitrate
@@ -506,7 +456,7 @@ class PlayerViewModel @Inject constructor(
     fun play(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource = PlaybackSource.None) {
         val station = stations.getOrNull(startIndex) ?: return
         
-        if (playbackSession.value.currentStation?.stationUuid == station.stationUuid) {
+        if (station.isSameVersionAs(playbackSession.value.currentStation)) {
             togglePlayPause()
             return
         }
@@ -528,12 +478,14 @@ class PlayerViewModel @Inject constructor(
         isShortcutPlaybackActive = true
     }
 
-    fun playFromShortcut(stationUuid: String, fallbackStation: RadioStation? = null) {
+    private val _shortcutStationMissingEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
+    val shortcutStationMissingEvent = _shortcutStationMissingEvent.asSharedFlow()
+
+    // Shortcuts only play library stations; one left behind by a removed station (on launchers that
+    // ignore disabled shortcuts) reports it instead
+    fun playFromShortcut(stationUuid: String) {
         markShortcutPlaybackInitiated()
-        if (playbackSession.value.currentStation?.stationUuid == stationUuid) {
-            togglePlayPause()
-            return
-        }
+        // play() pauses/resumes when this library version is already playing
 
         viewModelScope.launch {
             val prefs = settingsRepository.appPreferencesFlow.first()
@@ -546,28 +498,19 @@ class PlayerViewModel @Inject constructor(
                     startIndex = libraryIndex,
                     source = PlaybackSource.Library
                 )
-            } else if (fallbackStation != null) {
+                return@launch
+            }
+
+            // In the library but hidden by the active filters
+            val libraryStation = libraryRepository.getLibraryStationById(stationUuid)
+            if (libraryStation != null) {
                 play(
-                    stations = listOf(fallbackStation),
+                    stations = listOf(libraryStation),
                     startIndex = 0,
                     source = PlaybackSource.None
                 )
             } else {
-                val dbStation = libraryRepository.getStationById(stationUuid)
-                if (dbStation != null) {
-                    play(
-                        stations = listOf(dbStation),
-                        startIndex = 0,
-                        source = PlaybackSource.None
-                    )
-                } else {
-                    stationRepository.getStationsByUuid(listOf(stationUuid))
-                        .onSuccess { stations ->
-                            stations.firstOrNull()?.let {
-                                play(listOf(it), 0, PlaybackSource.None)
-                            }
-                        }
-                }
+                _shortcutStationMissingEvent.emit(Unit)
             }
         }
     }

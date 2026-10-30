@@ -58,6 +58,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val IS_GRID_VIEW_FAVORITES = booleanPreferencesKey("is_grid_view_favorites")
         val IS_GRID_VIEW_ADDED = booleanPreferencesKey("is_grid_view_added")
         val TRACK_HISTORY_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("track_history_limit")
+        val RECENT_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("recent_limit")
         val DEFAULT_TAB = androidx.datastore.preferences.core.intPreferencesKey("default_tab")
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
         val APP_LAUNCH_COUNT = androidx.datastore.preferences.core.intPreferencesKey("app_launch_count")
@@ -126,6 +127,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val isGridViewFavorites = preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] ?: true
             val isGridViewAdded = preferences[PreferencesKeys.IS_GRID_VIEW_ADDED] ?: true
             val trackHistoryLimit = preferences[PreferencesKeys.TRACK_HISTORY_LIMIT] ?: 50
+            val recentLimit = preferences[PreferencesKeys.RECENT_LIMIT] ?: 50
             val defaultTab = preferences[PreferencesKeys.DEFAULT_TAB] ?: 0
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
             val appLaunchCount = preferences[PreferencesKeys.APP_LAUNCH_COUNT] ?: 0
@@ -180,6 +182,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 isGridViewAdded = isGridViewAdded,
                 selectAllTextOnFocus = selectAllTextOnFocus,
                 trackHistoryLimit = trackHistoryLimit,
+                recentLimit = recentLimit,
                 defaultTab = defaultTab,
                 autoPlayOnStart = autoPlayOnStart,
                 appLaunchCount = appLaunchCount,
@@ -367,6 +370,12 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setTrackHistoryLimit(limit: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.TRACK_HISTORY_LIMIT] = limit
+        }
+    }
+
+    override suspend fun setRecentLimit(limit: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.RECENT_LIMIT] = limit
         }
     }
 

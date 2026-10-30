@@ -34,3 +34,15 @@ data class RadioStation(
     val hasExtendedInfo: Boolean,
     val isCustom: Boolean = false
 )
+
+/**
+ * Same station with the same details listeners see and hear. The Browse and Library versions of
+ * one station can differ here (for example after an edit), so tapping the other one switches to it.
+ */
+fun RadioStation.isSameVersionAs(other: RadioStation?): Boolean =
+    other != null &&
+        stationUuid == other.stationUuid &&
+        name == other.name &&
+        url == other.url &&
+        urlResolved == other.urlResolved &&
+        favicon == other.favicon

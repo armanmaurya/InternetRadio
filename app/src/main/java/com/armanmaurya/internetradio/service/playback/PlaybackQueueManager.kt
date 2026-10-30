@@ -5,6 +5,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
@@ -28,7 +29,8 @@ class PlaybackQueueManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val playerController: PlayerController
 ) : Player.Listener {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -76,17 +78,20 @@ class PlaybackQueueManager @Inject constructor(
 
         if (stationUuid == null) return
 
+        // Recents keep the version from the tab it was played from. Items sent by the app's
+        // controller lose their station tag on the way here, so that version comes from the
+        // controller's playlist; schedule alarms only play library stations.
         val tagStation = mediaItem.localConfiguration?.tag as? RadioStation
-        if (tagStation != null) {
-            scope.launch {
-                recentRepository.addRecentStation(tagStation)
-            }
-        } else {
-            scope.launch {
-                val dbStation = libraryRepository.getStationById(stationUuid)
-                if (dbStation != null) {
-                    recentRepository.addRecentStation(dbStation)
-                }
+        val isScheduled = mediaItem.mediaMetadata.extras?.getBoolean(EXTRA_SCHEDULED_PLAYBACK) == true
+        val playlistStation = if (isScheduled) null else {
+            playerController.currentPlaylistSnapshot.find { it.stationUuid == stationUuid }
+        }
+        scope.launch {
+            val station = tagStation
+                ?: playlistStation
+                ?: libraryRepository.getLibraryStationById(stationUuid)
+            if (station != null) {
+                recentRepository.addRecentStation(station)
             }
         }
     }

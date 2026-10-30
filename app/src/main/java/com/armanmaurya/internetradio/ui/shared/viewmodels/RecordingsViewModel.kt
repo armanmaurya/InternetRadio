@@ -27,6 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecordingsViewModel @Inject constructor(
+    private val libraryRemovalCoordinator: LibraryRemovalCoordinator,
     private val getRecordingFoldersUseCase: GetRecordingFoldersUseCase,
     private val deleteRecordingUseCase: DeleteRecordingUseCase,
     private val getActiveRecordingsUseCase: GetActiveRecordingsUseCase,
@@ -234,7 +235,7 @@ class RecordingsViewModel @Inject constructor(
     fun toggleLibrary(station: RadioStation) {
         viewModelScope.launch {
             if (libraryStationUuids.value.contains(station.stationUuid)) {
-                libraryRepository.removeStationFromLibrary(station.stationUuid)
+                libraryRemovalCoordinator.requestRemoval(station.stationUuid)
             } else {
                 libraryRepository.addStationToLibrary(station)
             }

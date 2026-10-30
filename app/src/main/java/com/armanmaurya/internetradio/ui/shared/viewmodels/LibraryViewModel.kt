@@ -12,6 +12,8 @@ import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
 import com.armanmaurya.internetradio.domain.controller.PlayerController
+import com.armanmaurya.internetradio.domain.controller.ShortcutController
+import com.armanmaurya.internetradio.domain.usecase.library.RemoveStationFromLibraryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +37,9 @@ import okhttp3.OkHttpClient
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
+    private val libraryRemovalCoordinator: LibraryRemovalCoordinator,
+    private val removeStationFromLibrary: RemoveStationFromLibraryUseCase,
+    private val shortcutController: ShortcutController,
     private val libraryRepository: LibraryRepository,
     private val settingsRepository: SettingsRepository,
     private val stationRepository: StationRepository,
@@ -203,7 +208,14 @@ class LibraryViewModel @Inject constructor(
 
     fun removeStation(stationUuid: String) {
         viewModelScope.launch {
-            libraryRepository.removeStationFromLibrary(stationUuid)
+            libraryRemovalCoordinator.requestRemoval(stationUuid)
+        }
+    }
+
+    // TV has no schedules screen or confirmation sheet, so the station and its schedules go at once
+    fun removeStationWithoutConfirmation(stationUuid: String) {
+        viewModelScope.launch {
+            removeStationFromLibrary(stationUuid)
         }
     }
 
@@ -218,8 +230,10 @@ class LibraryViewModel @Inject constructor(
         homepage: String,
         iso31662: String? = null,
         codec: String,
-        bitrate: Int
+        bitrate: Int,
+        onDone: () -> Unit = {}
     ) {
+        // The playing station is left as is; the edit applies the next time the station is played
         viewModelScope.launch {
             libraryRepository.updateStation(
                 stationUuid = stationUuid,
@@ -234,10 +248,7 @@ class LibraryViewModel @Inject constructor(
                 codec = codec,
                 bitrate = bitrate
             )
-            val updatedStation = libraryRepository.getStationById(stationUuid)
-            if (updatedStation != null && playerController.playbackSession.value.currentStation?.stationUuid == stationUuid) {
-                playerController.updateCurrentStation(updatedStation)
-            }
+            onDone()
         }
     }
 
@@ -333,10 +344,11 @@ class LibraryViewModel @Inject constructor(
                 )
             }
             result.onSuccess { newUuid ->
+                shortcutController.moveStationShortcut(oldUuid = stationUuid, newUuid = newUuid)
                 // Update player state if the uploaded station is currently playing
                 val currentPlayingId = playerController.playbackSession.value.currentStation?.stationUuid
                 if (currentPlayingId == stationUuid || currentPlayingId == newUuid) {
-                    val updatedStation = libraryRepository.getStationById(newUuid)
+                    val updatedStation = libraryRepository.getLibraryStationById(newUuid)
                     if (updatedStation != null) {
                         playerController.updateCurrentStation(updatedStation, oldUuid = stationUuid)
                     }

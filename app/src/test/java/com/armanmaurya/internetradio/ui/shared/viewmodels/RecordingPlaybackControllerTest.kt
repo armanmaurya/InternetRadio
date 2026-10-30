@@ -374,6 +374,7 @@ class RecordingPlaybackControllerTest {
         override suspend fun setGridViewFavorites(isGrid: Boolean) {}
         override suspend fun setGridViewAdded(isGrid: Boolean) {}
         override suspend fun setTrackHistoryLimit(limit: Int) {}
+        override suspend fun setRecentLimit(limit: Int) {}
         override suspend fun setDefaultTab(tabIndex: Int) {}
         override suspend fun setLastUpdateCheckTime(timeInMillis: Long) {}
         override suspend fun setMaxRetryDuration(durationInMillis: Long) {}

@@ -20,7 +20,9 @@ import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
+import com.armanmaurya.internetradio.domain.controller.ShortcutController
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
+import com.armanmaurya.internetradio.domain.repository.ScheduleRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.ui.auto.AutoBrowseTree
 import com.armanmaurya.internetradio.ui.auto.AutoBrowseTreeProvider
@@ -46,6 +48,8 @@ class PlaybackSessionCallback @Inject constructor(
     private val autoBrowseTreeProvider: AutoBrowseTreeProvider,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
+    private val scheduleRepository: ScheduleRepository,
+    private val shortcutController: ShortcutController,
     private val settingsRepository: SettingsRepository,
     private val playerController: PlayerController,
 ) : MediaLibrarySession.Callback {
@@ -152,6 +156,12 @@ class PlaybackSessionCallback @Inject constructor(
                 ?: autoBrowseTreeProvider.findStationByUuid(uuid.substringAfter("|"))
                 ?: return@launch
             val wasFav = libraryRepository.isStationInLibraryDirect(station.stationUuid)
+            // Removing would delete the station's schedules or disable its shortcut, which needs the in-app confirmation
+            if (wasFav && (
+                    scheduleRepository.getSchedulesForStation(station.stationUuid).isNotEmpty() ||
+                        shortcutController.hasShortcut(station.stationUuid)
+                    )
+            ) return@launch
             if (wasFav) libraryRepository.removeStationFromLibrary(station.stationUuid)
             else libraryRepository.addStationToLibrary(station)
             withContext(Dispatchers.Main) {

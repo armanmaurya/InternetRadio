@@ -69,10 +69,9 @@ fun StationEntity.toDomain() = RadioStation(
     isCustom = isCustom
 )
 
-fun RadioStation.toLibraryEntity(isCustom: Boolean = this.isCustom) = toEntity(isFavorite = true)
-
+// The stations table only holds library stations; recents live in recent_stations
 fun RadioStation.toEntity(
-    isFavorite: Boolean = this.isCustom,
+    isFavorite: Boolean = true,
     addedAt: Long? = null,
     orderIndex: Int = 0,
     lastPlayedAt: Long? = null

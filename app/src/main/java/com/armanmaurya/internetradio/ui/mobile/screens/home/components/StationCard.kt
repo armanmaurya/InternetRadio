@@ -304,17 +304,13 @@ fun StationCard(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.action_create_shortcut)) },
-                            onClick = {
-                                showMenu = false
-                                com.armanmaurya.internetradio.ui.shared.utils.ShortcutHelper.pinStationShortcut(context, station)
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.Add, contentDescription = null)
-                            }
-                        )
+                        // Shortcuts only exist for library stations
+                        if (isFavorite) {
+                            com.armanmaurya.internetradio.ui.mobile.components.CreateShortcutMenuItem(
+                                station = station,
+                                onDismissMenu = { showMenu = false }
+                            )
+                        }
                         if (onStopRecordingClick != null) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_stop_recording)) },

@@ -32,6 +32,7 @@ data class BrowseUiState(
 
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
+    private val libraryRemovalCoordinator: LibraryRemovalCoordinator,
     private val repository: StationRepository,
     private val settingsRepository: SettingsRepository,
     private val libraryRepository: LibraryRepository,
@@ -359,7 +360,7 @@ class BrowseViewModel @Inject constructor(
     fun toggleLibrary(station: RadioStation) {
         viewModelScope.launch {
             if (libraryStationUuids.value.contains(station.stationUuid)) {
-                libraryRepository.removeStationFromLibrary(station.stationUuid)
+                libraryRemovalCoordinator.requestRemoval(station.stationUuid)
             } else {
                 libraryRepository.addStationToLibrary(station)
             }

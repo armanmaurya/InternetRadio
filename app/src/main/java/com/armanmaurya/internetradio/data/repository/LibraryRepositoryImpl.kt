@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.data.repository
 
 import com.armanmaurya.internetradio.core.exception.NetworkException
 import com.armanmaurya.internetradio.core.media.prober.parser.PlaylistResolver
+import com.armanmaurya.internetradio.data.local.dao.RecentStationDao
 import com.armanmaurya.internetradio.data.local.dao.ScheduleDao
 import com.armanmaurya.internetradio.data.local.dao.StationDao
 import com.armanmaurya.internetradio.data.local.entity.StationEntity
@@ -22,6 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class LibraryRepositoryImpl @Inject constructor(
     private val stationDao: StationDao,
+    private val recentStationDao: RecentStationDao,
     private val scheduleDao: ScheduleDao,
     private val radioBrowserApi: RadioBrowserApi,
     private val okHttpClient: OkHttpClient
@@ -84,18 +86,17 @@ class LibraryRepositoryImpl @Inject constructor(
         return stationDao.isStationInLibraryDirect(stationUuid)
     }
 
-    override suspend fun getStationById(stationUuid: String): RadioStation? {
+    override suspend fun getLibraryStationById(stationUuid: String): RadioStation? {
         return stationDao.getStationById(stationUuid)?.toDomain()
     }
 
     override suspend fun addStationToLibrary(station: RadioStation) {
-        val existing = stationDao.getStationById(station.stationUuid)
-        val now = System.currentTimeMillis()
-        if (existing != null) {
-            stationDao.updateFavoriteStatus(station.stationUuid, true, now)
-        } else {
-            stationDao.insertStation(station.toEntity(isFavorite = true, addedAt = now))
-        }
+        // Every row in stations is a library station, so an existing row means it's already added
+        if (stationDao.getStationById(station.stationUuid) != null) return
+        val lastPlayedAt = recentStationDao.getStationById(station.stationUuid)?.lastPlayedAt
+        stationDao.insertStation(
+            station.toEntity(addedAt = System.currentTimeMillis(), lastPlayedAt = lastPlayedAt)
+        )
     }
 
     private suspend fun resolveUrlIfNeeded(url: String): String {
@@ -174,12 +175,7 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeStationFromLibrary(stationUuid: String) {
-        val existing = stationDao.getStationById(stationUuid) ?: return
-        if (existing.lastPlayedAt != null) {
-            stationDao.updateFavoriteStatus(stationUuid, false, null)
-        } else {
-            stationDao.deleteStationById(stationUuid)
-        }
+        stationDao.deleteStationById(stationUuid)
     }
 
     override suspend fun uploadAndSaveNewStation(
@@ -263,6 +259,7 @@ class LibraryRepositoryImpl @Inject constructor(
                 val newUuid = response.uuid?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
                 val oldUuid = stationUuid
                 stationDao.updateStationUuid(oldUuid, newUuid)
+                recentStationDao.updateStationUuid(oldUuid, newUuid)
                 scheduleDao.updateStationUuid(oldUuid, newUuid)
                 updateStation(
                     stationUuid = newUuid,

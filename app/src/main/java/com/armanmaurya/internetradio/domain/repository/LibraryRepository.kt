@@ -15,7 +15,7 @@ interface LibraryRepository {
     suspend fun updateStations(stations: List<StationEntity>)
     fun isStationInLibrary(stationUuid: String): Flow<Boolean>
     suspend fun isStationInLibraryDirect(stationUuid: String): Boolean
-    suspend fun getStationById(stationUuid: String): RadioStation?
+    suspend fun getLibraryStationById(stationUuid: String): RadioStation?
     suspend fun addStationToLibrary(station: RadioStation)
     suspend fun addCustomStation(name: String, url: String, favicon: String = "", tags: List<String> = emptyList(), countryCode: String = "", languageCodes: List<String> = emptyList(), homepage: String = "", iso31662: String? = null, codec: String = "unknown", bitrate: Int = 0)
     suspend fun updateStation(stationUuid: String, name: String, url: String, favicon: String, tags: List<String>, countryCode: String, languageCodes: List<String>, homepage: String, iso31662: String?, codec: String, bitrate: Int)

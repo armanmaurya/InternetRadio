@@ -25,6 +25,13 @@ class ScheduleUseCasesTest {
         override suspend fun getScheduleById(id: Int): Schedule? =
             schedules.find { it.id == id }
 
+        override suspend fun getSchedulesForStation(stationUuid: String): List<Schedule> =
+            schedules.filter { it.stationUuid == stationUuid }
+
+        override suspend fun deleteSchedulesForStation(stationUuid: String) {
+            schedules.removeAll { it.stationUuid == stationUuid }
+        }
+
         override suspend fun insertSchedule(schedule: Schedule): Long {
             val generatedId = if (schedule.id == 0) (schedules.maxOfOrNull { it.id } ?: 0) + 1 else schedule.id
             schedules.add(schedule.copy(id = generatedId))

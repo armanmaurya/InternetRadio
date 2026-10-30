@@ -32,6 +32,7 @@ data class AppPreferences(
     val isGridViewAdded: Boolean = true,
     val selectAllTextOnFocus: Boolean = true,
     val trackHistoryLimit: Int = 50,
+    val recentLimit: Int = 50,
     val defaultTab: Int = 0,
     val disableUpdateCheck: Boolean = false,
     val lastUpdateCheckTime: Long = 0L,

@@ -10,21 +10,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.core.config.StoreConfig
 import com.armanmaurya.internetradio.ui.shared.components.UpdateBottomSheet
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryRemovalViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.MainViewModel
 import kotlinx.coroutines.flow.first
 
 @Composable
 fun AppOverlays(
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    libraryRemovalViewModel: LibraryRemovalViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val updateAvailable by mainViewModel.updateAvailable.collectAsStateWithLifecycle()
     val showReviewPrompt by mainViewModel.showReviewPrompt.collectAsStateWithLifecycle()
+    val pendingRemoval by libraryRemovalViewModel.pendingRemoval.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         val prefs = mainViewModel.appPreferences.first()
@@ -48,6 +52,14 @@ fun AppOverlays(
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.html_url)))
                 }
             }
+        )
+    }
+
+    pendingRemoval?.let { removal ->
+        RemoveStationBottomSheet(
+            removal = removal,
+            onDismissRequest = { libraryRemovalViewModel.dismissRemoval() },
+            onConfirm = { libraryRemovalViewModel.confirmRemoval(removal.stationUuid) }
         )
     }
 

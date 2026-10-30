@@ -329,7 +329,7 @@ fun PlayerScreen(
                         Button(
                             onClick = {
                                 if (isInLibrary) {
-                                    libraryViewModel.removeStation(station.stationUuid)
+                                    libraryViewModel.removeStationWithoutConfirmation(station.stationUuid)
                                 } else {
                                     libraryViewModel.addStationToLibrary(station)
                                 }
