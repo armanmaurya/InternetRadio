@@ -2,7 +2,7 @@
 <resources>
     <string name="version_format">Versioon: %1$s</string>
     <string name="general_search">Otsi</string>
-    <string name="general_clear">Eemalda</string>
+    <string name="general_clear">Tühjenda</string>
     <string name="general_later">Hiljem</string>
     <string name="general_update_now">Uuenda kohe</string>
     <string name="general_cancel">Katkesta</string>
@@ -337,7 +337,7 @@
     <string name="settings_imported_updated">Uuendatud: %1$d</string>
     <string name="schedule_listen_while_recording">Kuula salvestamise ajal</string>
     <string name="schedule_listen_while_recording_subtitle">Taustal salvestamise ajal võimalda kuulata ka voogedastust</string>
-    <string name="action_create_shortcut">Lisa viide</string>
+    <string name="action_create_shortcut">Lisa viide/link</string>
     <string name="player_original_stream_metadata">Voogedastuse algne metateave</string>
     <string name="settings_about_foss_edition">Vaba tarkvara versioon</string>
     <string name="settings_about_play_edition">Google Play versioon</string>
@@ -425,7 +425,7 @@
     <string name="settings_malformed_backup_choose_folder">Vali muu kaust</string>
     <string name="settings_malformed_backup_choose_folder_desc">Vali varunuduse jaoks muu kaust</string>
     <string name="settings_malformed_backup_cancel">Jäta fail puutumata</string>
-    <string name="shortcut_not_supported">Sinu käivitaja ei toeta linkide esiletõstmise võimalust</string>
+    <string name="shortcut_not_supported">Sinu käivitaja ei toeta viidete/linkide esiletõstmise võimalust</string>
     <string name="settings_backup_error_file_empty">%1$s on tühi</string>
     <string name="settings_backup_error_not_found">Kausta või varukoopiafaili ei leidunud</string>
     <string name="settings_backup_error_io">Andmeruumi lugemise või kirjutamise viga</string>
@@ -508,4 +508,20 @@
     <string name="recording_folder_access_message">Luba ligipääs kaustale „Music/InternetRadio“ - see võimaldab hallata lugude/saadete loendit ja märkmeid koos sinu salvestistega ning saad ka näha vanemaid salvestisi.</string>
     <string name="recording_folder_access_grant">Luba juurdepääs</string>
     <string name="recording_folder_access_wrong_folder">Palun vali „Music/InternetRadio“ kaust</string>
+    <string name="library_remove_title">Kas eemaldad „%1$s“ jaama oma kogust?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Sel jaamal on %1$d ajagraafik. See kustutatakse ka.</item>
+        <item quantity="other">Sel jaamal on %1$d ajagraafikut. Need kustutatakse ka.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Tema avalehel lisatud viide seejärel enam ei tööta, kui sa just jaama tagasi ei lisa.</string>
+    <string name="library_remove_confirm">Eemalda</string>
+    <string name="shortcut_station_not_in_library">Seda jaama ei leidu enam sinu kogus</string>
+    <string name="shortcut_disabled_station_removed">Jaam on sinu kogust eemaldatud</string>
+    <string name="action_shortcut_added">Viide/link on lisatud</string>
+    <string name="settings_recent_limit">Hiljutiste jaamade arvu ülempiir</string>
+    <string name="settings_number_of_stations">Jaamade arv</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d raadiojaam</item>
+        <item quantity="other">%1$d raadiojaama</item>
+    </plurals>
 </resources>
