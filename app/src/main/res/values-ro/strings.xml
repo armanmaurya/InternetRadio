@@ -513,4 +513,13 @@
     <string name="player_session_gap_days">%1$dd interval</string>
     <string name="player_session_today">Astăzi</string>
     <string name="player_session_yesterday">Ieri</string>
+    <string name="recording_add_note">Adaugă o notă</string>
+    <string name="recording_edit_note">Editează nota</string>
+    <string name="recording_note_placeholder">Adaugă o notă…</string>
+    <string name="recording_save_note">Salvează nota</string>
+    <string name="recording_cancel_note">Renunță</string>
+    <string name="recording_folder_access_title">Este necesar accesul la dosar</string>
+    <string name="recording_folder_access_message">Permite accesul la „Muzică/Radio pe internet” pentru a putea adăuga liste de redare și note lângă înregistrări și pentru a putea vizualiza înregistrările mai vechi.</string>
+    <string name="recording_folder_access_grant">Acordă acces</string>
+    <string name="recording_folder_access_wrong_folder">Selectează dosarul „Muzică/Radio pe internet”</string>
 </resources>
