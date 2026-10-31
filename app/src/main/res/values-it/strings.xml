@@ -519,4 +519,25 @@
     <string name="recording_folder_access_message">Consenti l\'accesso a Music/InternetRadio per associare l\'elenco delle tracce e le note alle registrazioni e per visualizzare le registrazioni precedenti.</string>
     <string name="recording_folder_access_grant">Concedi accesso</string>
     <string name="recording_folder_access_wrong_folder">Seleziona la cartella Music/InternetRadio</string>
+    <string name="library_remove_title">Rimuovere %1$s dalla libreria?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Questa stazione ha %1$d programmazione. Verrà eliminata a sua volta.</item>
+        <item quantity="many">Questa stazione ha %1$d programmazioni. Verranno eliminate a loro volta.</item>
+        <item quantity="other">Questa stazione ha %1$d programmazioni. Verranno eliminate a loro volta.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">La sua scorciatoia nella home smetterà di funzionare finché non riaggiungerai la stazione.</string>
+    <string name="library_remove_confirm">Rimuovi</string>
+    <string name="action_shortcut_added">Scorciatoia aggiunta</string>
+    <string name="shortcut_disabled_station_removed">Stazione rimossa dalla libreria</string>
+    <string name="shortcut_station_not_in_library">Questa stazione non è più nella tua libreria</string>
+    <string name="settings_recent_limit">Limite di stazioni recenti</string>
+    <string name="settings_number_of_stations">Numero di stazioni</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d stazione</item>
+        <item quantity="many">%1$d stazioni</item>
+        <item quantity="other">%1$d stazioni</item>
+    </plurals>
+    <string name="player_session_gap_minutes">%1$dm di differenza</string>
+    <string name="player_session_gap_hours">%1$dh di differenza</string>
+    <string name="player_session_gap_days">%1$dg di differenza</string>
 </resources>
