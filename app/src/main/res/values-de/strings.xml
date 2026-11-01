@@ -93,9 +93,14 @@
     <string name="settings_update_failed">Suche nach Aktualisierungen fehlgeschlagen</string>
     <string name="settings_support_app">Unterstütze die App</string>
     <string name="settings_pause_on_volume_zero">Anhalten bei keiner Lautstärke</string>
-    <string name="settings_pause_on_volume_zero_desc">Die Wiedergabe anhalten, wenn das Gerät stumm ist (Gilt nicht für Aufnahmen)</string>
+    <string name="settings_pause_on_volume_zero_desc">Die Wiedergabe anhalten, wenn das Gerät stumm ist</string>
+    <string name="settings_enable_volume_boost" formatted="false">Lautstärken-Verstärkung (Bis zu 200%)</string>
+    <string name="settings_enable_volume_boost_desc" formatted="false">Erlaubt eine Erhöhung der Lautstärke über 100% mittles Software-Verstärkung</string>
+    <string name="settings_volume_boost_warning_title">Aktiviere Lautstärken-Verstärkung?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">Erhöhung der Lautstärke über 100% mittels Software-Verstärkung (bis zu 200%). Dies kann zu Klangverzerrungen sowie Übersteuerungen (Clipping) führen und möglicherweise ein empfindliches Gehör oder Audiogeräte schädigen. Nutzung auf eigene Gefahr.</string>
+    <string name="settings_volume_boost_warning_confirm">Aktivieren</string>
     <string name="settings_keep_screen_on_title">Bildschirm eingeschaltet lassen</string>
-    <string name="settings_keep_screen_on_desc">Verhindere, dass der Bildschirm ausgeht, wenn der Player maximiert ist</string>
+    <string name="settings_keep_screen_on_desc">Bildschirm bei geöffnetem/maximiertem Player eingeschaltet lassen</string>
     <string name="settings_show_cover_art">Titelbild des Songs</string>
     <string name="settings_show_cover_art_desc">Zeige im Sperrbildschirm und in Benachrichtigungen das Titelbild des Songs anstatt des Senderlogos an</string>
     <string name="settings_max_retry_duration">Maximale Verbindungsversuchsdauer</string>
@@ -267,6 +272,16 @@
     <string name="home_toggle_view">Ansicht umschalten</string>
     <string name="home_add_to_library">Zur Bibliothek hinzufügen</string>
     <string name="home_remove_from_library">Aus Bibliothek entfernen</string>
+    <string name="library_remove_title">%1$s aus der Bibliothek entfernen?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Der Sender hat %1$d Zeitplan. Dieser wird auch entfernt.</item>
+        <item quantity="other">Der Sender hat %1$d Zeitpläne. Diese werden auch entfernt.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Die Verknüpfung auf der Startseite wird nicht funktionieren bis der Sender wieder hinzugefügt wird.</string>
+    <string name="library_remove_confirm">Entfernen</string>
+    <string name="action_shortcut_added">Verknüpfung hinzugefügt</string>
+    <string name="shortcut_disabled_station_removed">Sender wurde aus der Bibliothek entfernt</string>
+    <string name="shortcut_station_not_in_library">Dieser Sender ist nicht mehr in deiner Bibliothek</string>
     <string name="home_remove_from_recent">Aus Zuletzt entfernen</string>
     <string name="home_descending">Absteigend</string>
     <string name="home_ascending">Aufsteigend</string>
@@ -304,13 +319,6 @@
     <string name="select_country_search">Land suchen</string>
     <string name="select_country_title">Land auswählen</string>
     <string name="select_country_all">Alle Länder</string>
-
-    <!-- ========================================== -->
-    <!-- 9. SELECT LANGUAGE                         -->
-    <!-- ========================================== -->
-    <string name="select_language_search">Sprache suchen</string>
-    <string name="select_language_title">Sprache auswählen</string>
-    <string name="select_language_all">Alle Sprachen</string>
     <string name="select_country_search_states">Staaten suchen...</string>
     <string name="select_country_select_state_in">Suche Staat in %1$s</string>
     <string name="select_country_all_of">Alle von %1$s</string>
@@ -318,6 +326,13 @@
         <item quantity="one">%1$d Staat</item>
         <item quantity="other">%1$d Staaten</item>
     </plurals>
+
+    <!-- ========================================== -->
+    <!-- 9. SELECT LANGUAGE                         -->
+    <!-- ========================================== -->
+    <string name="select_language_search">Sprache suchen</string>
+    <string name="select_language_title">Sprache auswählen</string>
+    <string name="select_language_all">Alle Sprachen</string>
 
     <!-- ========================================== -->
     <!-- 10. SELECT TAGS                            -->
@@ -423,6 +438,12 @@
     <string name="player_cast_connected">Verbunden</string>
     <string name="player_cd_delay_lyrics">Songtext verzögern</string>
     <string name="player_cd_fast_forward_lyrics">Songtext vorverlegen</string>
+    <string name="player_saved_songs">Gespeichert</string>
+    <string name="player_station_history">Verlauf</string>
+    <string name="player_cd_star_track">Titel speichern</string>
+    <string name="player_cd_unstar_track">Gespeicherten Titel entfernen</string>
+    <string name="player_track_saved">In Titeln gespeichert</string>
+    <string name="player_track_removed">Von gespeicherten Titeln entfernt</string>
 
     <!-- ========================================== -->
     <!-- 13. CAST DIALOG                            -->
@@ -492,10 +513,31 @@
         <item quantity="other">%1$d Aufnahmen</item>
     </plurals>
     <string name="recordings_selected">%1$d ausgewählt</string>
+    <string name="settings_recent_limit">Begrenzung für zuletzt verwendete Sender</string>
+    <string name="settings_number_of_stations">Anzahl der Sender</string>
+    <plurals name="stations_count">
+        <!-- <item quantity="one">%1$d station</item> -->
+        <item quantity="other">%1$d Sender</item>
+    </plurals>
     <plurals name="tracks_count">
         <!-- <item quantity="one">%1$d track</item> -->
         <item quantity="other">%1$d Titel</item>
     </plurals>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d Minute</item>
+        <item quantity="other">%1$d Minuten</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d Song</item>
+        <item quantity="other">%1$d Songs</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$dh %2$dm</string>
+    <string name="player_session_duration_m">%1$dm</string>
+    <string name="player_session_gap_minutes">%1$dm Zeitlücke</string>
+    <string name="player_session_gap_hours">%1$dh Zeitlücke</string>
+    <string name="player_session_gap_days">%1$dd Zeitlücke</string>
+    <string name="player_session_today">Heute</string>
+    <string name="player_session_yesterday">Gestern</string>
     <string name="schedule_keep_playback_subtitle">Wenn deaktiviert, dann endet die Wiedergabe mit der Aufnahme</string>
 
     <!-- ========================================== -->
@@ -546,4 +588,13 @@
     <string name="recording_speed_normal">1.0x (Normal)</string>
     <string name="recording_cd_loop_enabled">Endlosschleife ausschalten</string>
     <string name="recording_cd_loop_disabled">Endlosschleife einschalten</string>
+    <string name="recording_add_note">Notiz hinzufügen</string>
+    <string name="recording_edit_note">Notiz bearbeiten</string>
+    <string name="recording_note_placeholder">Eine Notiz hinzufügen…</string>
+    <string name="recording_save_note">Notiz speichern</string>
+    <string name="recording_cancel_note">Abbrechen</string>
+    <string name="recording_folder_access_title">Ordner-Zugriff benötigt</string>
+    <string name="recording_folder_access_message">Erlaube Zugriff auf Musik/Internet Radio um Titellisten zu behalten, Notizen füt Aufnahmen zu speichern und ältere Aufnahmen anzuzeigen. (Aufnahmen funktionieren auch ohne diese Berechtigung)</string>
+    <string name="recording_folder_access_grant">Zugriff erlauben</string>
+    <string name="recording_folder_access_wrong_folder">Wähle den Musik/Internet Radio Ordner aus</string>
 </resources>
