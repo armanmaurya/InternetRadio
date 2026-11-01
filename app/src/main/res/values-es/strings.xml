@@ -16,7 +16,7 @@
     <string name="cd_close_search">Cerrar búsqueda</string>
     <string name="cd_search">Buscar</string>
     <string name="cd_clear_search">Limpiar búsqueda</string>
-    <string name="cd_delete">Eliminar</string>
+    <string name="cd_delete">Borrar</string>
     <string name="general_name">Nombre</string>
     <string name="general_hours">Horas</string>
     <string name="general_minutes">Minutos</string>
@@ -261,7 +261,7 @@
     <string name="home_cd_tags">Etiquetas</string>
     <string name="home_cd_station_logo">Logo de %1$s</string>
     <string name="home_cd_favorite">Favorito</string>
-    <string name="home_cd_more_options">Más opciones</string>
+    <string name="home_cd_more_options">Más Opciones</string>
     <string name="home_export_station">Exportar emisora</string>
     <string name="home_no_recent_stations_filtered">No hay emisoras reproducidas recientemente que coincidan con tus filtros.</string>
     <string name="home_no_recent_stations">No hay emisoras reproducidas recientemente</string>
@@ -439,7 +439,7 @@
     <string name="schedule_alarm_channel_name">Alarmas programadas</string>
     <string name="schedule_alarm_channel_description">Notificaciones de alarmas de radio programadas</string>
     <string name="schedule_alarm_playing">La alarma está sonando</string>
-    <string name="delete_recording">Eliminar</string>
+    <string name="delete_recording">Borrar</string>
     <plurals name="delete_recordings_message">
         <item quantity="one">¿Estás seguro de que deseas eliminar %1$d elemento?</item>
         <item quantity="many">¿Estás seguro de que deseas eliminar %1$d elementos?</item>
@@ -522,4 +522,22 @@
     <string name="recording_folder_access_message">Permite el acceso a Música/InternetRadio para mantener las listas de pistas y notas junto a tus grabaciones y mostrar tus grabaciones anteriores.</string>
     <string name="recording_folder_access_grant">Conceder acceso</string>
     <string name="recording_folder_access_wrong_folder">Por favor, selecciona la carpeta Música/InternetRadio</string>
+    <string name="library_remove_title">¿Eliminar %1$s de la biblioteca?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Esta emisora tiene %1$d programación. También se eliminará.</item>
+        <item quantity="many">Esta emisora tiene %1$d programaciones. También se eliminarán.</item>
+        <item quantity="other">Esta emisora tiene %1$d programaciones. También se eliminarán.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Su acceso directo en la pantalla de inicio dejará de funcionar hasta que vuelvas a añadir la emisora.</string>
+    <string name="library_remove_confirm">Eliminar</string>
+    <string name="action_shortcut_added">Acceso directo añadido</string>
+    <string name="shortcut_disabled_station_removed">Emisora eliminada de la biblioteca</string>
+    <string name="shortcut_station_not_in_library">Esta emisora ya no está en tu biblioteca</string>
+    <string name="settings_recent_limit">Límite de emisoras recientes</string>
+    <string name="settings_number_of_stations">Número de emisoras</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d emisora</item>
+        <item quantity="many">%1$d emisoras</item>
+        <item quantity="other">%1$d emisoras</item>
+    </plurals>
 </resources>
