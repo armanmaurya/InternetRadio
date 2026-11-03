@@ -522,4 +522,22 @@
     <string name="recording_folder_access_message">Permite accesul la „Muzică/Radio pe internet” pentru a putea adăuga liste de redare și note lângă înregistrări și pentru a putea vizualiza înregistrările mai vechi.</string>
     <string name="recording_folder_access_grant">Acordă acces</string>
     <string name="recording_folder_access_wrong_folder">Selectează dosarul „Muzică/Radio pe internet”</string>
+    <string name="library_remove_title">Ștergi %1$s din bibliotecă?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">Această stație are %1$d program. Acesta va fi șters.</item>
+        <item quantity="few">Această stație are %1$d programe. Acestea vor fi șterse.</item>
+        <item quantity="other">Această stație are %1$d de programe. Acestea vor fi șterse.</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">Comanda rapidă de pe ecranul de start nu va mai funcționa până când nu vei adăuga din nou postul respectiv.</string>
+    <string name="library_remove_confirm">Elimină</string>
+    <string name="action_shortcut_added">S-a adăugat comanda rapidă</string>
+    <string name="shortcut_disabled_station_removed">Stația a fost eliminată din bibliotecă</string>
+    <string name="shortcut_station_not_in_library">Această stație nu mai figurează în biblioteca ta</string>
+    <string name="settings_recent_limit">Limita stațiilor recente</string>
+    <string name="settings_number_of_stations">Numărul de stații</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d stație</item>
+        <item quantity="few">%1$d stații</item>
+        <item quantity="other">%1$d de stații</item>
+    </plurals>
 </resources>
