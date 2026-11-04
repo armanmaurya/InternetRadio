@@ -23,6 +23,7 @@ data class AppPreferences(
     val useFilterOnFavorites: Boolean = false,
     val useFilterOnAdded: Boolean = false,
     val autoRouteToBrowseOnSearch: Boolean = true,
+    val isSearchBarHidden: Boolean = false,
     val isGridViewBrowse: Boolean = true,
     val isGridViewRecent: Boolean = true,
     val autoPlayOnStart: Boolean = false,

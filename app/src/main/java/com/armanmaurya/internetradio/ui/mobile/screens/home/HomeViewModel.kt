@@ -23,6 +23,7 @@ data class HomeUiState(
     val selectedTags: Set<String> = emptySet(),
     val isPreferencesLoaded: Boolean = false,
     val autoRouteToBrowseOnSearch: Boolean = true,
+    val isSearchBarHidden: Boolean = false,
     val selectAllTextOnFocus: Boolean = true
 )
 
@@ -55,6 +56,7 @@ class HomeViewModel @Inject constructor(
                         selectedTab = if (isFirstLoad) preferences.defaultTab else it.selectedTab,
                         isPreferencesLoaded = true,
                         autoRouteToBrowseOnSearch = preferences.autoRouteToBrowseOnSearch,
+                        isSearchBarHidden = preferences.isSearchBarHidden,
                         selectAllTextOnFocus = preferences.selectAllTextOnFocus
                     )
                 }
@@ -92,6 +94,12 @@ class HomeViewModel @Inject constructor(
     fun onSearchCleared() {
         _uiState.update {
             it.copy(searchQuery = "")
+        }
+    }
+
+    fun setSearchBarHidden(hidden: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setSearchBarHidden(hidden)
         }
     }
 

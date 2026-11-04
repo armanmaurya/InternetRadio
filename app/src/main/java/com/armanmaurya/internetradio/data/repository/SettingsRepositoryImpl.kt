@@ -53,6 +53,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
         val AUTO_ROUTE_TO_BROWSE_ON_SEARCH = booleanPreferencesKey("auto_route_to_browse_on_search")
+        val SEARCH_BAR_HIDDEN = booleanPreferencesKey("search_bar_hidden")
         val IS_GRID_VIEW_BROWSE = booleanPreferencesKey("is_grid_view_browse")
         val IS_GRID_VIEW_RECENT = booleanPreferencesKey("is_grid_view_recent")
         val IS_GRID_VIEW_FAVORITES = booleanPreferencesKey("is_grid_view_favorites")
@@ -122,6 +123,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
             val autoRouteToBrowseOnSearch = preferences[PreferencesKeys.AUTO_ROUTE_TO_BROWSE_ON_SEARCH] ?: true
+            val isSearchBarHidden = preferences[PreferencesKeys.SEARCH_BAR_HIDDEN] ?: false
             val isGridViewBrowse = preferences[PreferencesKeys.IS_GRID_VIEW_BROWSE] ?: true
             val isGridViewRecent = preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] ?: true
             val isGridViewFavorites = preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] ?: true
@@ -176,6 +178,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 useFilterOnFavorites = useFilterOnFavorites,
                 useFilterOnAdded = useFilterOnAdded,
                 autoRouteToBrowseOnSearch = autoRouteToBrowseOnSearch,
+                isSearchBarHidden = isSearchBarHidden,
                 isGridViewBrowse = isGridViewBrowse,
                 isGridViewRecent = isGridViewRecent,
                 isGridViewFavorites = isGridViewFavorites,
@@ -213,6 +216,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.AUTO_ROUTE_TO_BROWSE_ON_SEARCH] = enabled }
+    }
+
+    override suspend fun setSearchBarHidden(hidden: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.SEARCH_BAR_HIDDEN] = hidden }
     }
 
     override suspend fun setSelectAllTextOnFocus(enabled: Boolean) {

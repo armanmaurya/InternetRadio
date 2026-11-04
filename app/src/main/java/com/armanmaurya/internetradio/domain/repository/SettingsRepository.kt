@@ -12,6 +12,7 @@ interface SettingsRepository {
     val appPreferencesFlow: Flow<AppPreferences>
     suspend fun setUseFilterOnRecent(enabled: Boolean)
     suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean)
+    suspend fun setSearchBarHidden(hidden: Boolean)
     suspend fun setSelectAllTextOnFocus(enabled: Boolean)
     suspend fun setAutoPlayOnStart(enabled: Boolean)
     suspend fun setAppLaunchCount(count: Int)

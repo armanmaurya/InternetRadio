@@ -157,7 +157,7 @@ fun HomeScreen(
     val sheetState = rememberModalBottomSheetState()
     var isSearchExpanded by remember { mutableStateOf(false) }
     var isLibraryDragging by remember { mutableStateOf(false) }
-    val searchBarCollapseProgress = remember { Animatable(0f) }
+    val searchBarCollapseProgress = remember { Animatable(if (uiState.isSearchBarHidden) 1f else 0f) }
     val searchBarCollapsibleHeightPx = remember { mutableFloatStateOf(0f) }
     val statusBarsInsets = WindowInsets.statusBars
 
@@ -540,6 +540,7 @@ fun HomeScreen(
                     }
                     coroutineScope.launch {
                         searchBarCollapseProgress.animateTo(target)
+                        viewModel.setSearchBarHidden(target == 1f)
                     }
                 }
             )
