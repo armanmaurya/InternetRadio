@@ -25,6 +25,8 @@
 -keep class com.armanmaurya.internetradio.data.backup.** { *; }
 # Recording sidecar JSON DTO (Gson uses field names; must not be obfuscated)
 -keep class com.armanmaurya.internetradio.data.recording.RecordingSidecarDto { *; }
+# Recording duration cache entry (same reason)
+-keep class com.armanmaurya.internetradio.data.recording.RecordingDurationEntry { *; }
 -keep class com.armanmaurya.internetradio.core.media.prober.** { *; }
 -keep class com.armanmaurya.internetradio.util.State { *; }
 

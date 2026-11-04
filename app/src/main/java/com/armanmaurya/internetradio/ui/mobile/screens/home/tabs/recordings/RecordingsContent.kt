@@ -61,7 +61,7 @@ import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCa
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingRecordingCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingTrackQueue
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RecordingsContent(
     viewModel: RecordingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
@@ -776,13 +776,17 @@ fun RecordingsContent(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.general_no_recordings),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.padding(32.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (isFoldersLoaded) {
+                    Text(
+                        text = stringResource(R.string.general_no_recordings),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(32.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    LoadingIndicator()
+                }
             }
         }
     }

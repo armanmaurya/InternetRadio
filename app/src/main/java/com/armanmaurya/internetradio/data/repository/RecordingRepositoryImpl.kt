@@ -9,10 +9,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.asSharedFlow
 import android.media.MediaMetadataRetriever
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.armanmaurya.internetradio.data.recording.RecordingArtworkStore
+import com.armanmaurya.internetradio.data.recording.RecordingDurationCache
 import com.armanmaurya.internetradio.data.recording.RecordingFolderAccess
 import com.armanmaurya.internetradio.data.recording.RecordingSidecarStore
 import com.armanmaurya.internetradio.domain.model.RecordingFile
@@ -25,11 +25,9 @@ class RecordingRepositoryImpl @Inject constructor(
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
     private val sidecarStore: RecordingSidecarStore,
     private val folderAccess: RecordingFolderAccess,
-    private val artworkStore: RecordingArtworkStore
+    private val artworkStore: RecordingArtworkStore,
+    private val durationCache: RecordingDurationCache
 ) : RecordingRepository {
-
-    private data class FileCacheKey(val lastModified: Long, val sizeBytes: Long)
-    private val durationCache = ConcurrentHashMap<String, Pair<FileCacheKey, Long>>()
 
     private val recordingsRoot: File
         get() = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "InternetRadio")
@@ -52,11 +50,7 @@ class RecordingRepositoryImpl @Inject constructor(
         sizeBytes: Long,
         setDataSource: (MediaMetadataRetriever) -> Unit
     ): Long {
-        val currentKey = FileCacheKey(lastModified, sizeBytes)
-        val cached = durationCache[cacheKey]
-        if (cached != null && cached.first == currentKey) {
-            return cached.second
-        }
+        durationCache.get(cacheKey, lastModified, sizeBytes)?.let { return it }
 
         var durationMs = 0L
         val retriever = MediaMetadataRetriever()
@@ -74,22 +68,30 @@ class RecordingRepositoryImpl @Inject constructor(
             }
         }
 
-        durationCache[cacheKey] = Pair(currentKey, durationMs)
+        durationCache.put(cacheKey, lastModified, sizeBytes, durationMs)
         return durationMs
     }
 
     override suspend fun getRecordingFolders(): List<RecordingFolder> = withContext(Dispatchers.IO) {
         val treeUri = folderAccess.grantedTreeUri()
         treeUri?.let { migrateAppFiles(it) }
-        val stationNames = if (treeUri != null) {
-            folderAccess.listStationFolders(treeUri).map { it.name }
+        val stationListings = if (treeUri != null) {
+            folderAccess.listStationFolders(treeUri).map { it.name to listStationFromTree(treeUri, it, it.name) }
         } else {
-            recordingsRoot.listFiles { file -> file.isDirectory }?.map { it.name }.orEmpty()
+            recordingsRoot.listFiles { file -> file.isDirectory }
+                ?.map { it.name to listStationFromFiles(it.name, it.name) }
+                .orEmpty()
         }
 
-        stationNames
-            .mapNotNull { stationName ->
-                val listing = listStation(stationName, stationName, treeUri)
+        durationCache.retainOnly(
+            stationListings.flatMapTo(mutableSetOf()) { (stationName, listing) ->
+                listing.recordings.map { durationCacheKey(stationName, it.fileName) }
+            }
+        )
+        durationCache.saveIfChanged()
+
+        stationListings
+            .mapNotNull { (stationName, listing) ->
                 if (listing.recordings.isEmpty()) {
                     null
                 } else {
@@ -117,20 +119,25 @@ class RecordingRepositoryImpl @Inject constructor(
     private data class StationListing(val recordings: List<RecordingFile>, val artworkUri: Uri?)
 
     private fun listStation(stationFolderName: String, stationName: String, treeUri: Uri?): StationListing {
-        val listing = if (treeUri != null) {
-            listStationFromTree(treeUri, stationFolderName, stationName)
-        } else {
-            StationListing(
-                recordings = listRecordingsFromFiles(stationFolderName, stationName),
-                artworkUri = artworkStore.appArtworkUri(stationFolderName)
-            )
-        }
-        return listing.copy(recordings = listing.recordings.sortedByDescending { it.lastModified })
-    }
-
-    private fun listStationFromTree(treeUri: Uri, stationFolderName: String, stationName: String): StationListing {
+        if (treeUri == null) return listStationFromFiles(stationFolderName, stationName)
         val stationFolder = folderAccess.findStationFolder(treeUri, stationFolderName)
             ?: return StationListing(emptyList(), null)
+        return listStationFromTree(treeUri, stationFolder, stationName)
+    }
+
+    private fun listStationFromFiles(stationFolderName: String, stationName: String): StationListing =
+        StationListing(
+            recordings = listRecordingsFromFiles(stationFolderName, stationName)
+                .sortedByDescending { it.lastModified },
+            artworkUri = artworkStore.appArtworkUri(stationFolderName)
+        )
+
+    private fun listStationFromTree(
+        treeUri: Uri,
+        stationFolder: RecordingFolderAccess.DocumentEntry,
+        stationName: String
+    ): StationListing {
+        val stationFolderName = stationFolder.name
         val children = folderAccess.listChildren(treeUri, stationFolder.documentId).filter { !it.isDirectory }
         val childrenByName = children.associateBy { it.name }
 
@@ -153,7 +160,10 @@ class RecordingRepositoryImpl @Inject constructor(
                 note = sidecar?.note
             )
         }
-        return StationListing(recordings, childrenByName[RecordingArtworkStore.ARTWORK_FILE_NAME]?.uri)
+        return StationListing(
+            recordings = recordings.sortedByDescending { it.lastModified },
+            artworkUri = childrenByName[RecordingArtworkStore.ARTWORK_FILE_NAME]?.uri
+        )
     }
 
     private fun listRecordingsFromFiles(stationFolderName: String, stationName: String): List<RecordingFile> {
@@ -254,7 +264,7 @@ class RecordingRepositoryImpl @Inject constructor(
                 fileSystemFacade.deleteAudioRecordingFolder(safeStationName)
             }
             if (deleted) {
-                durationCache.keys.removeAll { it.startsWith("$safeStationName/") }
+                durationCache.removeStation(safeStationName)
             } else {
                 allDeleted = false
             }

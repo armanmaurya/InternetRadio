@@ -16,6 +16,7 @@ import com.armanmaurya.internetradio.domain.usecase.recording.GetRecordingFolder
 import com.armanmaurya.internetradio.domain.usecase.recording.StopRecordingUseCase
 import com.armanmaurya.internetradio.domain.controller.RecordingPlaybackController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +38,9 @@ class RecordingsViewModel @Inject constructor(
     private val recordingPlaybackController: RecordingPlaybackController,
     private val recordingFolderAccess: RecordingFolderAccess
 ) : ViewModel() {
+
+    // Conflated so requests made during a scan collapse into one follow-up scan
+    private val folderLoadRequests = Channel<Unit>(Channel.CONFLATED)
 
     private val _hasFolderAccess = MutableStateFlow(recordingFolderAccess.hasAccess())
     val hasFolderAccess: StateFlow<Boolean> = _hasFolderAccess.asStateFlow()
@@ -73,6 +77,11 @@ class RecordingsViewModel @Inject constructor(
     val isRecordingLooping: StateFlow<Boolean> = recordingPlaybackController.isLooping
 
     init {
+        viewModelScope.launch {
+            for (request in folderLoadRequests) {
+                scanFolders()
+            }
+        }
         loadFolders()
         viewModelScope.launch {
             recordingRepository.recordingsChangedEvent.collect {
@@ -99,16 +108,18 @@ class RecordingsViewModel @Inject constructor(
     }
 
     fun loadFolders() {
-        viewModelScope.launch {
-            val loadedFolders = getRecordingFoldersUseCase()
-            _folders.value = loadedFolders
-            recordingPlaybackController.syncCurrentRecording(loadedFolders.flatMap { it.recordings })
-            _isLoaded.value = true
-            val currentSelected = _selectedStationName.value
-            if (currentSelected != null && loadedFolders.none { it.stationName == currentSelected }) {
-                _selectedStationName.value = null
-                _expandedRecordingUri.value = null
-            }
+        folderLoadRequests.trySend(Unit)
+    }
+
+    private suspend fun scanFolders() {
+        val loadedFolders = getRecordingFoldersUseCase()
+        _folders.value = loadedFolders
+        recordingPlaybackController.syncCurrentRecording(loadedFolders.flatMap { it.recordings })
+        _isLoaded.value = true
+        val currentSelected = _selectedStationName.value
+        if (currentSelected != null && loadedFolders.none { it.stationName == currentSelected }) {
+            _selectedStationName.value = null
+            _expandedRecordingUri.value = null
         }
     }
 
