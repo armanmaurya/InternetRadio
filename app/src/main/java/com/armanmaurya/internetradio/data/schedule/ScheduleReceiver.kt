@@ -130,7 +130,7 @@ class ScheduleReceiver : BroadcastReceiver() {
                     if (isRecord) {
                         val station = libraryRepository.getLibraryStationById(schedule.stationUuid)
                         if (station != null) {
-                            recordingController.startRecording(station)
+                            recordingController.startRecording(station, schedule.scheduleName)
 
                             if (schedule.durationMinutes > 0) {
                                 scheduleController.scheduleRecordingStop(

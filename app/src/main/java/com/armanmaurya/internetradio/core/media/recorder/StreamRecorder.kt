@@ -64,7 +64,7 @@ class DefaultStreamRecorder @Inject constructor(
         }
 
         val timeFormat = settingsRepository.appPreferencesFlow.first().recordingTimeFormat
-        val sink = RecordingSink(fileSystemFacade, resolvedConfig.title, context, timeFormat)
+        val sink = RecordingSink(fileSystemFacade, resolvedConfig.title, context, timeFormat, resolvedConfig.fileNamePrefix)
         try {
             if (isHlsUrl(resolvedConfig.url)) {
                 HlsStreamRecorder(recordingHttpClient).record(

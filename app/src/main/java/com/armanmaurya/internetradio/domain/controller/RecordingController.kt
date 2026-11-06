@@ -9,8 +9,8 @@ interface RecordingController {
     val activeSessions: StateFlow<Map<String, RecordingSession>>
     val recordingSavedEvent: SharedFlow<Unit>
 
-    fun startRecording(station: RadioStation)
-    fun startRecordingStream(station: RadioStation): Boolean
+    fun startRecording(station: RadioStation, fileNamePrefix: String = "")
+    fun startRecordingStream(station: RadioStation, fileNamePrefix: String = ""): Boolean
     fun stopRecording(uuid: String)
     fun stopAllRecordings()
 }

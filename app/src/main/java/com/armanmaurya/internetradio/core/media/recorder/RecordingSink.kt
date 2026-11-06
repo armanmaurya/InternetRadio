@@ -7,18 +7,28 @@ import com.armanmaurya.internetradio.core.system.FileSystemFacade
 import com.armanmaurya.internetradio.core.utils.FormatUtils
 import com.armanmaurya.internetradio.core.utils.FormatUtils.is24Hour
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
+import com.armanmaurya.internetradio.domain.model.Schedule
 import java.io.Closeable
 import java.io.FileOutputStream
 import java.io.OutputStream
+
+private fun String.sanitizeForFileName(): String =
+    replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
 
 open class RecordingSink(
     private val fileSystemFacade: FileSystemFacade? = null,
     private val title: String,
     private val context: Context? = null,
-    private val timeFormat: RecordingTimeFormat = RecordingTimeFormat.SYSTEM
+    private val timeFormat: RecordingTimeFormat = RecordingTimeFormat.SYSTEM,
+    fileNamePrefix: String = ""
 ) : Closeable {
 
-    val safeStationName: String = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
+    val safeStationName: String = title.sanitizeForFileName()
+    // Schedules saved before the input limit can have longer names
+    private val safeFileNamePrefix: String = fileNamePrefix.sanitizeForFileName()
+        .take(Schedule.MAX_NAME_LENGTH)
+        .dropLastWhile { it.isHighSurrogate() }
+        .trim()
     var outputStream: OutputStream? = null
         private set
     private var pfd: ParcelFileDescriptor? = null
@@ -31,7 +41,9 @@ open class RecordingSink(
         val fs = fileSystemFacade ?: return null
         val safeTitle = safeStationName
         val timestamp = FormatUtils.getRecordingTimestamp(ctx, is24Hour = timeFormat.is24Hour(ctx))
-        val fileName = "$safeTitle $timestamp.$ext"
+        val fileName = listOf(safeFileNamePrefix, safeTitle, timestamp)
+            .filter { it.isNotEmpty() }
+            .joinToString(" ") + ".$ext"
         val partFileName = "$fileName.part"
         val folderName = "InternetRadio/$safeTitle"
         val mimeType = when (ext) {

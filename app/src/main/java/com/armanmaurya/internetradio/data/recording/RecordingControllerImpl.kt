@@ -61,10 +61,11 @@ class RecordingControllerImpl @Inject constructor(
     private val _recordingSavedEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     override val recordingSavedEvent: SharedFlow<Unit> = _recordingSavedEvent.asSharedFlow()
 
-    override fun startRecording(station: RadioStation) {
+    override fun startRecording(station: RadioStation, fileNamePrefix: String) {
         val intent = Intent(context, RecordingService::class.java).apply {
             action = RecordingService.ACTION_START
             putExtra("STATION_JSON", Gson().toJson(station))
+            putExtra(RecordingService.EXTRA_FILE_NAME_PREFIX, fileNamePrefix)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ContextCompat.startForegroundService(context, intent)
@@ -73,7 +74,7 @@ class RecordingControllerImpl @Inject constructor(
         }
     }
 
-    override fun startRecordingStream(station: RadioStation): Boolean {
+    override fun startRecordingStream(station: RadioStation, fileNamePrefix: String): Boolean {
         if (activeRecordings.containsKey(station.stationUuid)) return false
 
         val durationFlow = MutableStateFlow(0L)
@@ -105,6 +106,7 @@ class RecordingControllerImpl @Inject constructor(
                     config = RecordingConfig(
                         url = station.urlResolved,
                         title = station.name,
+                        fileNamePrefix = fileNamePrefix,
                         bitrateKbps = stationBitrate,
                         maxRetryDurationMs = currentMaxRetryDuration,
                         maxRetryDurationProvider = { currentMaxRetryDuration }

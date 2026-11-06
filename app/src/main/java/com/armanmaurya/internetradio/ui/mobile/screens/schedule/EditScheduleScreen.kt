@@ -417,8 +417,9 @@ private fun ScheduleConfigurationForm(
 
         TextField(
             value = scheduleName,
-            onValueChange = { scheduleName = it },
+            onValueChange = { scheduleName = it.take(Schedule.MAX_NAME_LENGTH) },
             label = { Text(stringResource(R.string.schedule_name_optional)) },
+            supportingText = { Text("${scheduleName.length}/${Schedule.MAX_NAME_LENGTH}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .then(

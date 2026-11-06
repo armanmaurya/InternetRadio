@@ -16,7 +16,11 @@ data class Schedule(
     val keepPlayback: Boolean = false,
     val playOnRecording: Boolean = true,
     val scheduleName: String = ""
-)
+) {
+    companion object {
+        const val MAX_NAME_LENGTH = 40
+    }
+}
 
 enum class ScheduleType {
     PLAYBACK,

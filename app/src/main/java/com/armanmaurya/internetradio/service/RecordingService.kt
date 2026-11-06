@@ -52,7 +52,8 @@ class RecordingService : Service() {
                 val station = if (stationJson != null) {
                     Gson().fromJson(stationJson, RadioStation::class.java)
                 } else null
-                station?.let { recordingController.startRecordingStream(it) }
+                val fileNamePrefix = intent.getStringExtra(EXTRA_FILE_NAME_PREFIX).orEmpty()
+                station?.let { recordingController.startRecordingStream(it, fileNamePrefix) }
                 startForeground(NOTIF_ID, buildGroupSummaryNotification(recordingController.activeSessions.value))
                 observeSessions()
             }
@@ -214,6 +215,7 @@ class RecordingService : Service() {
 
     companion object {
         const val ACTION_START = "com.armanmaurya.internetradio.REC_START"
+        const val EXTRA_FILE_NAME_PREFIX = "FILE_NAME_PREFIX"
         const val ACTION_STOP  = "com.armanmaurya.internetradio.REC_STOP"
         const val NOTIF_ID     = 3001
         private const val CHANNEL_ID = "recording_channel"
