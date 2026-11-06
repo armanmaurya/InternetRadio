@@ -7,6 +7,25 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.armanmaurya.internetradio.core.provider.SvgProxyProvider
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.google.gson.Gson
+import com.google.gson.JsonParseException
+
+/** Holds the full station as JSON. Unlike the tag, extras reach the app's controller. */
+private const val EXTRA_STATION_JSON = "stationJson"
+
+private val gson = Gson()
+
+fun RadioStation.toJson(): String = gson.toJson(this)
+
+fun MediaItem.toRadioStation(): RadioStation? {
+    (localConfiguration?.tag as? RadioStation)?.let { return it }
+    val json = mediaMetadata.extras?.getString(EXTRA_STATION_JSON) ?: return null
+    return try {
+        gson.fromJson(json, RadioStation::class.java)
+    } catch (_: JsonParseException) {
+        null
+    }
+}
 
 /** App logo URI — used as fallback artwork for stations with no/broken favicon. */
 private val APP_LOGO_URI: Uri =
@@ -43,6 +62,7 @@ fun RadioStation.toMediaItem(
                 .setExtras(Bundle().apply {
                     putString("stationName", name)
                     putString("stationFavicon", favicon)
+                    putString(EXTRA_STATION_JSON, this@toMediaItem.toJson())
                 })
                 .build()
         )
@@ -62,6 +82,7 @@ fun createStationMediaItem(
     stationUrl: String,
     stationName: String,
     stationFavicon: String,
+    stationJson: String? = null,
     showThumbnails: Boolean = true
 ): MediaItem {
     val artworkUriStr = when {
@@ -85,6 +106,7 @@ fun createStationMediaItem(
                     putString("stationName", stationName)
                     putString("stationFavicon", stationFavicon)
                     putBoolean(EXTRA_SCHEDULED_PLAYBACK, true)
+                    putString(EXTRA_STATION_JSON, stationJson)
                 })
                 .build()
         )

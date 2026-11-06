@@ -18,6 +18,7 @@ import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.service.PlaybackService
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
 import com.armanmaurya.internetradio.service.playback.toMediaItem
+import com.armanmaurya.internetradio.service.playback.toRadioStation
 import com.google.common.util.concurrent.MoreExecutors
 import com.armanmaurya.internetradio.core.media.prober.NativeProber
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
@@ -50,7 +51,11 @@ class PlayerControllerImpl @Inject constructor(
     private var controllerFuture = MediaController.Builder(
         context,
         SessionToken(context, ComponentName(context, PlaybackService::class.java))
-    ).buildAsync()
+    ).setListener(object : MediaController.Listener {
+        override fun onDisconnected(controller: MediaController) {
+            android.util.Log.w("BlankSheetDebug", "controller DISCONNECTED")
+        }
+    }).buildAsync()
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
 
     private val _playbackSession = MutableStateFlow(PlaybackSession())
@@ -174,6 +179,7 @@ class PlayerControllerImpl @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            android.util.Log.d("BlankSheetDebug", "transition id=${mediaItem?.mediaId} reason=$reason parsed=${mediaItem?.toRadioStation()?.name} active=${activeStation?.name} playlist=${currentPlaylist.size}")
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (mediaItem == null) {
                 activeStation = null
@@ -188,9 +194,9 @@ class PlayerControllerImpl @Inject constructor(
                 return
             }
             
-            val tagStation = currentPlaylist.find { it.stationUuid == originalId } 
-                ?: mediaItem.localConfiguration?.tag as? RadioStation
-                
+            val tagStation = currentPlaylist.find { it.stationUuid == originalId }
+                ?: mediaItem.toRadioStation()
+
             if (tagStation != null) {
                 activeStation = tagStation
                 _isFetchingArtwork.value = false
@@ -211,16 +217,9 @@ class PlayerControllerImpl @Inject constructor(
                 }
                 scope.launch { recentRepository.addRecentStation(tagStation) }
                 
-                if (controller?.mediaItemCount == 1) {
+                // Queues started by the service (widget, alarm) are unknown to this controller
+                if (controller?.mediaItemCount == 1 || tagStation !in currentPlaylist) {
                     scope.launch { linkSingleItemToContext(tagStation) }
-                }
-            } else {
-                // Fallback for scheduled cold start: get FULL RadioStation from library DB
-                scope.launch {
-                    val dbStation = libraryRepository.getLibraryStationById(originalId)
-                    if (dbStation != null) {
-                        linkSingleItemToContext(dbStation)
-                    }
                 }
             }
             handleMetadataChanged(mediaItem.mediaMetadata)
@@ -330,6 +329,12 @@ class PlayerControllerImpl @Inject constructor(
     private var isVolumeBoostEnabled = false
 
     init {
+        android.util.Log.d("BlankSheetDebug", "PlayerControllerImpl created")
+        scope.launch {
+            _playbackSession.collect {
+                android.util.Log.d("BlankSheetDebug", "session station=${it.currentStation?.name} playing=${it.isPlaying}")
+            }
+        }
         initializeController()
         observeVolumeBoostPreference()
     }
@@ -348,6 +353,7 @@ class PlayerControllerImpl @Inject constructor(
     private fun initializeController() {
         controllerFuture.addListener({
             controller?.let {
+                android.util.Log.d("BlankSheetDebug", "controller connected=${it.isConnected} items=${it.mediaItemCount} current=${it.currentMediaItem?.mediaId}")
                 it.addListener(listener)
 
                 val isCurrentlyPlaying = it.isPlaying
@@ -370,7 +376,7 @@ class PlayerControllerImpl @Inject constructor(
                     val originalId = currentItem.mediaId.substringAfter("|")
                     if (currentPlaylist.isEmpty() && it.mediaItemCount > 0) {
                         val mediaStations = (0 until it.mediaItemCount).mapNotNull { idx ->
-                            it.getMediaItemAt(idx).localConfiguration?.tag as? RadioStation
+                            it.getMediaItemAt(idx).toRadioStation()
                         }
                         if (mediaStations.size == it.mediaItemCount) {
                             currentPlaylist = mediaStations
@@ -378,7 +384,7 @@ class PlayerControllerImpl @Inject constructor(
                     }
 
                     val station = currentPlaylist.find { s -> s.stationUuid == originalId }
-                        ?: currentItem.localConfiguration?.tag as? RadioStation
+                        ?: currentItem.toRadioStation()
 
                     if (station != null) {
                         activeStation = station
@@ -391,15 +397,8 @@ class PlayerControllerImpl @Inject constructor(
                             )
                         }
                     }
-                    if (currentPlaylist.isEmpty()) {
-                        scope.launch {
-                            val dbStation = station
-                                ?: libraryRepository.getLibraryStationById(originalId)
-                                ?: recentRepository.getStationById(originalId)
-                            if (dbStation != null) {
-                                linkSingleItemToContext(dbStation)
-                            }
-                        }
+                    if (station != null && currentPlaylist.isEmpty()) {
+                        scope.launch { linkSingleItemToContext(station) }
                     }
                     handleMetadataChanged(currentItem.mediaMetadata)
                 } else {
@@ -568,6 +567,7 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun stop() {
+        android.util.Log.w("BlankSheetDebug", "stop() called", Throwable())
         val player = controller ?: return
         player.stop()
         player.clearMediaItems()

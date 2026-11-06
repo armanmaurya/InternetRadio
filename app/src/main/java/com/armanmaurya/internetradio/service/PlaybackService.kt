@@ -245,6 +245,7 @@ class PlaybackService : MediaLibraryService() {
     }
 
     override fun onDestroy() {
+        android.util.Log.w("BlankSheetDebug", "service DESTROYED")
         isRunning = false
         trackObserver.detachPlayer()
         widgetUpdater.detachPlayer()
@@ -283,11 +284,13 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
+        android.util.Log.d("BlankSheetDebug", "service start action=$action items=${player?.mediaItemCount}")
         if (action == "com.armanmaurya.internetradio.ACTION_PLAY_STATION") {
             val stationUuid = intent.getStringExtra("STATION_UUID")
             val stationUrl = intent.getStringExtra("STATION_URL")
             val stationName = intent.getStringExtra("STATION_NAME") ?: ""
             val stationFavicon = intent.getStringExtra("STATION_FAVICON") ?: ""
+            val stationJson = intent.getStringExtra("STATION_JSON")
             val volumeLevel = intent.getFloatExtra("VOLUME_LEVEL", -1f)
             val transitionSeconds =
                 intent.getIntExtra("ALARM_TRANSITION_SECONDS", alarmFadeInSeconds)
@@ -298,6 +301,7 @@ class PlaybackService : MediaLibraryService() {
                     stationUrl,
                     stationName,
                     stationFavicon,
+                    stationJson,
                     volumeLevel,
                     transitionSeconds
                 )
@@ -316,6 +320,7 @@ class PlaybackService : MediaLibraryService() {
         stationUrl: String,
         stationName: String,
         stationFavicon: String,
+        stationJson: String?,
         volumeLevel: Float,
         transitionSeconds: Int
     ) {
@@ -325,6 +330,7 @@ class PlaybackService : MediaLibraryService() {
             stationUrl = stationUrl,
             stationName = stationName,
             stationFavicon = stationFavicon,
+            stationJson = stationJson,
             showThumbnails = showStationThumbnails
         )
 

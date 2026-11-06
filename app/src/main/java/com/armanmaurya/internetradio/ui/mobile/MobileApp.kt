@@ -68,7 +68,7 @@ fun MobileApp(
         val navController = rememberNavController()
         val scaffoldState = rememberBottomSheetScaffoldState(
             bottomSheetState = rememberStandardBottomSheetState(
-                initialValue = SheetValue.PartiallyExpanded,
+                initialValue = SheetValue.Hidden,
                 skipHiddenState = false
             )
         )

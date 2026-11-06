@@ -20,6 +20,7 @@ import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.ScheduleRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.controller.PlayerController
+import com.armanmaurya.internetradio.service.playback.toJson
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -134,6 +135,7 @@ class AlarmService : Service() {
                     putExtra("STATION_URL", libraryStation?.urlResolved ?: libraryStation?.url ?: "")
                     putExtra("STATION_NAME", schedule.stationName)
                     putExtra("STATION_FAVICON", libraryStation?.favicon ?: "")
+                    putExtra("STATION_JSON", libraryStation?.toJson())
                     putExtra("VOLUME_LEVEL", schedule.volumeLevel)
                     putExtra(
                         "ALARM_TRANSITION_SECONDS",
