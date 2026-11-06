@@ -218,6 +218,10 @@
     </plurals>
     <string name="settings_imported_skipped">Skipped (already existing): %1$d</string>
     <string name="settings_imported_updated">Updated: %1$d</string>
+    <string name="settings_recording_section">Recording</string>
+    <string name="settings_recording_time_format_title">Time format in file names</string>
+    <string name="settings_time_format_12_hour">12-hour</string>
+    <string name="settings_time_format_24_hour">24-hour</string>
     <string name="settings_schedule_section">Schedules</string>
 
     <!-- Community Section -->

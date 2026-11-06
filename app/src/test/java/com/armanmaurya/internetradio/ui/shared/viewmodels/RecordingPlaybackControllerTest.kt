@@ -382,6 +382,7 @@ class RecordingPlaybackControllerTest {
         override suspend fun setConflictStrategy(strategy: com.armanmaurya.internetradio.domain.model.ConflictStrategy) {}
         override suspend fun setLibrarySortOption(option: com.armanmaurya.internetradio.domain.model.LibrarySortOption) {}
         override suspend fun setStartOfWeek(startOfWeek: com.armanmaurya.internetradio.domain.model.StartOfWeek) {}
+        override suspend fun setRecordingTimeFormat(format: com.armanmaurya.internetradio.domain.model.RecordingTimeFormat) {}
         override suspend fun setShowCoverArtInNotification(enabled: Boolean) {}
         override suspend fun setAlarmVolumeTransitionSeconds(seconds: Int) {}
         override suspend fun setAlarmVolumeTransitionEnabled(enabled: Boolean) {}

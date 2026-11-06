@@ -253,6 +253,7 @@ class BrowseViewModelTest {
         override suspend fun setConflictStrategy(strategy: ConflictStrategy) {}
         override suspend fun setLibrarySortOption(option: LibrarySortOption) {}
         override suspend fun setStartOfWeek(startOfWeek: StartOfWeek) {}
+        override suspend fun setRecordingTimeFormat(format: com.armanmaurya.internetradio.domain.model.RecordingTimeFormat) {}
         override suspend fun setShowCoverArtInNotification(enabled: Boolean) {}
         override suspend fun setAlarmVolumeTransitionSeconds(seconds: Int) {}
         override suspend fun setAlarmVolumeTransitionEnabled(enabled: Boolean) {}

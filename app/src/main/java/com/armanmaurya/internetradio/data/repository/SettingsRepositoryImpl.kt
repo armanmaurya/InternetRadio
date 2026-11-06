@@ -12,6 +12,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
@@ -71,6 +72,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val STOP_ON_AUDIO_BECOMING_NOISY = booleanPreferencesKey("stop_on_audio_becoming_noisy")
         val LIBRARY_SORT_OPTION = stringPreferencesKey("library_sort_option")
         val START_OF_WEEK = stringPreferencesKey("start_of_week")
+        val RECORDING_TIME_FORMAT = stringPreferencesKey("recording_time_format")
         val SHOW_COVER_ART_IN_NOTIFICATION = booleanPreferencesKey("show_cover_art_in_notification")
         val IS_ALARM_VOLUME_TRANSITION_ENABLED = booleanPreferencesKey("is_alarm_volume_transition_enabled")
         val ALARM_VOLUME_TRANSITION_SECONDS = androidx.datastore.preferences.core.intPreferencesKey("alarm_volume_transition_seconds")
@@ -143,6 +145,8 @@ class SettingsRepositoryImpl @Inject constructor(
             val librarySortOption = LibrarySortOption.entries.find { it.name == librarySortOptionName } ?: LibrarySortOption.RECENTLY_ADDED
             val startOfWeekName = preferences[PreferencesKeys.START_OF_WEEK]
             val startOfWeek = StartOfWeek.entries.find { it.name == startOfWeekName } ?: StartOfWeek.SUNDAY
+            val recordingTimeFormatName = preferences[PreferencesKeys.RECORDING_TIME_FORMAT]
+            val recordingTimeFormat = RecordingTimeFormat.entries.find { it.name == recordingTimeFormatName } ?: RecordingTimeFormat.SYSTEM
             val showCoverArtInNotification = preferences[PreferencesKeys.SHOW_COVER_ART_IN_NOTIFICATION] ?: true
             val isAlarmVolumeTransitionEnabled = preferences[PreferencesKeys.IS_ALARM_VOLUME_TRANSITION_ENABLED] ?: false
             val alarmVolumeTransitionSeconds = preferences[PreferencesKeys.ALARM_VOLUME_TRANSITION_SECONDS] ?: 15
@@ -196,6 +200,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 conflictStrategy = conflictStrategy,
                 librarySortOption = librarySortOption,
                 startOfWeek = startOfWeek,
+                recordingTimeFormat = recordingTimeFormat,
                 showCoverArtInNotification = showCoverArtInNotification,
                 isAlarmVolumeTransitionEnabled = isAlarmVolumeTransitionEnabled,
                 alarmVolumeTransitionSeconds = alarmVolumeTransitionSeconds,
@@ -413,6 +418,12 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setLibrarySortOption(option: LibrarySortOption) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LIBRARY_SORT_OPTION] = option.name
+        }
+    }
+
+    override suspend fun setRecordingTimeFormat(format: RecordingTimeFormat) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.RECORDING_TIME_FORMAT] = format.name
         }
     }
 

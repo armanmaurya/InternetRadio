@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.core.utils
 
 import android.content.Context
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
@@ -20,6 +21,12 @@ object FormatUtils {
             format.dateFormatSymbols = symbols
         }
         return format
+    }
+
+    fun RecordingTimeFormat.is24Hour(context: Context): Boolean = when (this) {
+        RecordingTimeFormat.SYSTEM -> android.text.format.DateFormat.is24HourFormat(context)
+        RecordingTimeFormat.TWELVE_HOUR -> false
+        RecordingTimeFormat.TWENTY_FOUR_HOUR -> true
     }
 
     /**

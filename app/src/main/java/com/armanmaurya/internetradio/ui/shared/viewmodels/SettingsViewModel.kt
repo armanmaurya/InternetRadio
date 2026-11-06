@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.ConflictStrategy
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toBackupStation
@@ -212,6 +213,12 @@ class SettingsViewModel @Inject constructor(
     fun setConflictStrategy(strategy: ConflictStrategy) {
         viewModelScope.launch {
             settingsRepository.setConflictStrategy(strategy)
+        }
+    }
+
+    fun setRecordingTimeFormat(format: RecordingTimeFormat) {
+        viewModelScope.launch {
+            settingsRepository.setRecordingTimeFormat(format)
         }
     }
 

@@ -15,6 +15,7 @@ import javax.inject.Singleton
 import com.armanmaurya.internetradio.core.media.recorder.DefaultStreamRecorder
 import com.armanmaurya.internetradio.core.media.recorder.StreamRecorder
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
+import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import okhttp3.OkHttpClient
 
 @Module
@@ -33,9 +34,10 @@ object MediaModule {
     fun provideStreamRecorder(
         okHttpClient: OkHttpClient,
         fileSystemFacade: FileSystemFacade,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        settingsRepository: SettingsRepository
     ): StreamRecorder {
-        return DefaultStreamRecorder(okHttpClient, fileSystemFacade, context)
+        return DefaultStreamRecorder(okHttpClient, fileSystemFacade, context, settingsRepository)
     }
 }
 

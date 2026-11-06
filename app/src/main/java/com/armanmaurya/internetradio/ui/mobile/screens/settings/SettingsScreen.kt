@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.material.icons.filled.ContentCopy
 import coil3.compose.AsyncImage
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -121,6 +122,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.ConflictStrategy
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.ExpandableItem
@@ -260,6 +262,13 @@ fun SettingsScreen(
                 topShape = topShape,
                 middleShape = middleShape,
                 bottomShape = bottomShape,
+                singleShape = singleShape
+            )
+            RecordingSection(
+                uiState = uiState,
+                expandedItem = expandedItem,
+                onExpandedItemChange = { expandedItem = it },
+                onSetRecordingTimeFormat = viewModel::setRecordingTimeFormat,
                 singleShape = singleShape
             )
             ScheduleSection(
@@ -481,6 +490,13 @@ private fun AppTheme.toDisplayString(): String = when (this) {
     AppTheme.LIGHT -> stringResource(R.string.settings_theme_light)
     AppTheme.DARK -> stringResource(R.string.settings_theme_dark)
     AppTheme.SYSTEM -> stringResource(R.string.settings_theme_system)
+}
+
+@Composable
+private fun RecordingTimeFormat.toDisplayString(): String = when (this) {
+    RecordingTimeFormat.SYSTEM -> stringResource(R.string.settings_system_default)
+    RecordingTimeFormat.TWELVE_HOUR -> stringResource(R.string.settings_time_format_12_hour)
+    RecordingTimeFormat.TWENTY_FOUR_HOUR -> stringResource(R.string.settings_time_format_24_hour)
 }
 
 @Composable
@@ -1450,6 +1466,34 @@ private fun formatDisplayFolderPath(treeUriStr: String?, savedName: String?): St
         }
     } catch (_: Exception) {
         savedName
+    }
+}
+
+@Composable
+private fun RecordingSection(
+    uiState: AppPreferences,
+    expandedItem: String?,
+    onExpandedItemChange: (String?) -> Unit,
+    onSetRecordingTimeFormat: (RecordingTimeFormat) -> Unit,
+    singleShape: RoundedCornerShape
+) {
+    Section(title = stringResource(R.string.settings_recording_section)) {
+        ExpandableItem(
+            title = stringResource(R.string.settings_recording_time_format_title),
+            subtitle = uiState.recordingTimeFormat.toDisplayString(),
+            isExpanded = expandedItem == "RecordingTimeFormat",
+            onToggle = { onExpandedItemChange(if (expandedItem == "RecordingTimeFormat") null else "RecordingTimeFormat") },
+            icon = Icons.Default.AccessTime,
+            shape = singleShape
+        ) {
+            RecordingTimeFormat.entries.forEach { format ->
+                OptionItem(
+                    label = format.toDisplayString(),
+                    isSelected = uiState.recordingTimeFormat == format,
+                    onClick = { onSetRecordingTimeFormat(format) }
+                )
+            }
+        }
     }
 }
 

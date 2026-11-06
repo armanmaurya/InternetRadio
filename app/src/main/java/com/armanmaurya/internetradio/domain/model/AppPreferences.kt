@@ -41,6 +41,7 @@ data class AppPreferences(
     val conflictStrategy: ConflictStrategy = ConflictStrategy.SKIP,
     val librarySortOption: LibrarySortOption = LibrarySortOption.RECENTLY_ADDED,
     val startOfWeek: StartOfWeek = StartOfWeek.SUNDAY,
+    val recordingTimeFormat: RecordingTimeFormat = RecordingTimeFormat.SYSTEM,
     val showCoverArtInNotification: Boolean = true,
     val enableVolumeBoost: Boolean = false,
     val isAlarmVolumeTransitionEnabled: Boolean = false,

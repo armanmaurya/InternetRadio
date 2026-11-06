@@ -5,6 +5,8 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
 import com.armanmaurya.internetradio.core.utils.FormatUtils
+import com.armanmaurya.internetradio.core.utils.FormatUtils.is24Hour
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import java.io.Closeable
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -12,7 +14,8 @@ import java.io.OutputStream
 open class RecordingSink(
     private val fileSystemFacade: FileSystemFacade? = null,
     private val title: String,
-    private val context: Context? = null
+    private val context: Context? = null,
+    private val timeFormat: RecordingTimeFormat = RecordingTimeFormat.SYSTEM
 ) : Closeable {
 
     val safeStationName: String = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
@@ -27,7 +30,7 @@ open class RecordingSink(
         val ctx = context ?: return null
         val fs = fileSystemFacade ?: return null
         val safeTitle = safeStationName
-        val timestamp = FormatUtils.getRecordingTimestamp(ctx)
+        val timestamp = FormatUtils.getRecordingTimestamp(ctx, is24Hour = timeFormat.is24Hour(ctx))
         val fileName = "$safeTitle $timestamp.$ext"
         val partFileName = "$fileName.part"
         val folderName = "InternetRadio/$safeTitle"

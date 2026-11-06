@@ -6,8 +6,10 @@ import com.armanmaurya.internetradio.core.media.recorder.backend.DirectStreamRec
 import com.armanmaurya.internetradio.core.media.recorder.backend.HlsStreamRecorder
 import com.armanmaurya.internetradio.core.system.FileSystemFacade
 import com.armanmaurya.internetradio.core.utils.AudioFormatUtils
+import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -30,7 +32,8 @@ interface StreamRecorder {
 class DefaultStreamRecorder @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val fileSystemFacade: FileSystemFacade,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val settingsRepository: SettingsRepository
 ) : StreamRecorder {
 
     private val recordingHttpClient = okHttpClient.newBuilder()
@@ -60,7 +63,8 @@ class DefaultStreamRecorder @Inject constructor(
             config
         }
 
-        val sink = RecordingSink(fileSystemFacade, resolvedConfig.title, context)
+        val timeFormat = settingsRepository.appPreferencesFlow.first().recordingTimeFormat
+        val sink = RecordingSink(fileSystemFacade, resolvedConfig.title, context, timeFormat)
         try {
             if (isHlsUrl(resolvedConfig.url)) {
                 HlsStreamRecorder(recordingHttpClient).record(

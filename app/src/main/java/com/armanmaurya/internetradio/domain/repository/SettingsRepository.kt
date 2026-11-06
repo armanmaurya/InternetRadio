@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.domain.repository
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
+import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
@@ -48,6 +49,7 @@ interface SettingsRepository {
     suspend fun setConflictStrategy(strategy: ConflictStrategy)
     suspend fun setLibrarySortOption(option: LibrarySortOption)
     suspend fun setStartOfWeek(startOfWeek: StartOfWeek)
+    suspend fun setRecordingTimeFormat(format: RecordingTimeFormat)
     suspend fun setShowCoverArtInNotification(enabled: Boolean)
     suspend fun setAlarmVolumeTransitionSeconds(seconds: Int)
     suspend fun setAlarmVolumeTransitionEnabled(enabled: Boolean)
