@@ -26,7 +26,7 @@ import com.armanmaurya.internetradio.data.local.migration.DatabaseMigrations
         TrackHistoryEntity::class,
         ScheduleEntity::class
     ],
-    version = 14,
+    version = 12,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2, spec = RadioDatabase.Migration1To2Spec::class),
@@ -36,9 +36,7 @@ import com.armanmaurya.internetradio.data.local.migration.DatabaseMigrations
         AutoMigration(from = 6, to = 7, spec = RadioDatabase.Migration6To7Spec::class),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
-        AutoMigration(from = 9, to = 10),
-        AutoMigration(from = 11, to = 12),
-        AutoMigration(from = 12, to = 13)
+        AutoMigration(from = 9, to = 10)
     ]
 )
 @TypeConverters(Converters::class)
@@ -76,6 +74,6 @@ abstract class RadioDatabase : RoomDatabase() {
     companion object {
         val MIGRATION_3_4 = DatabaseMigrations.MIGRATION_3_4
         val MIGRATION_10_11 = DatabaseMigrations.MIGRATION_10_11
-        val MIGRATION_13_14 = DatabaseMigrations.MIGRATION_13_14
+        val MIGRATION_11_12 = DatabaseMigrations.MIGRATION_11_12
     }
 }

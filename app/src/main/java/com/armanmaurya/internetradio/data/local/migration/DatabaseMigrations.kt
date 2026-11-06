@@ -105,8 +105,14 @@ object DatabaseMigrations {
         }
     }
 
-    val MIGRATION_13_14 = object : Migration(13, 14) {
+    val MIGRATION_11_12 = object : Migration(11, 12) {
         override fun migrate(database: SupportSQLiteDatabase) {
+            // Track history gains starring, artist and timing details
+            database.execSQL("ALTER TABLE `track_history` ADD COLUMN `isStarred` INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE `track_history` ADD COLUMN `artist` TEXT DEFAULT NULL")
+            database.execSQL("ALTER TABLE `track_history` ADD COLUMN `endTimestamp` INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE `track_history` ADD COLUMN `durationMs` INTEGER NOT NULL DEFAULT 0")
+
             // 1. Recents get their own table, so playing a station never overwrites a library edit
             database.execSQL("""
                 CREATE TABLE IF NOT EXISTS `recent_stations` (
@@ -153,5 +159,5 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11, MIGRATION_13_14)
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11, MIGRATION_11_12)
 }
