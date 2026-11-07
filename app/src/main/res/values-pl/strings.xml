@@ -557,4 +557,8 @@
         <item quantity="many">%1$d stacji</item>
         <item quantity="other">%1$d stacji</item>
     </plurals>
+    <string name="settings_recording_section">Nagrywanie</string>
+    <string name="settings_recording_time_format_title">Format godziny w nazwach plików</string>
+    <string name="settings_time_format_12_hour">12-godzinny</string>
+    <string name="settings_time_format_24_hour">24-godzinny</string>
 </resources>
