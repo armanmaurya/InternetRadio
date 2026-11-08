@@ -540,4 +540,8 @@
         <item quantity="few">%1$d stații</item>
         <item quantity="other">%1$d de stații</item>
     </plurals>
+    <string name="settings_recording_section">Înregistrare</string>
+    <string name="settings_recording_time_format_title">Formatul orei în numele fișierelor</string>
+    <string name="settings_time_format_12_hour">12 ore</string>
+    <string name="settings_time_format_24_hour">24 de ore</string>
 </resources>
