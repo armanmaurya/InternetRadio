@@ -524,4 +524,8 @@
         <item quantity="one">%1$d raadiojaam</item>
         <item quantity="other">%1$d raadiojaama</item>
     </plurals>
+    <string name="settings_recording_section">Salvestamine</string>
+    <string name="settings_recording_time_format_title">Ajavorming failinimedes</string>
+    <string name="settings_time_format_12_hour">12-tunnine</string>
+    <string name="settings_time_format_24_hour">24-tunnine</string>
 </resources>
