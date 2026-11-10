@@ -20,8 +20,16 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.recording.RecordingPlaybackControllerImpl
+import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,6 +37,11 @@ class RecordingPlaybackService : MediaSessionService() {
 
     @Inject
     lateinit var recordingPlaybackController: RecordingPlaybackControllerImpl
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
@@ -72,8 +85,16 @@ class RecordingPlaybackService : MediaSessionService() {
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setHandleAudioBecomingNoisy(true)
             .build()
         player = exoPlayer
+
+        serviceScope.launch {
+            settingsRepository.appPreferencesFlow
+                .map { it.stopOnAudioBecomingNoisy }
+                .distinctUntilChanged()
+                .collect { enabled -> player?.setHandleAudioBecomingNoisy(enabled) }
+        }
 
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider.Builder(this)
@@ -218,6 +239,7 @@ class RecordingPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        serviceScope.cancel()
         recordingPlaybackController.detachService(this)
         mediaSession?.run {
             removeSession(this)
