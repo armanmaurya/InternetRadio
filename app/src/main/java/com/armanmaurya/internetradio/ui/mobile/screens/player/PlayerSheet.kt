@@ -904,14 +904,13 @@ fun PlayerSheetContent(
                     )
                 }
 
-                IconButton(
-                    onClick = onPrevious,
-                    enabled = playbackState.hasPrevious && playbackState.currentPlaylist.size > 1
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = stringResource(R.string.player_cd_previous)
-                    )
+                if (playbackState.hasPrevious && playbackState.currentPlaylist.size > 1) {
+                    IconButton(onClick = onPrevious) {
+                        Icon(
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = stringResource(R.string.player_cd_previous)
+                        )
+                    }
                 }
 
                 IconButton(onClick = onTogglePlayPause) {
@@ -928,22 +927,13 @@ fun PlayerSheetContent(
                     }
                 }
 
-                IconButton(
-                    onClick = onNext,
-                    enabled = playbackState.hasNext && playbackState.currentPlaylist.size > 1
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = stringResource(R.string.player_cd_next)
-                    )
-                }
-
-                IconButton(onClick = onToggleFavorite) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = stringResource(R.string.player_cd_toggle_favorite),
-                        tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                    )
+                if (playbackState.hasNext && playbackState.currentPlaylist.size > 1) {
+                    IconButton(onClick = onNext) {
+                        Icon(
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = stringResource(R.string.player_cd_next)
+                        )
+                    }
                 }
             }
         }
@@ -1162,14 +1152,13 @@ fun PlayerSheetContent(
                                 )
                             }
 
-                            IconButton(
-                                onClick = onPrevious,
-                                enabled = playbackState.hasPrevious && playbackState.currentPlaylist.size > 1
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.SkipPrevious,
-                                    contentDescription = stringResource(R.string.player_cd_previous)
-                                )
+                            if (playbackState.hasPrevious && playbackState.currentPlaylist.size > 1) {
+                                IconButton(onClick = onPrevious) {
+                                    Icon(
+                                        imageVector = Icons.Default.SkipPrevious,
+                                        contentDescription = stringResource(R.string.player_cd_previous)
+                                    )
+                                }
                             }
 
                             IconButton(onClick = onTogglePlayPause) {
@@ -1186,22 +1175,13 @@ fun PlayerSheetContent(
                                 }
                             }
 
-                            IconButton(
-                                onClick = onNext,
-                                enabled = playbackState.hasNext && playbackState.currentPlaylist.size > 1
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.SkipNext,
-                                    contentDescription = stringResource(R.string.player_cd_next)
-                                )
-                            }
-
-                            IconButton(onClick = onToggleFavorite) {
-                                Icon(
-                                    imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = stringResource(R.string.player_cd_toggle_favorite),
-                                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                )
+                            if (playbackState.hasNext && playbackState.currentPlaylist.size > 1) {
+                                IconButton(onClick = onNext) {
+                                    Icon(
+                                        imageVector = Icons.Default.SkipNext,
+                                        contentDescription = stringResource(R.string.player_cd_next)
+                                    )
+                                }
                             }
                         }
                     }
