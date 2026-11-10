@@ -337,6 +337,7 @@ fun PlayerBottomSheet(
                 onDeleteRecording = playerViewModel::deleteRecording,
                 getCurrentPosition = { playerViewModel.currentPosition },
                 onToggleTrackStarred = playerViewModel::toggleTrackStarred,
+                onLoadMoreHistory = playerViewModel::loadMoreHistory,
                 onToggleCurrentTrackStarred = {
                     val trackTitle = uiState.cleanTrackName ?: uiState.currentTrack
                     if (!trackTitle.isNullOrBlank()) {
@@ -373,6 +374,7 @@ fun PlayerSheetContent(
     onDeleteRecording: (com.armanmaurya.internetradio.domain.model.RecordingFile) -> Unit,
     getCurrentPosition: () -> Long,
     onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
+    onLoadMoreHistory: () -> Unit = {},
     onToggleCurrentTrackStarred: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -1587,7 +1589,8 @@ fun PlayerSheetContent(
                                 savedTracks = uiState.savedTracks,
                                 listState = historyListState,
                                 nestedScrollConnection = nestedScrollConnection,
-                                onToggleStar = onToggleTrackStarred
+                                onToggleStar = onToggleTrackStarred,
+                                onLoadMore = onLoadMoreHistory
                             )
                         } else if (page == 1) {
                             RecordingsTab(

@@ -809,7 +809,7 @@ private fun PlayerSection(
                     TextButton(
                         onClick = {
                             val limitInt = inputLimit.toIntOrNull() ?: 50
-                            onSetHistoryLimit(limitInt.coerceIn(1, 500))
+                            onSetHistoryLimit(limitInt.coerceAtLeast(1))
                             onToggleHistoryLimitDialog()
                         }
                     ) {

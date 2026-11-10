@@ -63,6 +63,27 @@ object HistorySessionGrouping {
         return sessions
     }
 
+    /**
+     * Removes the oldest session from [tracks], keeping only sessions that are known to be complete.
+     * Used when [tracks] is one loaded page of a longer history: the oldest session may continue
+     * into rows that are not loaded yet. If [tracks] is a single session it is returned as is,
+     * since there is nothing complete to show in its place.
+     * Returns tracks sorted newest first.
+     */
+    fun dropTrailingSession(
+        tracks: List<TrackHistoryEntity>,
+        gapMs: Long = DEFAULT_GAP_MS
+    ): List<TrackHistoryEntity> {
+        val sorted = tracks.sortedByDescending { it.timestamp }
+        for (i in sorted.lastIndex downTo 1) {
+            val newer = sorted[i - 1]
+            val older = sorted[i]
+            val gap = (newer.timestamp - maxOf(older.timestamp, older.endTimestamp)).coerceAtLeast(0L)
+            if (gap >= gapMs) return sorted.subList(0, i).toList()
+        }
+        return sorted
+    }
+
     private fun buildSessionGroup(tracks: List<TrackHistoryEntity>): HistorySessionGroup {
         val start = tracks.minOf { it.timestamp }
         val end = tracks.maxOf { maxOf(it.timestamp, it.endTimestamp) }

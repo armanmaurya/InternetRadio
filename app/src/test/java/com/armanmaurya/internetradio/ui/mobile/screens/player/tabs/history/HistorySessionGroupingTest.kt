@@ -262,4 +262,53 @@ class HistorySessionGroupingTest {
 
         assertEquals(2, sessions.size)
     }
+
+    @Test
+    fun dropTrailingSession_removesOldestSessionOnly() {
+        val minute = 60_000L
+        // Newest first: session A (ids 1-2), 10 min gap, session B (ids 3-4).
+        val tracks = listOf(
+            createTrack(1, 100 * minute),
+            createTrack(2, 100 * minute - 30_000L),
+            createTrack(3, 90 * minute),
+            createTrack(4, 90 * minute - 30_000L)
+        )
+
+        val result = HistorySessionGrouping.dropTrailingSession(tracks)
+
+        assertEquals(listOf(1L, 2L), result.map { it.id })
+    }
+
+    @Test
+    fun dropTrailingSession_singleSession_returnsAllTracks() {
+        val minute = 60_000L
+        val tracks = listOf(
+            createTrack(1, 100 * minute),
+            createTrack(2, 100 * minute - 30_000L),
+            createTrack(3, 100 * minute - 60_000L, endTimestamp = 100 * minute - 40_000L)
+        )
+
+        val result = HistorySessionGrouping.dropTrailingSession(tracks)
+
+        assertEquals(listOf(1L, 2L, 3L), result.map { it.id })
+    }
+
+    @Test
+    fun dropTrailingSession_usesEndTimestampForGap() {
+        val minute = 60_000L
+        // Track 2 started 10 min before track 1 but played until just before it: same session.
+        val tracks = listOf(
+            createTrack(1, 100 * minute),
+            createTrack(2, 90 * minute, endTimestamp = 100 * minute - 10_000L)
+        )
+
+        val result = HistorySessionGrouping.dropTrailingSession(tracks)
+
+        assertEquals(listOf(1L, 2L), result.map { it.id })
+    }
+
+    @Test
+    fun dropTrailingSession_emptyList_returnsEmpty() {
+        assertTrue(HistorySessionGrouping.dropTrailingSession(emptyList()).isEmpty())
+    }
 }

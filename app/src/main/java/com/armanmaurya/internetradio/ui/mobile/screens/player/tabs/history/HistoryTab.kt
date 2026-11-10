@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
+import com.armanmaurya.internetradio.ui.shared.components.LoadMoreWhenNearEnd
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,7 +61,8 @@ fun HistoryTab(
     savedTracks: List<TrackHistoryEntity> = emptyList(),
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
-    onToggleStar: (TrackHistoryEntity) -> Unit = {}
+    onToggleStar: (TrackHistoryEntity) -> Unit = {},
+    onLoadMore: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -69,6 +71,8 @@ fun HistoryTab(
     val sessionGroups = remember(trackHistory) {
         HistorySessionGrouping.groupTracks(trackHistory)
     }
+
+    LoadMoreWhenNearEnd(listState = listState, onLoadMore = onLoadMore)
 
     val savedArrowRotation by animateFloatAsState(
         targetValue = if (isSavedExpanded) 0f else 180f,

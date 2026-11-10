@@ -55,7 +55,7 @@ class LibraryRemovalCoordinatorTest {
 
         val pending = coordinator.pendingRemoval.value
         assertEquals("Rock FM", pending?.stationName)
-        assertEquals(1, pending?.schedules?.size)
+        assertEquals(1, pending?.scheduleCount)
         assertFalse(pending!!.hasShortcut)
         assertTrue(libraryRepository.removedUuids.isEmpty())
     }
@@ -68,7 +68,7 @@ class LibraryRemovalCoordinatorTest {
 
         val pending = coordinator.pendingRemoval.value
         assertTrue(pending!!.hasShortcut)
-        assertTrue(pending.schedules.isEmpty())
+        assertEquals(0, pending.scheduleCount)
         assertTrue(libraryRepository.removedUuids.isEmpty())
     }
 

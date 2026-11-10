@@ -69,12 +69,12 @@ class TrackHistoryRepositoryImpl @Inject constructor(
     }
 
     @kotlinx.coroutines.ExperimentalCoroutinesApi
-    override fun getTrackHistory(stationUuid: String): Flow<List<TrackHistoryEntity>> {
+    override fun getTrackHistory(stationUuid: String, limit: Int): Flow<List<TrackHistoryEntity>> {
         return settingsRepository.appPreferencesFlow
-            .map { it.trackHistoryLimit }
+            .map { minOf(limit, it.trackHistoryLimit) }
             .distinctUntilChanged()
-            .flatMapLatest { limit ->
-                trackHistoryDao.getTrackHistoryForStation(stationUuid, limit = limit)
+            .flatMapLatest { effectiveLimit ->
+                trackHistoryDao.getTrackHistoryForStation(stationUuid, limit = effectiveLimit)
             }
     }
 

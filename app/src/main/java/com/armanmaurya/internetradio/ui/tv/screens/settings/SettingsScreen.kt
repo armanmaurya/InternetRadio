@@ -190,7 +190,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         val limitInt = inputLimit.toIntOrNull() ?: 50
-                        viewModel.setTrackHistoryLimit(limitInt.coerceIn(1, 500))
+                        viewModel.setTrackHistoryLimit(limitInt.coerceAtLeast(1))
                         showHistoryLimitDialog = false
                     }
                 ) { androidx.compose.material3.Text(stringResource(id = R.string.general_ok)) }

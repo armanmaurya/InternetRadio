@@ -18,6 +18,7 @@ import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.RecordingController
 import kotlinx.coroutines.flow.first
+import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.history.HistorySessionGrouping
 import com.armanmaurya.internetradio.domain.usecase.recording.GetActiveRecordingsUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StartRecordingUseCase
 import com.armanmaurya.internetradio.domain.usecase.recording.StopRecordingUseCase
@@ -179,15 +180,67 @@ class PlayerViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    /** One query result: the rows loaded with a window of [window] rows. */
+    private data class HistoryPage(
+        val rows: List<com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity>,
+        val window: Int
+    ) {
+        // A full window means older rows may exist, so the oldest loaded session may be cut off.
+        val mayHaveMore: Boolean get() = rows.size >= window
+    }
+
+    // Number of history rows currently loaded; grows by HISTORY_PAGE_SIZE as the list is scrolled
+    // and resets when the station changes, so we never load a station's whole history at once.
+    private val historyWindow = kotlinx.coroutines.flow.MutableStateFlow(HISTORY_PAGE_SIZE)
+    private var lastHistoryPage: HistoryPage? = null
+    // Visible row count when a load-more started; null when no load-more is in progress.
+    private var loadMoreFromVisibleCount: Int? = null
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val trackHistory = playbackSession
         .map { it.currentStation?.stationUuid }
         .distinctUntilChanged()
         .flatMapLatest { uuid ->
-            if (uuid == null) flowOf(emptyList())
-            else trackHistoryRepository.getTrackHistory(uuid)
+            historyWindow.value = HISTORY_PAGE_SIZE
+            loadMoreFromVisibleCount = null
+            if (uuid == null) flowOf(HistoryPage(emptyList(), HISTORY_PAGE_SIZE))
+            else historyWindow.flatMapLatest { window ->
+                trackHistoryRepository.getTrackHistory(uuid, window).map { HistoryPage(it, window) }
+            }
+        }
+        .map { page ->
+            lastHistoryPage = page
+            // Hide the oldest session while it may still continue beyond the loaded rows, so its
+            // header never shows partial track counts and durations.
+            val visible = if (page.mayHaveMore) {
+                HistorySessionGrouping.dropTrailingSession(page.rows)
+            } else {
+                page.rows
+            }
+            continueLoadMoreIfNeeded(page, visible.size)
+            visible
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Loads older track history. Keeps loading until a new complete session becomes visible. */
+    fun loadMoreHistory() {
+        if (loadMoreFromVisibleCount != null) return
+        val page = lastHistoryPage ?: return
+        if (!page.mayHaveMore || page.window != historyWindow.value) return
+        loadMoreFromVisibleCount = trackHistory.value.size
+        historyWindow.value = page.window + HISTORY_PAGE_SIZE
+    }
+
+    private fun continueLoadMoreIfNeeded(page: HistoryPage, visibleCount: Int) {
+        val from = loadMoreFromVisibleCount ?: return
+        if (page.window != historyWindow.value) return // stale result from a smaller window
+        if (visibleCount > from || !page.mayHaveMore) {
+            loadMoreFromVisibleCount = null
+        } else {
+            // The new rows all belong to the still-hidden trailing session; fetch another page.
+            historyWindow.value = page.window + HISTORY_PAGE_SIZE
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val savedTracks = playbackSession
@@ -641,6 +694,10 @@ class PlayerViewModel @Inject constructor(
         } else {
             stations
         }
+    }
+
+    private companion object {
+        const val HISTORY_PAGE_SIZE = 100
     }
 
     fun toggleTrackStarred(track: com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity) {

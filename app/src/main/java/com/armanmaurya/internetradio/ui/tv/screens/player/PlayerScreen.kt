@@ -49,6 +49,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.armanmaurya.internetradio.ui.shared.components.LoadMoreWhenNearEnd
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
@@ -424,11 +426,17 @@ fun PlayerScreen(
                                     )
                                 }
                             } else {
+                                val historyListState = rememberLazyListState()
+                                LoadMoreWhenNearEnd(
+                                    listState = historyListState,
+                                    onLoadMore = playerViewModel::loadMoreHistory
+                                )
                                 LazyColumn(
+                                    state = historyListState,
                                     modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    itemsIndexed(trackHistory) { index, track ->
+                                    itemsIndexed(trackHistory, key = { _, track -> track.id }) { index, track ->
                                         val time = DateUtils.getRelativeTimeSpanString(
                                             track.timestamp,
                                             System.currentTimeMillis(),
