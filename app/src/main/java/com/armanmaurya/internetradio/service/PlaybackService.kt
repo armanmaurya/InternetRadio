@@ -132,6 +132,8 @@ class PlaybackService : MediaLibraryService() {
         }
 
         val streamingOkHttpClient = okHttpClient.newBuilder()
+            // Outermost, so it also sees manifests reached through playlist redirects below.
+            .addInterceptor(com.armanmaurya.internetradio.core.media.player.HlsManifestSanitizerInterceptor())
             .addInterceptor { chain ->
                 var request = chain.request()
                 val initialUrl = request.url.toString()
