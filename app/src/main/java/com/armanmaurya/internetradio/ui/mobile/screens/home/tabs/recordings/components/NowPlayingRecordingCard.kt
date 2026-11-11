@@ -13,7 +13,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,7 +82,6 @@ fun NowPlayingRecordingCard(
     onToggleTrackList: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
     val effectiveDuration = if (durationMs > 0L) durationMs else if (recording.durationMs > 0L) recording.durationMs else 1L
     val progress = if (effectiveDuration > 0L) {
         (currentPositionMs.toFloat() / effectiveDuration).coerceIn(0f, 1f)
@@ -104,20 +102,11 @@ fun NowPlayingRecordingCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .then(
-                    if (isPureBlack) {
-                        Modifier.border(
-                            1.dp,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                            RoundedCornerShape(16.dp)
-                        )
-                    } else Modifier
-                )
+                
                 .clickable(onClick = onRouteClick)
                 .animateContentSize(),
             shape = RoundedCornerShape(16.dp),
-            color = if (isPureBlack) androidx.compose.ui.graphics.Color.Black
-                    else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
             tonalElevation = 2.dp
         ) {
             Column(
@@ -293,20 +282,7 @@ fun NowPlayingRecordingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val buttonShape = RoundedCornerShape(12.dp)
-            val defaultContainerColor = if (isPureBlack) {
-                androidx.compose.ui.graphics.Color.Black
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-            }
-            val buttonBorderModifier = if (isPureBlack) {
-                Modifier.border(
-                    1.dp,
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                    buttonShape
-                )
-            } else {
-                Modifier
-            }
+            val defaultContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
 
             // Route button: jumps directly to the file inside its folder
             FilledTonalIconButton(
@@ -315,7 +291,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = defaultContainerColor,
                     contentColor = MaterialTheme.colorScheme.primary
@@ -335,7 +311,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = if (isLooping) {
                         MaterialTheme.colorScheme.primaryContainer
@@ -365,7 +341,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = defaultContainerColor,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -385,7 +361,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary
@@ -405,7 +381,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = defaultContainerColor,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -432,7 +408,7 @@ fun NowPlayingRecordingCard(
                     modifier = Modifier
                         .weight(1f)
                         .height(38.dp)
-                        .then(buttonBorderModifier),
+                        ,
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = if (isTrackListVisible) {
                             MaterialTheme.colorScheme.primaryContainer
@@ -461,7 +437,7 @@ fun NowPlayingRecordingCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .then(buttonBorderModifier),
+                    ,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
                     containerColor = defaultContainerColor,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant

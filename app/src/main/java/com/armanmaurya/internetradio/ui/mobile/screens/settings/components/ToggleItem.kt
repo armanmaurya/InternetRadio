@@ -27,7 +27,7 @@ import androidx.compose.ui.draw.clip
 @Composable
 fun ToggleItem(
     title: String,
-    subtitle: String,
+    subtitle: String = "",
     isEnabled: Boolean,
     onToggle: (Boolean) -> Unit,
     icon: ImageVector? = null,

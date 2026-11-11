@@ -8,7 +8,6 @@ import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -90,7 +89,6 @@ fun RecordingsContent(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
 
     var cachedPlayingRecording by remember { mutableStateOf<RecordingFile?>(null) }
     if (currentPlayingRecording != null) {
@@ -636,16 +634,9 @@ fun RecordingsContent(
                                                     .clip(RoundedCornerShape(12.dp))
                                                     .background(
                                                         if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                                        else if (isPureBlack) Color.Black 
                                                         else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                                     )
-                                                    .then(
-                                                        if (isPureBlack) Modifier.border(
-                                                            1.dp,
-                                                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                            RoundedCornerShape(12.dp)
-                                                        ) else Modifier
-                                                    )
+                                                    
                                                     .combinedClickable(
                                                         onClick = { 
                                                             if (selectionMode) {

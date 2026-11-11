@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -275,12 +274,7 @@ fun WidgetConfigureScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     // Widget Mockup Card
-                    val isPureBlack = MaterialTheme.colorScheme.surface == Color.Black
-                    val baseBgColor = effectiveBgColor ?: if (isPureBlack) {
-                        Color.Black
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainer
-                    }
+                    val baseBgColor = effectiveBgColor ?: MaterialTheme.colorScheme.surfaceContainer
                     val widgetBgColor = baseBgColor.copy(alpha = alpha)
                     val titleColor = effectiveTitleColor ?: MaterialTheme.colorScheme.onSurface
                     val artistColor = effectiveArtistColor ?: MaterialTheme.colorScheme.onSurfaceVariant
@@ -291,13 +285,6 @@ fun WidgetConfigureScreen(
                             .height(86.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(widgetBgColor)
-                            .then(
-                                if (isPureBlack && effectiveBgColor == null) Modifier.border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                    RoundedCornerShape(8.dp)
-                                ) else Modifier
-                            )
                             .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

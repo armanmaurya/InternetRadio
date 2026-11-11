@@ -14,7 +14,6 @@ interface SettingsRepository {
     suspend fun setUseFilterOnRecent(enabled: Boolean)
     suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean)
     suspend fun setSearchBarHidden(hidden: Boolean)
-    suspend fun setSelectAllTextOnFocus(enabled: Boolean)
     suspend fun setAutoPlayOnStart(enabled: Boolean)
     suspend fun setAppLaunchCount(count: Int)
     suspend fun setHasRatedApp(rated: Boolean)
@@ -28,7 +27,6 @@ interface SettingsRepository {
     suspend fun setDynamicColor(enabled: Boolean)
     suspend fun setAppColor(appColor: AppColor)
     suspend fun setCustomColor(colorArgb: Int)
-    suspend fun setPureBlack(enabled: Boolean)
     suspend fun setAppLanguage(language: String)
     suspend fun getSavedAppLanguage(): String?
     suspend fun setSelectedCountryCode(countryCode: String?)

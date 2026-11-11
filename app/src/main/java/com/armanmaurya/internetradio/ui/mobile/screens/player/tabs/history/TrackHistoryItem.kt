@@ -135,7 +135,6 @@ fun TrackHistoryItem(
     val clipboardManager = LocalClipboardManager.current
     val trackCopiedMessage = stringResource(R.string.player_copied_track_to_clipboard)
     val copiedToClipboardMessage = stringResource(R.string.player_copied_to_clipboard)
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
 
     val parts = remember(title, subtitle) {
         if (subtitle.isNotBlank()) {
@@ -172,18 +171,12 @@ fun TrackHistoryItem(
             .clip(RoundedCornerShape(12.dp))
             .background(
                 if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                else if (isPureBlack) androidx.compose.ui.graphics.Color.Black
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             )
             .then(
                 if (isActive) Modifier.border(
                     1.5.dp,
                     MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(12.dp)
-                )
-                else if (isPureBlack) Modifier.border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     RoundedCornerShape(12.dp)
                 ) else Modifier
             )

@@ -60,8 +60,7 @@ fun TimelineSessionNode(
         )
     }
 
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == Color.Black
-    val surfaceColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainerLow
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLow
     val railColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
     val primaryColor = MaterialTheme.colorScheme.primary
 
@@ -145,8 +144,7 @@ fun TimelineTrackRow(
     onToggleStar: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == Color.Black
-    val surfaceColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainerLow
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLow
     val railColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
     val dotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
 

@@ -80,8 +80,7 @@ fun HistoryTab(
         label = "saved_arrow_rotation"
     )
 
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == Color.Black
-    val headerBg = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainerLow
+    val headerBg = MaterialTheme.colorScheme.surfaceContainerLow
 
     LazyColumn(
         state = listState,

@@ -6,7 +6,6 @@ import com.armanmaurya.internetradio.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -468,7 +467,6 @@ fun EditStationScreen(
                 )
             }
         ) { paddingValues ->
-            val isPureBlack = MaterialTheme.colorScheme.surface == Color.Black
             val extraBottomPadding = if (contentPadding.calculateBottomPadding() > 0.dp) 72.dp else 0.dp
             Column(
                 modifier = Modifier
@@ -486,20 +484,14 @@ fun EditStationScreen(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.edit_station_name_field)) },
-                    modifier = Modifier.fillMaxWidth().then(
-                        if (isPureBlack) Modifier.border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(16.dp)
-                        ) else Modifier
-                    ),
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
                 Row(
@@ -514,30 +506,20 @@ fun EditStationScreen(
                             viewModel.checkDuplicateUrl(it)
                         },
                         label = { Text(stringResource(R.string.edit_station_stream_url_field)) },
-                        modifier = Modifier.weight(1f).then(
-                            if (isPureBlack) Modifier.border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                RoundedCornerShape(16.dp)
-                            ) else Modifier
-                        ),
+                        modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                            unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = if (isPureBlack) Modifier.border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(16.dp)
-                        ) else Modifier
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
                     ) {
                         Box(
                             modifier = Modifier
@@ -573,40 +555,28 @@ fun EditStationScreen(
                     value = favicon,
                     onValueChange = { favicon = it },
                     label = { Text(stringResource(R.string.edit_station_favicon_url_optional)) },
-                    modifier = Modifier.fillMaxWidth().then(
-                        if (isPureBlack) Modifier.border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(16.dp)
-                        ) else Modifier
-                    ),
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
                 TextField(
                     value = homepage,
                     onValueChange = { homepage = it },
                     label = { Text(stringResource(R.string.edit_station_homepage_url_optional)) },
-                    modifier = Modifier.fillMaxWidth().then(
-                        if (isPureBlack) Modifier.border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                            RoundedCornerShape(16.dp)
-                        ) else Modifier
-                    ),
+                    modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
                 ExposedDropdownMenuBox(
@@ -623,13 +593,7 @@ fun EditStationScreen(
                                 countryCode = matched?.first ?: ""
                             },
                             label = { Text(stringResource(R.string.edit_station_country_field)) },
-                            modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth().then(
-                                if (isPureBlack) Modifier.border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                    RoundedCornerShape(16.dp)
-                                ) else Modifier
-                            ),
+                            modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
                             singleLine = true,
                             shape = RoundedCornerShape(16.dp),
                             trailingIcon = { 
@@ -650,8 +614,8 @@ fun EditStationScreen(
                             colors = TextFieldDefaults.colors(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                         
@@ -693,13 +657,7 @@ fun EditStationScreen(
                                     iso3166_2 = matched?.code ?: ""
                                 },
                                 label = { Text(stringResource(R.string.edit_station_state_field)) },
-                                modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth().then(
-                                    if (isPureBlack) Modifier.border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                        RoundedCornerShape(16.dp)
-                                    ) else Modifier
-                                ),
+                                modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
                                 singleLine = true,
                                 shape = RoundedCornerShape(16.dp),
                                 trailingIcon = { 
@@ -718,8 +676,8 @@ fun EditStationScreen(
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
-                                    focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                                    unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                             )
                             
@@ -756,13 +714,7 @@ fun EditStationScreen(
                                 expandedLanguage = true
                             },
                             label = { Text(stringResource(R.string.edit_station_add_languages)) },
-                            modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth().then(
-                                if (isPureBlack) Modifier.border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                    RoundedCornerShape(16.dp)
-                                ) else Modifier
-                            ),
+                            modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
                             singleLine = true,
                             shape = RoundedCornerShape(16.dp),
                             trailingIcon = { 
@@ -780,8 +732,8 @@ fun EditStationScreen(
                             colors = TextFieldDefaults.colors(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                         
@@ -853,13 +805,7 @@ fun EditStationScreen(
                             viewModel.onTagSearchQueryChange(it)
                         },
                         label = { Text(stringResource(R.string.edit_station_add_tags)) },
-                        modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth().then(
-                            if (isPureBlack) Modifier.border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                RoundedCornerShape(16.dp)
-                            ) else Modifier
-                        ),
+                        modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         trailingIcon = { 
@@ -878,8 +824,8 @@ fun EditStationScreen(
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant,
-                            unfocusedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                     

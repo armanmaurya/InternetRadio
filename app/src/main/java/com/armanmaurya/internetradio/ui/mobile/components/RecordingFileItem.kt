@@ -6,7 +6,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -63,7 +62,6 @@ fun RecordingFileItem(
     var isNoteExpanded by remember(recording.uri) { mutableStateOf(false) }
     var noteDraft by remember(recording.uri, recording.note) { mutableStateOf(recording.note.orEmpty()) }
     val focusRequester = remember { FocusRequester() }
-    val isPureBlack = MaterialTheme.colorScheme.surface == androidx.compose.ui.graphics.Color.Black
 
     LaunchedEffect(selectionMode) {
         if (selectionMode && isEditingNote) {
@@ -111,17 +109,10 @@ fun RecordingFileItem(
             .clip(RoundedCornerShape(12.dp))
             .background(
                 if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                else if (isPureBlack) androidx.compose.ui.graphics.Color.Black 
                 else if (isCurrentlyPlaying) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             )
-            .then(
-                if (isPureBlack) Modifier.border(
-                    1.dp,
-                    if (isSelected || isCurrentlyPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                    RoundedCornerShape(12.dp)
-                ) else Modifier
-            )
+            
             .animateContentSize()
             .combinedClickable(
                 enabled = !isDeleting,

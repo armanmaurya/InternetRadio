@@ -1457,7 +1457,6 @@ fun PlayerSheetContent(
                         label = "tab4Text"
                     )
 
-                    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
                     
                     val scrollState = rememberScrollState()
                     val density = androidx.compose.ui.platform.LocalDensity.current
@@ -1487,16 +1486,16 @@ fun PlayerSheetContent(
                                         .padding(horizontal = 4.dp)
                                         .zIndex(-1f)
                                         .background(
-                                            if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surface,
+                                            // The sheet sits on surfaceContainerLow; when a scheme (e.g. Monochrome
+                                            // dark) makes that identical to surface, lift the indicator so it stays visible.
+                                            if (MaterialTheme.colorScheme.surface == MaterialTheme.colorScheme.surfaceContainerLow) {
+                                                MaterialTheme.colorScheme.surfaceContainerHighest
+                                            } else {
+                                                MaterialTheme.colorScheme.surface
+                                            },
                                             RoundedCornerShape(10.dp)
                                         )
-                                        .then(
-                                            if (isPureBlack) Modifier.border(
-                                                1.dp,
-                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                                RoundedCornerShape(10.dp)
-                                            ) else Modifier
-                                        )
+                                        
                                 )
                             }
                             

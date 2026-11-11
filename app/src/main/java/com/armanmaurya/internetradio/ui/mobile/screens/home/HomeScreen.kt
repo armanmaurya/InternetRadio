@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -188,7 +187,6 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             if (widthSizeClass != WindowWidthSizeClass.Expanded) {
-                val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
                 val collapseModifier = if (!isSearchExpanded) {
                     Modifier
                         .clipToBounds()
@@ -224,7 +222,6 @@ fun HomeScreen(
                 selectedStateCode = uiState.selectedStateCode,
                 selectedLanguage = uiState.selectedLanguage,
                 selectedTags = uiState.selectedTags,
-                selectAllTextOnFocus = uiState.selectAllTextOnFocus,
                 modifier = collapseModifier
             ) {
                 val safeDrawingBottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
@@ -354,8 +351,6 @@ fun HomeScreen(
 
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
-        val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
-        val outlineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         val currentWidthSizeClass by rememberUpdatedState(widthSizeClass)
         val currentContentPadding by rememberUpdatedState(contentPadding)
         val currentPlayingStationUuid by rememberUpdatedState(playingStationUuid)
@@ -372,41 +367,7 @@ fun HomeScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(
-                            if (isPureBlack) {
-                                Modifier.drawWithContent {
-                                    drawContent()
-                                    // Draw a 3-sided border (left + top + right) for the pure black theme.
-                                    // We skip the bottom edge intentionally so there is no divider line
-                                    // between the surface and the navigation bar.
-                                    val strokePx = 1.dp.toPx()
-                                    val r = 28.dp.toPx()
-                                    val path = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(0f, size.height)
-                                        lineTo(0f, r)
-                                        arcTo(
-                                            rect = androidx.compose.ui.geometry.Rect(0f, 0f, r * 2, r * 2),
-                                            startAngleDegrees = 180f,
-                                            sweepAngleDegrees = 90f,
-                                            forceMoveTo = false
-                                        )
-                                        lineTo(size.width - r, 0f)
-                                        arcTo(
-                                            rect = androidx.compose.ui.geometry.Rect(size.width - r * 2, 0f, size.width, r * 2),
-                                            startAngleDegrees = 270f,
-                                            sweepAngleDegrees = 90f,
-                                            forceMoveTo = false
-                                        )
-                                        lineTo(size.width, size.height)
-                                    }
-                                    drawPath(
-                                        path = path,
-                                        color = outlineColor,
-                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx)
-                                    )
-                                }
-                            } else Modifier
-                        ),
+                        ,
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shape = if (currentWidthSizeClass == WindowWidthSizeClass.Expanded) {
                         RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 28.dp)
@@ -491,7 +452,6 @@ fun HomeScreen(
                 selectedStateCode = uiState.selectedStateCode,
                 selectedLanguage = uiState.selectedLanguage,
                 selectedTags = uiState.selectedTags,
-                selectAllTextOnFocus = uiState.selectAllTextOnFocus,
                 browseStations = browseUiState.stations,
                 libraryStations = filteredLibraryStations,
                 libraryUuids = libraryUuids,

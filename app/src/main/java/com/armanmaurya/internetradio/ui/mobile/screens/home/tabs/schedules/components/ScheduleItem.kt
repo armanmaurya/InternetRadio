@@ -63,18 +63,11 @@ fun ScheduleItem(
         stringResource(R.string.schedule_once)
     }
 
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
-    val cardBorder = if (isPureBlack) {
-        androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    } else {
-        null
-    }
 
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        border = cardBorder
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(

@@ -7,7 +7,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,7 +70,6 @@ fun RadioSearchBar(
     selectedStateCode: String?,
     selectedLanguage: String?,
     selectedTags: Set<String>,
-    selectAllTextOnFocus: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {}
 ) {
@@ -89,11 +87,6 @@ fun RadioSearchBar(
 
     SearchBar(
         inputField = {
-            val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == androidx.compose.ui.graphics.Color.Black
-            val borderAlpha by androidx.compose.animation.core.animateFloatAsState(
-                targetValue = if (isSearchExpanded) 0f else 0.3f,
-                label = "SearchBarBorderAlpha"
-            )
             var textFieldValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(text = query)) }
 
             androidx.compose.runtime.LaunchedEffect(query) {
@@ -106,11 +99,9 @@ fun RadioSearchBar(
 
             androidx.compose.runtime.LaunchedEffect(isSearchExpanded) {
                 if (isSearchExpanded && textFieldValue.text.isNotEmpty()) {
-                    if (selectAllTextOnFocus) {
-                        textFieldValue = textFieldValue.copy(
-                            selection = androidx.compose.ui.text.TextRange(0, textFieldValue.text.length)
-                        )
-                    }
+                    textFieldValue = textFieldValue.copy(
+                        selection = androidx.compose.ui.text.TextRange(0, textFieldValue.text.length)
+                    )
                 } else if (!isSearchExpanded) {
                     focusManager.clearFocus()
                 }
@@ -122,15 +113,8 @@ fun RadioSearchBar(
                     textFieldValue = it
                     onQueryChange(it.text) 
                 },
-                modifier = (if (isPureBlack) {
-                    Modifier
-                        .fillMaxWidth()
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = borderAlpha),
-                            androidx.compose.foundation.shape.RoundedCornerShape(100)
-                        )
-                } else Modifier.fillMaxWidth())
+                modifier = Modifier
+                .fillMaxWidth()
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
                         onExpandedChange(true)

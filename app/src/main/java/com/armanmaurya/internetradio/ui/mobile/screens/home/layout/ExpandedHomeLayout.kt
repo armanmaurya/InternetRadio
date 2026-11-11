@@ -9,7 +9,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,7 +83,6 @@ internal fun ExpandedHomeLayout(
     selectedStateCode: String?,
     selectedLanguage: String?,
     selectedTags: Set<String>,
-    selectAllTextOnFocus: Boolean,
     browseStations: List<RadioStation>,
     libraryStations: List<RadioStation>? = null,
     libraryUuids: Set<String>,
@@ -99,7 +97,6 @@ internal fun ExpandedHomeLayout(
     onToggleRecording: (RadioStation) -> Unit = {},
     isPlayingRecording: Boolean = false
 ) {
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
     Box(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -120,7 +117,6 @@ internal fun ExpandedHomeLayout(
                 tabs = tabs,
                 pagerState = pagerState,
                 coroutineScope = coroutineScope,
-                isPureBlack = isPureBlack,
                 isPlayingRecording = isPlayingRecording
             )
 
@@ -145,7 +141,6 @@ internal fun ExpandedHomeLayout(
                 selectedStateCode = selectedStateCode,
                 selectedLanguage = selectedLanguage,
                 selectedTags = selectedTags,
-                selectAllTextOnFocus = selectAllTextOnFocus,
                 browseStations = browseStations,
                 libraryStations = libraryStations,
                 libraryUuids = libraryUuids,
@@ -175,7 +170,6 @@ private fun Sidebar(
     tabs: List<String>,
     pagerState: androidx.compose.foundation.pager.PagerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
-    isPureBlack: Boolean,
     isPlayingRecording: Boolean = false
 ) {
     Column(
@@ -191,7 +185,6 @@ private fun Sidebar(
             DummySearchBox(
                 searchQuery = searchQuery,
                 onSearchClick = onSearchClick,
-                isPureBlack = isPureBlack
             )
             
             SidebarFilters(
@@ -209,7 +202,6 @@ private fun Sidebar(
                 tabs = tabs,
                 pagerState = pagerState,
                 coroutineScope = coroutineScope,
-                isPureBlack = isPureBlack,
                 isPlayingRecording = isPlayingRecording
             )
         }
@@ -220,7 +212,6 @@ private fun Sidebar(
 private fun DummySearchBox(
     searchQuery: String,
     onSearchClick: () -> Unit,
-    isPureBlack: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -228,10 +219,7 @@ private fun DummySearchBox(
             .padding(top = 0.dp, bottom = 8.dp)
             .clip(RoundedCornerShape(100))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .then(
-                if (isPureBlack) Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(100))
-                else Modifier
-            )
+            
             .clickable { onSearchClick() }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
@@ -338,7 +326,6 @@ private fun SidebarNavigation(
     tabs: List<String>,
     pagerState: androidx.compose.foundation.pager.PagerState,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
-    isPureBlack: Boolean,
     isPlayingRecording: Boolean = false
 ) {
     val icons = listOf(
@@ -385,16 +372,11 @@ private fun SidebarNavigation(
                 }
             },
             colors = androidx.compose.material3.NavigationDrawerItemDefaults.colors(
-                selectedContainerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.secondaryContainer
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
             ),
             modifier = Modifier
                 .padding(vertical = 0.dp)
                 .height(40.dp)
-                .then(
-                    if (isPureBlack && pagerState.currentPage == index)
-                        Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(100))
-                    else Modifier
-                )
         )
     }
 }
@@ -416,7 +398,6 @@ private fun ExpandedSearchOverlay(
     selectedStateCode: String?,
     selectedLanguage: String?,
     selectedTags: Set<String>,
-    selectAllTextOnFocus: Boolean,
     browseStations: List<RadioStation>,
     libraryStations: List<RadioStation>? = null,
     libraryUuids: Set<String>,
@@ -446,7 +427,6 @@ private fun ExpandedSearchOverlay(
             selectedStateCode = selectedStateCode,
             selectedLanguage = selectedLanguage,
             selectedTags = selectedTags,
-            selectAllTextOnFocus = selectAllTextOnFocus,
             modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
         ) {
             val safeDrawingBottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()

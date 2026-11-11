@@ -4,7 +4,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,17 +55,15 @@ fun RecordingFolderAccessWarning(
         }
     }
 
-    val isPureBlack = MaterialTheme.colorScheme.surface == Color.Black
 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             // Matches the station folder rows, which stay visible on both the home and player sheet backgrounds
-            containerColor = if (isPureBlack) Color.Black else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             contentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        border = if (isPureBlack) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+        )
     ) {
         Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.Top) {

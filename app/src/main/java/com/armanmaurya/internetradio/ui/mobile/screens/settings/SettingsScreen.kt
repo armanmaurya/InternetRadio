@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
-import org.xmlpull.v1.XmlPullParser
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -46,9 +45,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
@@ -61,7 +66,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.filled.Brightness4
-import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.CloudSync
@@ -96,7 +100,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -143,6 +147,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onCheckUpdatesClick: () -> Unit = {},
+    onLanguageClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -209,18 +214,15 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             AppearanceSection(
                 uiState = uiState,
                 availableThemes = listOf(AppTheme.LIGHT, AppTheme.DARK, AppTheme.SYSTEM),
-                expandedItem = expandedItem,
-                onExpandedItemChange = { expandedItem = it },
                 onSetDynamicTheme = viewModel::setDynamicTheme,
                 onSetAppColor = viewModel::setAppColor,
                 onSetCustomColor = viewModel::setCustomColor,
                 onSetTheme = viewModel::setAppTheme,
-                onSetPureBlack = viewModel::setPureBlack,
                 onSetShowStationThumbnails = viewModel::setShowStationThumbnails,
                 onOpenWidgetConfig = {
                     context.startActivity(Intent(context, NowPlayingWidgetConfigureActivity::class.java))
@@ -231,13 +233,12 @@ fun SettingsScreen(
             )
             GeneralSection(
                 uiState = uiState,
-                languages = rememberAvailableLanguages(),
+                languages = rememberAppLanguages(),
                 expandedItem = expandedItem,
                 onExpandedItemChange = { expandedItem = it },
-                onSetLanguage = viewModel::setAppLanguage,
+                onLanguageClick = onLanguageClick,
                 onSetDefaultTab = viewModel::setDefaultTab,
                 onSetAutoRouteToBrowseOnSearch = viewModel::setAutoRouteToBrowseOnSearch,
-                onSetSelectAllTextOnFocus = viewModel::setSelectAllTextOnFocus,
                 showRecentLimitDialog = showRecentLimitDialog,
                 onToggleRecentLimitDialog = { showRecentLimitDialog = !showRecentLimitDialog },
                 onSetRecentLimit = viewModel::setRecentLimit,
@@ -342,16 +343,30 @@ private fun SettingsTopBar(
     onBackClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    CenterAlignedTopAppBar(
+    TopAppBar(
         title = { Text(stringResource(R.string.settings_title)) },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
+            androidx.compose.material3.FilledTonalIconButton(
+                onClick = onBackClick,
+                // Puts the 40dp circle 16dp from the edge (bar 4dp + touch target 4dp + 8dp),
+                // in line with the content below, with a little extra room before the title.
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                shape = CircleShape,
+                colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.cd_back)
                 )
             }
         },
+        // Keep the bar the same colour while content scrolls under it.
+        colors = TopAppBarDefaults.topAppBarColors(
+            scrolledContainerColor = MaterialTheme.colorScheme.surface
+        ),
         scrollBehavior = scrollBehavior
     )
 }
@@ -360,13 +375,10 @@ private fun SettingsTopBar(
 private fun AppearanceSection(
     uiState: AppPreferences,
     availableThemes: List<AppTheme>,
-    expandedItem: String?,
-    onExpandedItemChange: (String?) -> Unit,
     onSetDynamicTheme: (Boolean) -> Unit,
     onSetAppColor: (AppColor) -> Unit,
     onSetCustomColor: (Int) -> Unit,
     onSetTheme: (AppTheme) -> Unit,
-    onSetPureBlack: (Boolean) -> Unit,
     onSetShowStationThumbnails: (Boolean) -> Unit,
     onOpenWidgetConfig: () -> Unit,
     topShape: RoundedCornerShape,
@@ -399,19 +411,6 @@ private fun AppearanceSection(
     }
 
     Section(title = stringResource(R.string.settings_appearance_section)) {
-        if (isDynamicColorSupported) {
-            ToggleItem(
-                title = stringResource(R.string.settings_dynamic_theme_title),
-                subtitle = stringResource(R.string.settings_dynamic_theme_subtitle),
-                isEnabled = uiState.useDynamicColor,
-                onToggle = onSetDynamicTheme,
-                icon = Icons.Default.AutoAwesome,
-                shape = topShape
-            )
-
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-        }
-
         PalettePickerItem(
             selectedColor = uiState.appColor,
             isDynamicActive = isDynamicActive,
@@ -422,45 +421,44 @@ private fun AppearanceSection(
                 }
             },
             darkTheme = darkTheme,
+            showDynamic = isDynamicColorSupported,
+            onDynamicSelected = { onSetDynamicTheme(true) },
             customColorArgb = uiState.customColorArgb,
             onOpenCustomColorPicker = { showColorPickerSheet = true },
-            shape = if (isDynamicColorSupported) middleShape else topShape
+            shape = topShape
         )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 
-        ExpandableItem(
-            title = stringResource(R.string.settings_theme_title),
-            subtitle = uiState.themeMode.toDisplayString(),
-            isExpanded = expandedItem == "Theme",
-            onToggle = { onExpandedItemChange(if (expandedItem == "Theme") null else "Theme") },
-            icon = Icons.Default.Brightness4,
-            shape = middleShape
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(middleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
         ) {
-            availableThemes.forEach { theme ->
-                OptionItem(
-                    label = theme.toDisplayString(),
-                    isSelected = uiState.themeMode == theme,
-                    onClick = { onSetTheme(theme) }
-                )
+            androidx.compose.material3.ListItem(
+                colors = androidx.compose.material3.ListItemDefaults.colors(
+                    containerColor = Color.Transparent
+                ),
+                leadingContent = { Icon(Icons.Default.Brightness4, contentDescription = null) },
+                headlineContent = { Text(stringResource(R.string.settings_theme_title)) }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                availableThemes.forEach { theme ->
+                    ThemeTile(
+                        theme = theme,
+                        isSelected = uiState.themeMode == theme,
+                        onClick = { onSetTheme(theme) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-
-        ToggleItem(
-            title = stringResource(R.string.settings_pure_black_title),
-            subtitle = if (darkTheme) {
-                stringResource(R.string.settings_pure_black_subtitle)
-            } else {
-                stringResource(R.string.settings_pure_black_disabled_subtitle)
-            },
-            isEnabled = uiState.pureBlack,
-            onToggle = onSetPureBlack,
-            icon = Icons.Default.Contrast,
-            shape = middleShape,
-            enabled = darkTheme
-        )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 
@@ -477,10 +475,70 @@ private fun AppearanceSection(
 
         Item(
             title = stringResource(R.string.settings_widget_appearance_title),
-            subtitle = stringResource(R.string.settings_widget_appearance_subtitle),
             icon = Icons.Default.Widgets,
             onClick = onOpenWidgetConfig,
             shape = bottomShape
+        )
+    }
+}
+
+@Composable
+private fun ThemeTile(
+    theme: AppTheme,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val tileShape = RoundedCornerShape(12.dp)
+    val containerColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isSelected) colors.primaryContainer else colors.surfaceContainerHighest,
+        label = "themeTileContainer"
+    )
+    val contentColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isSelected) colors.onPrimaryContainer else colors.onSurfaceVariant,
+        label = "themeTileContent"
+    )
+    val borderColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isSelected) colors.primary else colors.outlineVariant.copy(alpha = 0.4f),
+        label = "themeTileBorder"
+    )
+    val borderWidth by androidx.compose.animation.core.animateDpAsState(
+        targetValue = if (isSelected) 2.dp else 1.dp,
+        label = "themeTileBorderWidth"
+    )
+    val icon = when (theme) {
+        AppTheme.LIGHT -> Icons.Default.LightMode
+        AppTheme.DARK -> Icons.Default.DarkMode
+        AppTheme.SYSTEM -> Icons.Default.BrightnessAuto
+    }
+
+    Column(
+        modifier = modifier
+            .clip(tileShape)
+            .background(containerColor)
+            .border(borderWidth, borderColor, tileShape)
+            .selectable(
+                selected = isSelected,
+                onClick = onClick,
+                role = androidx.compose.ui.semantics.Role.RadioButton
+            )
+            .padding(vertical = 14.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(28.dp)
+        )
+        Text(
+            text = theme.toDisplayString(),
+            style = MaterialTheme.typography.labelLarge,
+            color = contentColor,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
     }
 }
@@ -510,13 +568,12 @@ private fun StartOfWeek.toDisplayString(): String = when (this) {
 @Composable
 private fun GeneralSection(
     uiState: AppPreferences,
-    languages: List<Pair<String, String>>,
+    languages: List<AppLanguage>,
     expandedItem: String?,
     onExpandedItemChange: (String?) -> Unit,
-    onSetLanguage: (String) -> Unit,
+    onLanguageClick: () -> Unit,
     onSetDefaultTab: (Int) -> Unit,
     onSetAutoRouteToBrowseOnSearch: (Boolean) -> Unit,
-    onSetSelectAllTextOnFocus: (Boolean) -> Unit,
     showRecentLimitDialog: Boolean,
     onToggleRecentLimitDialog: () -> Unit,
     onSetRecentLimit: (Int) -> Unit,
@@ -524,30 +581,24 @@ private fun GeneralSection(
     middleShape: RoundedCornerShape,
     bottomShape: RoundedCornerShape
 ) {
-    val currentLocales = AppCompatDelegate.getApplicationLocales()
-    val activeLanguageCode = if (currentLocales.isEmpty) {
-        "System"
-    } else {
-        currentLocales[0]?.language ?: "System"
-    }
+    val activeLanguageTag = languages.currentAppLanguageTag()
+    val activeLanguageName = languages.firstOrNull { it.tag == activeLanguageTag }?.nativeName
+        ?: stringResource(R.string.settings_system_default)
 
     Section(title = stringResource(R.string.settings_general_section)) {
-        ExpandableItem(
+        Item(
             title = stringResource(R.string.settings_language_title),
-            subtitle = activeLanguageCode.getLanguageDisplayName(languages),
-            isExpanded = expandedItem == "Language",
-            onToggle = { onExpandedItemChange(if (expandedItem == "Language") null else "Language") },
+            subtitle = activeLanguageName,
+            onClick = onLanguageClick,
             icon = Icons.Default.Translate,
-            shape = topShape
-        ) {
-            languages.forEach { (code, name) ->
-                OptionItem(
-                    label = name,
-                    isSelected = activeLanguageCode == code,
-                    onClick = { onSetLanguage(code) }
+            shape = topShape,
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null
                 )
             }
-        }
+        )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 
@@ -567,12 +618,43 @@ private fun GeneralSection(
             icon = Icons.Default.StarRate,
             shape = middleShape
         ) {
-            tabs.forEachIndexed { index, name ->
-                OptionItem(
-                    label = name,
-                    isSelected = uiState.defaultTab == index,
-                    onClick = { onSetDefaultTab(index) }
-                )
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                tabs.forEachIndexed { index, name ->
+                    val isSelected = uiState.defaultTab == index
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onSetDefaultTab(index) },
+                        modifier = Modifier.weight(1f),
+                        label = {
+                            Text(
+                                text = name,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        },
+                        leadingIcon = {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = isSelected,
+                                enter = androidx.compose.animation.fadeIn() +
+                                    androidx.compose.animation.expandHorizontally(),
+                                exit = androidx.compose.animation.fadeOut() +
+                                    androidx.compose.animation.shrinkHorizontally()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
 
@@ -583,17 +665,6 @@ private fun GeneralSection(
             subtitle = stringResource(R.string.settings_auto_route_search_subtitle),
             isEnabled = uiState.autoRouteToBrowseOnSearch,
             onToggle = onSetAutoRouteToBrowseOnSearch,
-            icon = Icons.Default.Search,
-            shape = middleShape
-        )
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-
-        ToggleItem(
-            title = stringResource(R.string.settings_select_all_text_on_focus_title),
-            subtitle = stringResource(R.string.settings_select_all_text_on_focus_subtitle),
-            isEnabled = uiState.selectAllTextOnFocus,
-            onToggle = onSetSelectAllTextOnFocus,
             icon = Icons.Default.Search,
             shape = middleShape
         )
@@ -705,7 +776,6 @@ private fun PlayerSection(
 
         ToggleItem(
             title = stringResource(R.string.settings_enable_volume_boost),
-            subtitle = stringResource(R.string.settings_enable_volume_boost_desc),
             isEnabled = uiState.enableVolumeBoost,
             onToggle = { enable ->
                 if (enable) {
@@ -1588,35 +1658,3 @@ private fun ScheduleSection(
     }
 }
 
-@Composable
-private fun rememberAvailableLanguages(): List<Pair<String, String>> {
-    val context = LocalContext.current
-    val systemDefaultStr = stringResource(R.string.settings_system_default)
-    return remember(systemDefaultStr) {
-        buildList {
-            add("System" to systemDefaultStr)
-            try {
-                val parser = context.resources.getXml(R.xml.locales_config)
-                var event = parser.next()
-                while (event != XmlPullParser.END_DOCUMENT) {
-                    if (event == XmlPullParser.START_TAG && parser.name == "locale") {
-                        val tag = parser.getAttributeValue(
-                            "http://schemas.android.com/apk/res/android", "name"
-                        )
-                        if (!tag.isNullOrBlank()) {
-                            val locale = Locale.forLanguageTag(tag)
-                            add(tag to locale.getDisplayName(locale).replaceFirstChar { it.uppercaseChar() })
-                        }
-                    }
-                    event = parser.next()
-                }
-                parser.close()
-            } catch (_: Exception) { }
-        }
-    }
-}
-
-@Composable
-private fun String.getLanguageDisplayName(availableLanguages: List<Pair<String, String>>): String {
-    return availableLanguages.find { it.first == this }?.second ?: stringResource(R.string.settings_system_default)
-}

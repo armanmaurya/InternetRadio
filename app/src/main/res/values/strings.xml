@@ -50,14 +50,11 @@
     <!-- ========================================== -->
     <string name="settings_title">Settings</string>
     <string name="settings_appearance_section">Appearance</string>
-    <string name="settings_dynamic_theme_title">Dynamic Color</string>
-    <string name="settings_dynamic_theme_subtitle">Use wallpaper-based colors (Android 12+)</string>
     <string name="settings_theme_title">Theme</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_pure_black_title">Pure Black</string>
-    <string name="settings_pure_black_subtitle">Use pure black background in dark mode</string>
-    <string name="settings_pure_black_disabled_subtitle">Only available when dark theme is active</string>
+    <string name="settings_color_dynamic">Dynamic</string>
+    <string name="settings_color_monochrome">Mono</string>
     <string name="settings_color_purple">Purple</string>
     <string name="settings_color_blue">Blue</string>
     <string name="settings_color_teal">Teal</string>
@@ -67,17 +64,14 @@
     <string name="settings_color_red">Red</string>
     <string name="settings_color_custom">Custom</string>
     <string name="settings_custom_color_title">Custom Color</string>
-    <string name="settings_custom_color_hex">Hex Color</string>
     <string name="settings_custom_color_apply">Apply</string>
     <string name="settings_custom_color_cancel">Cancel</string>
     <string name="settings_show_station_thumbnails">Show station thumbnails</string>
-    <string name="settings_show_station_thumbnails_desc">Display station logos in lists and player (disable to save data and memory)</string>
+    <string name="settings_show_station_thumbnails_desc">Station logos in lists and player</string>
     <string name="settings_general_section">General</string>
     <string name="settings_language_title">Language</string>
     <string name="settings_auto_route_search_title">Auto-route on Search</string>
     <string name="settings_auto_route_search_subtitle">Automatically switch to the Browse tab when searching</string>
-    <string name="settings_select_all_text_on_focus_title">Select all text on search</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Automatically select search bar text on focus</string>
     <string name="settings_update_section">Update</string>
     <string name="settings_disable_update_check">Disable update check</string>
     <string name="settings_disable_update_check_desc">Do not automatically check for app updates on startup</string>
@@ -95,7 +89,6 @@
     <string name="settings_pause_on_volume_zero">Pause on volume zero</string>
     <string name="settings_pause_on_volume_zero_desc">Pause playback when device is muted</string>
     <string name="settings_enable_volume_boost" formatted="false">Volume boost (up to 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Allow increasing volume above 100% using software amplification</string>
     <string name="settings_volume_boost_warning_title">Enable Volume Boost?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Amplifying volume above 100% applies software gain (up to 200%). This may cause audio distortion, clipping, and could potentially damage sensitive hearing or audio equipment. Use at your own risk.</string>
     <string name="settings_volume_boost_warning_confirm">Enable</string>
@@ -128,7 +121,7 @@
     <string name="settings_number_of_tracks">Number of tracks</string>
     <string name="settings_checking_for_updates">Checking for updates...</string>
     <string name="settings_no_update_available">No update available</string>
-    <string name="settings_theme_system">System Default</string>
+    <string name="settings_theme_system">System</string>
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Backup &amp; Restore</string>
@@ -580,7 +573,6 @@
     <string name="widget_configure_preview">Live Preview</string>
     <string name="widget_configure_presets">Presets</string>
     <string name="settings_widget_appearance_title">Widget Appearance</string>
-    <string name="settings_widget_appearance_subtitle">Customize home screen widget transparency and preview</string>
 
     <!-- Recording Playback -->
     <string name="recording_playback_channel_name">Recording Playback</string>

@@ -10,4 +10,6 @@
     <locale android:name="et"/>
     <locale android:name="pl"/>
     <locale android:name="ru"/>
+    <locale android:name="es"/>
+    <locale android:name="it"/>
 </locale-config>

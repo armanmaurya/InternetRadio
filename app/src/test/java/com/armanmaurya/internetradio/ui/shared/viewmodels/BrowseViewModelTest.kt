@@ -207,7 +207,6 @@ class BrowseViewModelTest {
         override suspend fun setUseFilterOnRecent(enabled: Boolean) {}
         override suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {}
         override suspend fun setSearchBarHidden(hidden: Boolean) {}
-        override suspend fun setSelectAllTextOnFocus(enabled: Boolean) {}
         override suspend fun setAutoPlayOnStart(enabled: Boolean) {}
         override suspend fun setAppLaunchCount(count: Int) {}
         override suspend fun setHasRatedApp(rated: Boolean) {}
@@ -221,7 +220,6 @@ class BrowseViewModelTest {
         override suspend fun setDynamicColor(enabled: Boolean) {}
         override suspend fun setAppColor(appColor: AppColor) {}
         override suspend fun setCustomColor(colorArgb: Int) {}
-        override suspend fun setPureBlack(enabled: Boolean) {}
         override suspend fun setAppLanguage(language: String) {}
         override suspend fun getSavedAppLanguage(): String? = null
         override suspend fun setSelectedStateCode(stateCode: String?) {

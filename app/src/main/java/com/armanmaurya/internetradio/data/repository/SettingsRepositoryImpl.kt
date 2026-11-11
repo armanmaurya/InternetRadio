@@ -15,6 +15,9 @@ import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
+import com.armanmaurya.internetradio.ui.shared.theme.DEFAULT_CUSTOM_HUE
+import com.armanmaurya.internetradio.ui.shared.theme.customColorFromHue
+import com.armanmaurya.internetradio.ui.shared.theme.hueOfColor
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +45,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val APP_COLOR = stringPreferencesKey("app_color")
         val CUSTOM_COLOR_ARGB = androidx.datastore.preferences.core.intPreferencesKey("custom_color_argb")
-        val PURE_BLACK = booleanPreferencesKey("pure_black")
         val APP_LANGUAGE = stringPreferencesKey("app_language")
         val SELECTED_COUNTRY_CODE = stringPreferencesKey("selected_country_code")
         val SELECTED_STATE_CODE = stringPreferencesKey("selected_state_code")
@@ -76,7 +78,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val SHOW_COVER_ART_IN_NOTIFICATION = booleanPreferencesKey("show_cover_art_in_notification")
         val IS_ALARM_VOLUME_TRANSITION_ENABLED = booleanPreferencesKey("is_alarm_volume_transition_enabled")
         val ALARM_VOLUME_TRANSITION_SECONDS = androidx.datastore.preferences.core.intPreferencesKey("alarm_volume_transition_seconds")
-        val SELECT_ALL_TEXT_ON_FOCUS = booleanPreferencesKey("select_all_text_on_focus")
         val PAUSE_ON_VOLUME_ZERO = booleanPreferencesKey("pause_on_volume_zero")
         val ENABLE_VOLUME_BOOST = booleanPreferencesKey("enable_volume_boost")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
@@ -104,12 +105,23 @@ class SettingsRepositoryImpl @Inject constructor(
             
             val useDynamicColor = preferences[PreferencesKeys.DYNAMIC_COLOR] ?: true
             val appColorName = preferences[PreferencesKeys.APP_COLOR]
-            val appColor = when (appColorName) {
+            val storedAppColor = when (appColorName) {
                 "ORANGE" -> AppColor.PINK
                 else -> AppColor.entries.find { it.name == appColorName } ?: AppColor.PURPLE
             }
-            val customColorArgb = preferences[PreferencesKeys.CUSTOM_COLOR_ARGB] ?: 0xFF00BCD4.toInt()
-            val pureBlack = preferences[PreferencesKeys.PURE_BLACK] ?: false
+            // Custom colours are hue-only. Older versions allowed any colour, so normalise the
+            // saved value to its hue; a greyscale custom colour (no hue) becomes Monochrome.
+            val savedCustomHue = preferences[PreferencesKeys.CUSTOM_COLOR_ARGB]?.let(::hueOfColor)
+            val appColor = if (
+                storedAppColor == AppColor.CUSTOM &&
+                preferences[PreferencesKeys.CUSTOM_COLOR_ARGB] != null &&
+                savedCustomHue == null
+            ) {
+                AppColor.MONOCHROME
+            } else {
+                storedAppColor
+            }
+            val customColorArgb = customColorFromHue(savedCustomHue ?: DEFAULT_CUSTOM_HUE)
             val appLanguage = preferences[PreferencesKeys.APP_LANGUAGE] ?: "System"
             val selectedCountryCode = preferences[PreferencesKeys.SELECTED_COUNTRY_CODE]
             val selectedStateCode = preferences[PreferencesKeys.SELECTED_STATE_CODE]
@@ -150,7 +162,6 @@ class SettingsRepositoryImpl @Inject constructor(
             val showCoverArtInNotification = preferences[PreferencesKeys.SHOW_COVER_ART_IN_NOTIFICATION] ?: true
             val isAlarmVolumeTransitionEnabled = preferences[PreferencesKeys.IS_ALARM_VOLUME_TRANSITION_ENABLED] ?: false
             val alarmVolumeTransitionSeconds = preferences[PreferencesKeys.ALARM_VOLUME_TRANSITION_SECONDS] ?: 15
-            val selectAllTextOnFocus = preferences[PreferencesKeys.SELECT_ALL_TEXT_ON_FOCUS] ?: true
             val widgetBackgroundAlpha = preferences[PreferencesKeys.WIDGET_BACKGROUND_ALPHA] ?: 1.0f
             val showStationThumbnails = preferences[PreferencesKeys.SHOW_STATION_THUMBNAILS] ?: true
             val isAutoBackupEnabled = preferences[PreferencesKeys.IS_AUTO_BACKUP_ENABLED] ?: false
@@ -166,7 +177,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 useDynamicColor = useDynamicColor, 
                 appColor = appColor,
                 customColorArgb = customColorArgb,
-                pureBlack = pureBlack, 
                 appLanguage = appLanguage,
                 selectedCountryCode = selectedCountryCode,
                 selectedStateCode = selectedStateCode,
@@ -187,7 +197,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 isGridViewRecent = isGridViewRecent,
                 isGridViewFavorites = isGridViewFavorites,
                 isGridViewAdded = isGridViewAdded,
-                selectAllTextOnFocus = selectAllTextOnFocus,
                 trackHistoryLimit = trackHistoryLimit,
                 recentLimit = recentLimit,
                 defaultTab = defaultTab,
@@ -225,10 +234,6 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setSearchBarHidden(hidden: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.SEARCH_BAR_HIDDEN] = hidden }
-    }
-
-    override suspend fun setSelectAllTextOnFocus(enabled: Boolean) {
-        context.dataStore.edit { it[PreferencesKeys.SELECT_ALL_TEXT_ON_FOCUS] = enabled }
     }
 
     override suspend fun setAutoPlayOnStart(enabled: Boolean) {
@@ -288,12 +293,6 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setCustomColor(colorArgb: Int) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.CUSTOM_COLOR_ARGB] = colorArgb
-        }
-    }
-
-    override suspend fun setPureBlack(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.PURE_BLACK] = enabled
         }
     }
 

@@ -103,12 +103,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setPureBlack(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setPureBlack(enabled)
-        }
-    }
-
     fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoRouteToBrowseOnSearch(enabled)
@@ -118,12 +112,6 @@ class SettingsViewModel @Inject constructor(
     fun setAutoPlayOnStart(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoPlayOnStart(enabled)
-        }
-    }
-
-    fun setSelectAllTextOnFocus(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setSelectAllTextOnFocus(enabled)
         }
     }
 

@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
@@ -408,12 +407,6 @@ private fun ScheduleConfigurationForm(
                 .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val isPureBlack = MaterialTheme.colorScheme.surfaceContainerHigh == Color.Black
-        val cardBorder = if (isPureBlack) {
-            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        } else {
-            null
-        }
 
         TextField(
             value = scheduleName,
@@ -421,10 +414,7 @@ private fun ScheduleConfigurationForm(
             label = { Text(stringResource(R.string.schedule_name_optional)) },
             supportingText = { Text("${scheduleName.length}/${Schedule.MAX_NAME_LENGTH}") },
             modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (cardBorder != null) Modifier.border(cardBorder, RoundedCornerShape(16.dp)) else Modifier
-                ),
+                .fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = TextFieldDefaults.colors(
@@ -439,8 +429,7 @@ private fun ScheduleConfigurationForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f),
-            shape = RoundedCornerShape(12.dp),
-            border = cardBorder
+            shape = RoundedCornerShape(12.dp)
         ) {
             if (station != null) {
                 val showThumbnails = LocalAppPreferences.current.showStationThumbnails
@@ -561,8 +550,7 @@ private fun ScheduleConfigurationForm(
 
             Card(
                 onClick = { showStartTimePicker = true },
-                modifier = Modifier.weight(1f),
-                border = cardBorder
+                modifier = Modifier.weight(1f)
             ) {
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.schedule_start_time), style = MaterialTheme.typography.labelMedium)
@@ -585,8 +573,7 @@ private fun ScheduleConfigurationForm(
                     .combinedClickable(
                         onClick = { showEndTimePicker = true },
                         onLongClick = { hasEndTime = false }
-                    ),
-                border = cardBorder
+                    )
             ) {
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.schedule_end_time), style = MaterialTheme.typography.labelMedium)
@@ -738,8 +725,7 @@ private fun ScheduleConfigurationForm(
         ) {
             Column {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    border = cardBorder
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
@@ -775,8 +761,7 @@ private fun ScheduleConfigurationForm(
         ) {
             Column {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    border = cardBorder
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier
@@ -815,8 +800,7 @@ private fun ScheduleConfigurationForm(
         ) {
             Column {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    border = cardBorder
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier

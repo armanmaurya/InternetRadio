@@ -10,7 +10,7 @@ class AppColorTest {
 
     @Test
     fun testAllAppColorEntriesProvideValidColorSchemes() {
-        assertEquals(8, AppColor.entries.size)
+        assertEquals(9, AppColor.entries.size)
 
         for (color in AppColor.entries) {
             val lightScheme = color.getLightColorScheme()
@@ -85,6 +85,33 @@ class AppColorTest {
     }
 
     @Test
+    fun testGreyscaleCustomColorsUseMonochromeScheme() {
+        for (argb in listOf(0xFF000000.toInt(), 0xFFFFFFFF.toInt(), 0xFF808080.toInt(), 0xFF202020.toInt(), 0xFFF0F0F0.toInt())) {
+            assertEquals(
+                AppColor.MONOCHROME.getLightColorScheme(),
+                AppColor.CUSTOM.getColorScheme(darkTheme = false, customColorArgb = argb)
+            )
+            assertEquals(
+                AppColor.MONOCHROME.getDarkColorScheme(),
+                AppColor.CUSTOM.getColorScheme(darkTheme = true, customColorArgb = argb)
+            )
+        }
+    }
+
+    @Test
+    fun testColorfulCustomColorDoesNotUseMonochromeScheme() {
+        val blue = 0xFF0066CC.toInt()
+        org.junit.Assert.assertNotEquals(
+            AppColor.MONOCHROME.getDarkColorScheme(),
+            AppColor.CUSTOM.getColorScheme(darkTheme = true, customColorArgb = blue)
+        )
+        org.junit.Assert.assertNotEquals(
+            AppColor.MONOCHROME.getLightColorScheme(),
+            AppColor.CUSTOM.getColorScheme(darkTheme = false, customColorArgb = blue)
+        )
+    }
+
+    @Test
     fun testLookupByNameFallback() {
         val foundValid = AppColor.entries.find { it.name == "BLUE" } ?: AppColor.PURPLE
         assertEquals(AppColor.BLUE, foundValid)
@@ -94,5 +121,33 @@ class AppColorTest {
 
         val fallbackNull = AppColor.entries.find { it.name == null } ?: AppColor.PURPLE
         assertEquals(AppColor.PURPLE, fallbackNull)
+    }
+
+    @Test
+    fun testGreyscaleColorsHaveNoHue() {
+        for (argb in listOf(0xFF000000, 0xFFFFFFFF, 0xFF808080, 0xFF202020, 0xFFF0F0F0)) {
+            org.junit.Assert.assertNull("Expected no hue for %08X".format(argb), hueOfColor(argb.toInt()))
+        }
+    }
+
+    @Test
+    fun testHueOfColor() {
+        assertEquals(0f, hueOfColor(0xFFFF0000.toInt())!!, 0.5f)
+        assertEquals(120f, hueOfColor(0xFF00FF00.toInt())!!, 0.5f)
+        assertEquals(240f, hueOfColor(0xFF0000FF.toInt())!!, 0.5f)
+        assertEquals(210f, hueOfColor(0xFF0066CC.toInt())!!, 0.5f)
+    }
+
+    @Test
+    fun testCustomColorFromHueIsNeverGreyscaleAndKeepsHue() {
+        var hue = 0f
+        while (hue < 360f) {
+            val argb = customColorFromHue(hue)
+            val roundTrip = hueOfColor(argb)
+            org.junit.Assert.assertNotNull("Custom colour for hue $hue must not be greyscale", roundTrip)
+            val diff = kotlin.math.abs(roundTrip!! - hue).let { minOf(it, 360f - it) }
+            assertTrue("Hue $hue round-tripped to $roundTrip", diff < 1.5f)
+            hue += 15f
+        }
     }
 }

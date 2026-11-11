@@ -3,7 +3,6 @@ package com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.about
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +35,6 @@ fun AboutTab(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
     val cannotOpenWebsiteMsg = stringResource(R.string.error_cannot_open_website)
     val websiteCopiedMsg = stringResource(R.string.player_website_copied)
     val cannotOpenUrlMsg = stringResource(R.string.error_cannot_open_url)
@@ -73,14 +71,8 @@ fun AboutTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
-                                .then(
-                                    if (isPureBlack) Modifier.border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                        RoundedCornerShape(12.dp)
-                                    ) else Modifier
-                                )
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                
                                 .padding(horizontal = 12.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -112,8 +104,7 @@ fun AboutTab(
                                 .width(16.dp)
                                 .height(6.dp)
                                 .background(
-                                    if (isPureBlack) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                    else MaterialTheme.colorScheme.primaryContainer
+                                    MaterialTheme.colorScheme.primaryContainer
                                 )
                         )
                     }
@@ -123,14 +114,8 @@ fun AboutTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
-                                .then(
-                                    if (isPureBlack) Modifier.border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                        RoundedCornerShape(12.dp)
-                                    ) else Modifier
-                                )
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                
                                 .padding(horizontal = 12.dp, vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -169,14 +154,8 @@ fun AboutTab(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.primaryContainer)
-                        .then(
-                            if (isPureBlack) Modifier.border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                RoundedCornerShape(12.dp)
-                            ) else Modifier
-                        )
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        
                         .padding(horizontal = 12.dp, vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -224,14 +203,9 @@ fun AboutTab(
                             onClick = { },
                             label = { Text(tag) },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.secondaryContainer,
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            ),
-                            border = if (isPureBlack) SuggestionChipDefaults.suggestionChipBorder(
-                                enabled = true,
-                                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                borderWidth = 1.dp
-                            ) else null
+                            )
                         )
                     }
                 }

@@ -104,7 +104,6 @@ fun StationListCard(
         }
     }
 
-    val isPureBlack = MaterialTheme.colorScheme.surface == Color.Black
 
     Card(
         modifier = modifier
@@ -115,7 +114,6 @@ fun StationListCard(
                 onClick = onClick
             ),
         shape = RoundedCornerShape(12.dp),
-        border = if (isPureBlack) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant) else null,
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.secondaryContainer else CardDefaults.cardColors().containerColor
         )

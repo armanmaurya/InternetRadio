@@ -78,7 +78,6 @@ fun RecordingsTab(
     val recordingDurationMs by viewModel.recordingDurationMs.collectAsStateWithLifecycle()
     val recordingPlaybackSpeed by viewModel.recordingPlaybackSpeed.collectAsStateWithLifecycle()
     val isRecordingLooping by viewModel.isRecordingLooping.collectAsStateWithLifecycle()
-    val isPureBlack = MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(currentPlayingRecording?.uri) {
@@ -206,7 +205,7 @@ fun RecordingsTab(
                         stickyHeader(key = "sticky_recording_tab_header") {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surfaceContainerLow
+                                color = MaterialTheme.colorScheme.surfaceContainerLow
                             ) {
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     nowPlayingTransition.AnimatedVisibility(
@@ -293,7 +292,7 @@ fun RecordingsTab(
                         item(key = "recording_tab_selection_bar") {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color = if (isPureBlack) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.surfaceContainerLow
+                                color = MaterialTheme.colorScheme.surfaceContainerLow
                             ) {
                                 selectionTransition.AnimatedVisibility(
                                     visible = { it },

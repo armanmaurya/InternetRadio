@@ -14,17 +14,15 @@ import com.armanmaurya.internetradio.ui.mobile.screens.tags.TagSelectScreen
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.AppLanguageScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.SettingsScreen
+import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
+import androidx.compose.runtime.remember
 import com.armanmaurya.internetradio.ui.mobile.screens.edit.EditStationScreen
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import com.armanmaurya.internetradio.R
 
 @Composable
@@ -38,34 +36,18 @@ fun AppNavHost(
     val discoverViewModel: HomeViewModel = hiltViewModel()
     val playerViewModel: PlayerViewModel = hiltViewModel()
 
+    // Material's shared-axis slide distance is a fixed 30dp regardless of screen width.
+    val sharedAxisSlidePx = with(androidx.compose.ui.platform.LocalDensity.current) { 30.dp.roundToPx() }
+
     NavHost(
         navController = navController,
         startDestination = AppDestination.Discover.route,
         modifier = modifier,
-        enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { (it * 0.1f).toInt() },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { -(it * 0.1f).toInt() },
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { -(it * 0.1f).toInt() },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { (it * 0.1f).toInt() },
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
-        }
+        // Material shared axis X: short slide + fade-through, mirrored for back navigation.
+        enterTransition = { MaterialSharedAxis.enter(sharedAxisSlidePx, forward = true) },
+        exitTransition = { MaterialSharedAxis.exit(sharedAxisSlidePx, forward = true) },
+        popEnterTransition = { MaterialSharedAxis.enter(sharedAxisSlidePx, forward = false) },
+        popExitTransition = { MaterialSharedAxis.exit(sharedAxisSlidePx, forward = false) }
     ) {
         composable(AppDestination.Discover.route) {
             HomeScreen(
@@ -94,6 +76,21 @@ fun AppNavHost(
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
                 onCheckUpdatesClick = onCheckUpdates,
+                onLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) },
+                contentPadding = contentPadding
+            )
+        }
+        composable(AppDestination.AppLanguage.route) {
+            // Use the Settings screen's ViewModel: it outlives this page, so saving the language
+            // isn't cancelled when we pop back (applying a locale also recreates the activity).
+            val settingsEntry = remember(it) { navController.getBackStackEntry(AppDestination.Settings.route) }
+            val settingsViewModel: SettingsViewModel = hiltViewModel(settingsEntry)
+            AppLanguageScreen(
+                onLanguageSelected = { tag ->
+                    navController.popBackStack()
+                    settingsViewModel.setAppLanguage(tag)
+                },
+                onBackClick = { navController.popBackStack() },
                 contentPadding = contentPadding
             )
         }

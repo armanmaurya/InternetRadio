@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.settings.components
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,85 +32,98 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
 
+private data class PaletteSwatch(
+    val label: String,
+    val previewColors: List<Color>,
+    val isSelected: Boolean,
+    val onClick: () -> Unit
+)
+
+private const val SWATCHES_PER_ROW = 5
+
+/**
+ * Single "pick one" colour row: Dynamic (Android 12+), Monochrome, the preset colours and Custom.
+ * Light/dark is chosen separately by the Theme setting and applies to every swatch.
+ */
 @Composable
 fun PalettePickerItem(
     selectedColor: AppColor,
     isDynamicActive: Boolean,
     onColorSelected: (AppColor) -> Unit,
     darkTheme: Boolean,
+    showDynamic: Boolean = false,
+    onDynamicSelected: () -> Unit = {},
     customColorArgb: Int = 0xFF00BCD4.toInt(),
     onOpenCustomColorPicker: () -> Unit = {},
     shape: Shape = RectangleShape,
     modifier: Modifier = Modifier
 ) {
+    val swatches = buildList {
+        if (showDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val context = LocalContext.current
+            val scheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            add(
+                PaletteSwatch(
+                    label = stringResource(R.string.settings_color_dynamic),
+                    previewColors = listOf(scheme.primary, scheme.secondary, scheme.tertiary, scheme.primaryContainer),
+                    isSelected = isDynamicActive,
+                    onClick = onDynamicSelected
+                )
+            )
+        }
+        AppColor.entries.forEach { color ->
+            val isSelected = !isDynamicActive && selectedColor == color
+            add(
+                PaletteSwatch(
+                    label = stringResource(color.titleRes),
+                    previewColors = color.getPreviewColors(darkTheme, customColorArgb),
+                    isSelected = isSelected,
+                    onClick = {
+                        if (isSelected && color == AppColor.CUSTOM) {
+                            onOpenCustomColorPicker()
+                        } else {
+                            onColorSelected(color)
+                        }
+                    }
+                )
+            )
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(vertical = 10.dp)
+            .padding(vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-
-        val palettes = AppColor.entries
-        val row1 = palettes.take(4)
-        val row2 = palettes.drop(4)
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            row1.forEach { color ->
-                val isSelected = !isDynamicActive && selectedColor == color
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PaletteGridItem(
-                        color = color,
-                        isSelected = isSelected,
-                        darkTheme = darkTheme,
-                        customColorArgb = customColorArgb,
-                        onClick = {
-                            if (isSelected && color == AppColor.CUSTOM) {
-                                onOpenCustomColorPicker()
-                            } else {
-                                onColorSelected(color)
-                            }
-                        }
-                    )
+        swatches.chunked(SWATCHES_PER_ROW).forEach { row ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                row.forEach { swatch ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PaletteGridItem(
+                            label = swatch.label,
+                            previewColors = swatch.previewColors,
+                            isSelected = swatch.isSelected,
+                            onClick = swatch.onClick
+                        )
+                    }
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            row2.forEach { color ->
-                val isSelected = !isDynamicActive && selectedColor == color
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PaletteGridItem(
-                        color = color,
-                        isSelected = isSelected,
-                        darkTheme = darkTheme,
-                        customColorArgb = customColorArgb,
-                        onClick = {
-                            if (isSelected && color == AppColor.CUSTOM) {
-                                onOpenCustomColorPicker()
-                            } else {
-                                onColorSelected(color)
-                            }
-                        }
-                    )
+                // Keep columns aligned when the last row is short.
+                repeat(SWATCHES_PER_ROW - row.size) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -116,13 +132,11 @@ fun PalettePickerItem(
 
 @Composable
 private fun PaletteGridItem(
-    color: AppColor,
+    label: String,
+    previewColors: List<Color>,
     isSelected: Boolean,
-    darkTheme: Boolean,
-    customColorArgb: Int = 0xFF00BCD4.toInt(),
     onClick: () -> Unit
 ) {
-    val previewColors = color.getPreviewColors(darkTheme, customColorArgb)
     val boxShape = RoundedCornerShape(12.dp)
 
     Column(
@@ -204,7 +218,7 @@ private fun PaletteGridItem(
         Spacer(modifier = Modifier.height(3.dp))
 
         Text(
-            text = stringResource(color.titleRes),
+            text = label,
             style = MaterialTheme.typography.labelSmall,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
