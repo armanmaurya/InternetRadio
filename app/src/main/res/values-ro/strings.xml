@@ -56,7 +56,7 @@
     <string name="settings_number_of_tracks">Numărul de piese</string>
     <string name="settings_checking_for_updates">Se verifică actualizările...</string>
     <string name="settings_no_update_available">Nu sunt disponibile actualizări</string>
-    <string name="settings_theme_system">Implicit sistem</string>
+    <string name="settings_theme_system">Sistem</string>
     <string name="settings_backup_section">Copie de rezervă și restaurare</string>
     <string name="settings_conflict_title">Când apare un conflict</string>
     <string name="settings_conflict_skip">Omite existent</string>
@@ -380,7 +380,7 @@
     <string name="settings_widget_appearance_title">Aspectul widget-ului</string>
     <string name="review_star_github">Pune o stea pe GitHub</string>
     <string name="settings_show_station_thumbnails">Afișează miniaturile stațiilor</string>
-    <string name="settings_show_station_thumbnails_desc">Afișează siglele posturilor în liste și player (dezactivează pentru a economisi date și memorie)</string>
+    <string name="settings_show_station_thumbnails_desc">Logo-urile posturilor de radio în liste și în player</string>
     <string name="settings_update_section">Actualizează</string>
     <string name="settings_view_on_play_store">Vezi în Magazin Play</string>
     <string name="about_support">Sprijin</string>
@@ -534,4 +534,6 @@
     <string name="settings_recording_time_format_title">Formatul orei în numele fișierelor</string>
     <string name="settings_time_format_12_hour">12 ore</string>
     <string name="settings_time_format_24_hour">24 de ore</string>
+    <string name="settings_color_dynamic">Dinamic</string>
+    <string name="settings_color_monochrome">Mono</string>
 </resources>
