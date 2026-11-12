@@ -45,13 +45,9 @@
     <!-- ========================================== -->
     <string name="settings_title">Beállítások</string>
     <string name="settings_appearance_section">Megjelenés</string>
-    <string name="settings_dynamic_theme_title">Dinamikus szín</string>
-    <string name="settings_dynamic_theme_subtitle">Háttérkép színeinek használata (Android 12+)</string>
     <string name="settings_theme_title">Téma</string>
     <string name="settings_theme_light">Világos</string>
     <string name="settings_theme_dark">Sötét</string>
-    <string name="settings_pure_black_title">Tiszta fekete</string>
-    <string name="settings_pure_black_subtitle">Tiszta fekete háttér használata sötét módban</string>
     <string name="settings_general_section">Általános</string>
     <string name="settings_language_title">Nyelv</string>
     <string name="settings_auto_play">Automatikus lejátszás indításkor</string>
@@ -232,8 +228,6 @@
     <string name="cd_delete">Törlés</string>
     <string name="settings_auto_route_search_title">Automatikus navigáció kereséskor</string>
     <string name="settings_auto_route_search_subtitle">Kereséskor automatikusan átvált a Böngészés lapra</string>
-    <string name="settings_select_all_text_on_focus_subtitle">A keresőmező szövegének automatikus kijelölése fókuszba kerüléskor</string>
-    <string name="settings_select_all_text_on_focus_title">Keresési szöveg automatikus kijelölése</string>
     <string name="settings_disable_update_check">Frissítések keresésének letiltása</string>
     <string name="settings_disable_update_check_desc">Ne keressen automatikusan alkalmazásfrissítéseket indításkor</string>
     <string name="settings_pause_on_volume_zero">Szüneteltetés némításkor</string>
@@ -400,10 +394,8 @@
     <string name="settings_color_red">Piros</string>
     <string name="settings_color_custom">Egyéni</string>
     <string name="settings_custom_color_title">Egyéni szín</string>
-    <string name="settings_custom_color_hex">Hexadecimális szín</string>
     <string name="settings_custom_color_apply">Alkalmaz</string>
     <string name="settings_custom_color_cancel">Mégse</string>
-    <string name="settings_pure_black_disabled_subtitle">Csak aktív sötét téma esetén érhető el</string>
     <string name="settings_keep_screen_on_title">Képernyő ébren tartása</string>
     <string name="settings_keep_screen_on_desc">Megakadályozza a képernyő kikapcsolását, amikor a képernyő ki van terjesztve</string>
     <string name="settings_widget_section">Widget</string>
@@ -421,7 +413,6 @@
     <string name="widget_configure_preview">Élő nézet</string>
     <string name="widget_configure_presets">Előbeállítások</string>
     <string name="settings_widget_appearance_title">Widget megjelenése</string>
-    <string name="settings_widget_appearance_subtitle">A kezdőképernyő widgetje átlátszóságának és előnézetének testreszabása</string>
     <string name="settings_show_station_thumbnails">Állomások indexképeinek megjelenítése</string>
     <string name="settings_show_station_thumbnails_desc">Az állomáslogók megjelenítése a listákban és a lejátszóban (kapcsold ki az adatforgalom és a memóriahasználat csökkentéséhez)</string>
     <string name="settings_update_section">Frissítés</string>
@@ -443,7 +434,6 @@
     <string name="schedule_alarm_playing">Az ébresztés szól</string>
     <string name="about_github_sponsors">GitHub-támogatók</string>
     <string name="settings_enable_volume_boost" formatted="false">Hangerőnövelés (akár 200%-ig)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">A hangerő 100% fölé emelése szoftveres erősítéssel</string>
     <string name="settings_volume_boost_warning_title">Bekapcsolod a hangerőnövelést?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">A 100% feletti hangerő szoftveres erősítést alkalmaz (akár 200%-ig). Ez hangtorzítást, túlvezérlést okozhat, és károsíthatja az érzékeny hallást vagy a hangtechnikai eszközöket. Csak saját felelősségre használd.</string>
     <string name="settings_volume_boost_warning_confirm">Bekapcsolás</string>

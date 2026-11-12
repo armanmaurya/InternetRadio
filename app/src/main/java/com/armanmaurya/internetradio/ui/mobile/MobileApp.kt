@@ -17,6 +17,9 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -107,6 +110,8 @@ fun MobileApp(
         val isExpanded = widthSizeClass == WindowWidthSizeClass.Expanded
 
         val progress by rememberPlayerSheetProgress(scaffoldState, bottomInset)
+        // While a player dialog (cast, volume, sleep timer, track) is open, the sheet can't be dragged.
+        var isPlayerDialogOpen by remember { mutableStateOf(false) }
         val cornerRadius = lerp(28.dp, 0.dp, progress)
 
         BottomSheetScaffold(
@@ -115,6 +120,7 @@ fun MobileApp(
             sheetPeekHeight = sheetPeekHeight,
             sheetMaxWidth = Dp.Unspecified,
             sheetDragHandle = null,
+            sheetSwipeEnabled = !isPlayerDialogOpen,
             sheetShape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
             sheetContent = {
                 PlayerBottomSheet(
@@ -123,6 +129,7 @@ fun MobileApp(
                     isWidescreen = isExpanded,
                     bottomInset = bottomInset,
                     keepScreenOn = appPreferences.keepScreenOn,
+                    onDialogOpenChange = { isPlayerDialogOpen = it },
                     onEditStation = { station ->
                         navController.navigate(AppDestination.EditStation.createRoute(station.stationUuid))
                     },

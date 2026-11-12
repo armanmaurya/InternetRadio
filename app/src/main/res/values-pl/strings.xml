@@ -31,19 +31,13 @@
     <string name="error_cannot_open_url">Nie można otworzyć adresu URL</string>
     <string name="settings_title">Ustawienia</string>
     <string name="settings_appearance_section">Wygląd</string>
-    <string name="settings_dynamic_theme_title">Dynamiczne kolory</string>
-    <string name="settings_dynamic_theme_subtitle">Użyj kolorów opartych na tapecie (Android 12+)</string>
     <string name="settings_theme_title">Motyw</string>
     <string name="settings_theme_light">Jasny</string>
     <string name="settings_theme_dark">Ciemny</string>
-    <string name="settings_pure_black_title">Czysta czerń</string>
-    <string name="settings_pure_black_subtitle">Użyj czystego czarnego tła w trybie ciemnym</string>
     <string name="settings_general_section">Ogólne</string>
     <string name="settings_language_title">Język</string>
     <string name="settings_auto_route_search_title">Automatyczne przełączanie po wyszukaniu</string>
     <string name="settings_auto_route_search_subtitle">Automatyczne przełączanie na kartę Przeglądaj przy wyszukiwaniu</string>
-    <string name="settings_select_all_text_on_focus_title">Zaznacz cały tekst podczas wyszukiwania</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Automatycznie zaznacz tekst paska wyszukiwania po naciśnięciu</string>
     <string name="settings_disable_update_check">Wyłącz sprawdzanie aktualizacji</string>
     <string name="settings_disable_update_check_desc">Nie sprawdzaj automatycznie dostępności aktualizacji aplikacji podczas uruchamiania</string>
     <string name="settings_auto_play">Automatyczne odtwarzanie po uruchomieniu</string>
@@ -370,7 +364,6 @@
     <string name="widget_preview_artist">Teraz odtwarzane</string>
     <string name="widget_description">Szybki dostęp do odtwarzania radia i elementów sterujących</string>
     <string name="widget_nothing_playing">Nic nie jest odtwarzane</string>
-    <string name="settings_pure_black_disabled_subtitle">Dostępne tylko przy włączonym ciemnym motywie</string>
     <string name="settings_color_purple">Fioletowy</string>
     <string name="settings_color_blue">Niebieski</string>
     <string name="settings_color_teal">Cyjan</string>
@@ -380,7 +373,6 @@
     <string name="settings_color_red">Czerwony</string>
     <string name="settings_color_custom">Niestandardowy</string>
     <string name="settings_custom_color_title">Niestandardowy kolor</string>
-    <string name="settings_custom_color_hex">Kod Hex</string>
     <string name="settings_custom_color_apply">Zastosuj</string>
     <string name="settings_custom_color_cancel">Anuluj</string>
     <string name="settings_keep_screen_on_title">Nie wygaszaj ekranu</string>
@@ -396,7 +388,6 @@
     <string name="widget_configure_preview">Podgląd na żywo</string>
     <string name="widget_configure_presets">Szablony</string>
     <string name="settings_widget_appearance_title">Wygląd widżetu</string>
-    <string name="settings_widget_appearance_subtitle">Dostosuj przezroczystość i podgląd widżetu ekranu głównego</string>
     <string name="settings_show_station_thumbnails">Pokaż miniatury stacji</string>
     <string name="settings_show_station_thumbnails_desc">Wyświetlaj logo stacji na listach i w odtwarzaczu (wyłącz, aby zaoszczędzić dane i pamięć)</string>
     <string name="settings_update_section">Aktualizacja</string>
@@ -499,7 +490,6 @@
     <string name="recording_reconnecting">Ponowne łączenie…</string>
     <string name="recording_notification_reconnecting">Utracono połączenie, ponawiam próbę… • %1$s</string>
     <string name="settings_enable_volume_boost" formatted="false">Podbicie głośności (do 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Zezwalaj na zwiększanie głośności powyżej 100% za pomocą wzmocnienia programowego</string>
     <string name="settings_volume_boost_warning_title">Włączyć podbicie głośności?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Zwiększenie głośności powyżej 100% powoduje zastosowanie wzmocnienia programowego (do 200%). Może to prowadzić do zniekształceń dźwięku, przesterowań, a także stanowić zagrożenie dla słuchu lub uszkodzić sprzęt audio. Używasz tej funkcji na własne ryzyko.</string>
     <string name="settings_volume_boost_warning_confirm">Włącz</string>

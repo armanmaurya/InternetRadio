@@ -30,13 +30,9 @@
     <string name="error_cannot_open_url">URL-ul nu poate fi deschis</string>
     <string name="settings_title">Setări</string>
     <string name="settings_appearance_section">Aspect</string>
-    <string name="settings_dynamic_theme_title">Culori dinamice</string>
-    <string name="settings_dynamic_theme_subtitle">Utilizează culori bazate pe imaginea de fundal (Android 12+)</string>
     <string name="settings_theme_title">Temă</string>
     <string name="settings_theme_light">Luminoasă</string>
     <string name="settings_theme_dark">Întunecată</string>
-    <string name="settings_pure_black_title">Negru</string>
-    <string name="settings_pure_black_subtitle">Utilizează fundal negru în modul întunecat</string>
     <string name="settings_general_section">General</string>
     <string name="settings_language_title">Limba</string>
     <string name="settings_auto_route_search_title">Comutare automată în Căutare</string>
@@ -297,8 +293,6 @@
     <string name="settings_gradual_volume">Estompare volum</string>
     <string name="settings_gradual_volume_enabled">Estompare %1$s (de) secunde</string>
     <string name="player_tab_about_stream_url">Adresa URL a fluxului</string>
-    <string name="settings_select_all_text_on_focus_title">Selectează tot textul la căutare</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Selectează automat textul din bara de căutare</string>
     <plurals name="select_country_states_count">
         <item quantity="one">%1$d stat</item>
         <item quantity="few">%1$d state</item>
@@ -347,7 +341,6 @@
     <string name="schedule_listen_while_recording_subtitle">Ascultă postul de radio în timpul înregistrării în fundal</string>
     <string name="action_create_shortcut">Creează o comandă rapidă</string>
     <string name="player_original_stream_metadata">Metadatele fluxului original</string>
-    <string name="settings_pure_black_disabled_subtitle">Disponibil doar când tema întunecată este activă</string>
     <string name="settings_color_purple">Violet</string>
     <string name="settings_color_blue">Albastru</string>
     <string name="settings_color_teal">Turcoaz</string>
@@ -357,7 +350,6 @@
     <string name="settings_color_red">Roșu</string>
     <string name="settings_color_custom">Personalizat</string>
     <string name="settings_custom_color_title">Culoare personalizată</string>
-    <string name="settings_custom_color_hex">Culoare hexadecimală</string>
     <string name="settings_custom_color_apply">Aplică</string>
     <string name="settings_custom_color_cancel">Anulează</string>
     <string name="settings_about_foss_edition">Ediția FOSS</string>
@@ -386,7 +378,6 @@
     <string name="widget_configure_preview">Previzualizare live</string>
     <string name="widget_configure_presets">Presetări</string>
     <string name="settings_widget_appearance_title">Aspectul widget-ului</string>
-    <string name="settings_widget_appearance_subtitle">Personalizează transparența și previzualizarea widget-ului pentru ecranul de pornire</string>
     <string name="review_star_github">Pune o stea pe GitHub</string>
     <string name="settings_show_station_thumbnails">Afișează miniaturile stațiilor</string>
     <string name="settings_show_station_thumbnails_desc">Afișează siglele posturilor în liste și player (dezactivează pentru a economisi date și memorie)</string>
@@ -486,7 +477,6 @@
     <string name="recording_reconnecting">Se reconectează…</string>
     <string name="recording_notification_reconnecting">Conexiune pierdută, se încearcă din nou… • %1$s</string>
     <string name="settings_enable_volume_boost" formatted="false">Creștere volum (până la 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Permite creșterea volumului peste 100% prin amplificare software</string>
     <string name="settings_volume_boost_warning_title">Activezi funcția de amplificare a volumului?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Amplificarea volumului peste 100% implică aplicarea unui câștig software (până la 200%). Acest lucru poate provoca distorsiuni audio, saturare și ar putea dăuna auzului sensibil sau echipamentelor audio. Utilizează pe propria răspundere.</string>
     <string name="settings_volume_boost_warning_confirm">Activează</string>

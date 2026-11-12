@@ -50,14 +50,9 @@
     <!-- ========================================== -->
     <string name="settings_title">Einstellungen</string>
     <string name="settings_appearance_section">Aussehen</string>
-    <string name="settings_dynamic_theme_title">Dynamische Farben</string>
-    <string name="settings_dynamic_theme_subtitle">Hintergrundbildbasierte Farben verwenden (Android 12+)</string>
     <string name="settings_theme_title">Design</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>
-    <string name="settings_pure_black_title">Reines Schwarz</string>
-    <string name="settings_pure_black_subtitle">Im dunklen Design einen rein schwarzen Hintergrund verwenden</string>
-    <string name="settings_pure_black_disabled_subtitle">Nur verfügbar wenn dunkles Design aktiv</string>
     <string name="settings_color_purple">Violett</string>
     <string name="settings_color_blue">Blau</string>
     <string name="settings_color_teal">Blaugrün</string>
@@ -67,7 +62,6 @@
     <string name="settings_color_red">Rot</string>
     <string name="settings_color_custom">Benutzerdefiniert</string>
     <string name="settings_custom_color_title">Benutzerdefinierte Farbe</string>
-    <string name="settings_custom_color_hex">Hex-Farbcode</string>
     <string name="settings_custom_color_apply">Anwenden</string>
     <string name="settings_custom_color_cancel">Abbrechen</string>
     <string name="settings_show_station_thumbnails">Zeige Sender-Vorschaubild</string>
@@ -76,8 +70,6 @@
     <string name="settings_language_title">Sprache</string>
     <string name="settings_auto_route_search_title">Umschalten beim Suchen</string>
     <string name="settings_auto_route_search_subtitle">Beim Suchen automatisch zum Tab „Entdecken“ wechseln</string>
-    <string name="settings_select_all_text_on_focus_title">Gesamten Text bei der Suche auswählen</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Wähle automatisch den gesamten Suchtext aus, wenn die Suchleiste keine Fokus hatte und wieder den Fokus erhält</string>
     <string name="settings_update_section">Aktualisierung</string>
     <string name="settings_disable_update_check">Deaktiviere automatische Suche nach Aktualisierungen</string>
     <string name="settings_disable_update_check_desc">Suche beim Start nicht automatisch nach App-Aktualisierungen</string>
@@ -95,7 +87,6 @@
     <string name="settings_pause_on_volume_zero">Anhalten bei keiner Lautstärke</string>
     <string name="settings_pause_on_volume_zero_desc">Die Wiedergabe anhalten, wenn das Gerät stumm ist</string>
     <string name="settings_enable_volume_boost" formatted="false">Lautstärken-Verstärkung (Bis zu 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Erlaubt eine Erhöhung der Lautstärke über 100% mittles Software-Verstärkung</string>
     <string name="settings_volume_boost_warning_title">Aktiviere Lautstärken-Verstärkung?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Erhöhung der Lautstärke über 100% mittels Software-Verstärkung (bis zu 200%). Dies kann zu Klangverzerrungen sowie Übersteuerungen (Clipping) führen und möglicherweise ein empfindliches Gehör oder Audiogeräte schädigen. Nutzung auf eigene Gefahr.</string>
     <string name="settings_volume_boost_warning_confirm">Aktivieren</string>
@@ -580,7 +571,6 @@
     <string name="widget_configure_preview">Vorschau</string>
     <string name="widget_configure_presets">Voreinstellungen</string>
     <string name="settings_widget_appearance_title">Widget-Erscheinungsbild</string>
-    <string name="settings_widget_appearance_subtitle">Passe Transparenz des Startbildschirm-Widgets mittels Vorschau an</string>
 
     <!-- Recording Playback -->
     <string name="recording_playback_channel_name">Aufnahme-Wiedergabe</string>

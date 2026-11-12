@@ -45,13 +45,9 @@
     <!-- ========================================== -->
     <string name="settings_title">Ayarlar</string>
     <string name="settings_appearance_section">Görünüm</string>
-    <string name="settings_dynamic_theme_title">Dinamik Renk</string>
-    <string name="settings_dynamic_theme_subtitle">Duvar kâğıdı tabanlı renkleri kullan (Android 12+)</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Açık</string>
     <string name="settings_theme_dark">Koyu</string>
-    <string name="settings_pure_black_title">Saf Siyah</string>
-    <string name="settings_pure_black_subtitle">Koyu modda saf siyah arka plan kullan</string>
     <string name="settings_general_section">Genel</string>
     <string name="settings_language_title">Dil</string>
     <string name="settings_auto_play">Başlangıçta otomatik oynat</string>

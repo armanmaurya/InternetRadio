@@ -31,14 +31,9 @@
     <string name="error_cannot_open_url">Não foi possível abrir URL</string>
     <string name="settings_title">Configurações</string>
     <string name="settings_appearance_section">Aparência</string>
-    <string name="settings_dynamic_theme_title">Cor dinâmica</string>
-    <string name="settings_dynamic_theme_subtitle">Use cores baseadas no papel de parede (Android 12+)</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Escuro</string>
-    <string name="settings_pure_black_title">Mais Escuro</string>
-    <string name="settings_pure_black_subtitle">Usar o fundo mais escuro no modo escuro</string>
-    <string name="settings_pure_black_disabled_subtitle">Disponível apenas quando o tema escuro estiver ativo</string>
     <string name="settings_color_purple">Roxo</string>
     <string name="settings_color_blue">Azul</string>
     <string name="settings_color_teal">Ciano</string>
@@ -48,7 +43,6 @@
     <string name="settings_color_red">Vermelho</string>
     <string name="settings_color_custom">Personalizado</string>
     <string name="settings_custom_color_title">Cor personalizada</string>
-    <string name="settings_custom_color_hex">Hex Color</string>
     <string name="settings_custom_color_apply">Aplicar</string>
     <string name="settings_custom_color_cancel">Cancelar</string>
     <string name="settings_show_station_thumbnails">Mostrar a thumbnail da estação</string>

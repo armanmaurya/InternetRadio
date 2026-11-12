@@ -19,8 +19,6 @@
     <string name="settings_theme_title">Kujundus</string>
     <string name="settings_theme_light">Hele kujundus</string>
     <string name="settings_theme_dark">Tume kujundus</string>
-    <string name="settings_pure_black_title">Süsimust kujundus</string>
-    <string name="settings_pure_black_subtitle">Kasuta tumedas kujunduses süsimusta tausta</string>
     <string name="settings_general_section">Üldised seadistused</string>
     <string name="settings_language_title">Keel</string>
     <string name="settings_backup_section">Varundus ja taastamine</string>
@@ -74,8 +72,6 @@
     <string name="error_cannot_open_url">Võrguaadressi avamine ei õnnestu</string>
     <string name="settings_title">Seadistused</string>
     <string name="settings_appearance_section">Välimus</string>
-    <string name="settings_dynamic_theme_title">Dünaamilised värvid</string>
-    <string name="settings_dynamic_theme_subtitle">Kasuta taustapildipõhiseid värve (Android 12+)</string>
     <string name="settings_auto_route_search_title">Suuna otsimisel automaatselt edasi</string>
     <string name="settings_auto_route_search_subtitle">Suuna otsimisel automaatselt sirvimise vahekaardile edasi</string>
     <string name="settings_disable_update_check">Ära kontrolli uuendusi</string>
@@ -283,8 +279,6 @@
         <item quantity="other">%1$d sekundit</item>
     </plurals>
     <string name="settings_gradual_volume_disabled">Väljas</string>
-    <string name="settings_select_all_text_on_focus_title">Otsingul vali kogu tekst</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Fookuse puhul vali otsinguriba tekst</string>
     <string name="library_cd_sort_options">Järjestuse valikud</string>
     <string name="library_cd_sort_z_a">Z-A</string>
     <string name="home_cd_in_library">Meediumikogus</string>
@@ -349,7 +343,6 @@
     <string name="review_rate_now">Arvusta kohe</string>
     <string name="review_star_github">Märgi GitHubis tärniga</string>
     <string name="review_no_thanks">Tänan, ei</string>
-    <string name="settings_pure_black_disabled_subtitle">Kasutatav vaid siis, kui tume kujundus on aktiivne</string>
     <string name="settings_color_purple">Purpurpunane</string>
     <string name="settings_color_blue">Sinine</string>
     <string name="settings_color_teal">Sinakasroheline</string>
@@ -359,7 +352,6 @@
     <string name="settings_color_red">Punane</string>
     <string name="settings_color_custom">Sinu valitud värv</string>
     <string name="settings_custom_color_title">Sinu valitud värvid</string>
-    <string name="settings_custom_color_hex">Värvi heks-kood</string>
     <string name="settings_custom_color_apply">Rakenda</string>
     <string name="settings_custom_color_cancel">Katkesta</string>
     <string name="settings_keep_screen_on_title">Hoia ekraan sisselülitatuna</string>
@@ -379,7 +371,6 @@
     <string name="widget_configure_preview">Eelvaade reaalajas</string>
     <string name="widget_configure_presets">Eelseadistused</string>
     <string name="settings_widget_appearance_title">Vidina välimus</string>
-    <string name="settings_widget_appearance_subtitle">Kohenda avalehe vidina läbipaistmatust ja eelvaadet</string>
     <string name="settings_show_station_thumbnails">Näita raadiojaamade pisipilte</string>
     <string name="settings_show_station_thumbnails_desc">Jaamade logosid kuvatakse loendites ja pleieris (väljalülitamine säästab mälu ja andmeruumi)</string>
     <string name="settings_update_section">Uuendus</string>
@@ -474,7 +465,6 @@
     <string name="recording_cd_loop_enabled">Lülita lõputu kordus välja</string>
     <string name="recording_cd_loop_disabled">Lülita lõputu kordus sisse</string>
     <string name="settings_enable_volume_boost" formatted="false">Luba helivaljuse ülevõimendamist (kuni 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Luba helivaljuse võimendamist tavalisest sajast protsendist kõrgemale. Kasutusel on tarkvaraline võimendus</string>
     <string name="settings_volume_boost_warning_title">Kas kasutad helivaljuse ülevõimendamist?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Helivaljuse võimendamist tavalisest sajast protsendist kõrgemale toimib tarkvaraliselt (kuni 200%). See võib põhjustada helimoonutusi, klippimist, aga ka kahjustada tundlikku kuulmist või helisüsteeme. Sa kasutad seda võimalust omal vastutusel.</string>
     <string name="settings_volume_boost_warning_confirm">Võta kasutusele</string>

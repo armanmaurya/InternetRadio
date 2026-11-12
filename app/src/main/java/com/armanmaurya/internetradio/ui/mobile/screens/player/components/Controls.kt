@@ -3,7 +3,6 @@ package com.armanmaurya.internetradio.ui.mobile.screens.player.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -23,6 +22,13 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.IconButtonShapes
+import androidx.compose.material3.IconToggleButtonShapes
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
@@ -60,7 +66,16 @@ fun SharedTransitionScope.Controls(
     onNext: () -> Unit,
     onToggleRecording: () -> Unit
 ) {
-    Row(
+    // Expressive button group: the pressed button briefly widens while its neighbours shrink,
+    // and every button morphs its shape on press (and on state for play/pause and record).
+    val sleepInteraction = remember { MutableInteractionSource() }
+    val previousInteraction = remember { MutableInteractionSource() }
+    val playInteraction = remember { MutableInteractionSource() }
+    val nextInteraction = remember { MutableInteractionSource() }
+    val recordInteraction = remember { MutableInteractionSource() }
+
+    ButtonGroup(
+        overflowIndicator = {},
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -70,119 +85,193 @@ fun SharedTransitionScope.Controls(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.weight(0.7f).height(64.dp)) {
-            androidx.compose.animation.AnimatedVisibility(
-                visible = !showSleepTimerDialog,
-                enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(300))
-            ) {
-                FilledTonalIconButton(
-                    onClick = onOpenSleepTimer,
+        customItem(
+            buttonGroupContent = {
+                Box(
                     modifier = Modifier
-                        .sharedBounds(
-                            sharedContentState = rememberSharedContentState(key = "sleep_timer_container"),
-                            animatedVisibilityScope = this@AnimatedVisibility,
-                            enter = fadeIn(tween(300)),
-                            exit = fadeOut(tween(300)),
-                            boundsTransform = { _, _ -> tween(durationMillis = 350) },
-                            clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(20.dp))
-                        )
-                        .fillMaxSize(),
-                    shape = RoundedCornerShape(20.dp)
+                        .weight(0.7f)
+                        .animateWidth(sleepInteraction)
+                        .height(64.dp)
                 ) {
-                    if (sleepTimerEndTime != null) {
-                        Box(contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                progress = { sleepTimerProgress },
-                                modifier = Modifier.size(28.dp),
-                                color = LocalContentColor.current,
-                                trackColor = LocalContentColor.current.copy(alpha = 0.2f),
-                                strokeWidth = 2.dp
-                            )
-                            val mins = (remainingTime / 60000).toInt() + 1
-                            Text(
-                                text = mins.toString(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = LocalContentColor.current
-                            )
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = !showSleepTimerDialog,
+                        enter = fadeIn(tween(300)),
+                        exit = fadeOut(tween(300))
+                    ) {
+                        FilledTonalIconButton(
+                            onClick = onOpenSleepTimer,
+                            shapes = IconButtonShapes(
+                                shape = RoundedCornerShape(20.dp),
+                                pressedShape = RoundedCornerShape(12.dp)
+                            ),
+                            interactionSource = sleepInteraction,
+                            modifier = Modifier
+                                .sharedBounds(
+                                    sharedContentState = rememberSharedContentState(key = "sleep_timer_container"),
+                                    animatedVisibilityScope = this@AnimatedVisibility,
+                                    enter = fadeIn(tween(300)),
+                                    exit = fadeOut(tween(300)),
+                                    boundsTransform = { _, _ -> tween(durationMillis = 350) },
+                                    clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(20.dp))
+                                )
+                                .fillMaxSize()
+                        ) {
+                            if (sleepTimerEndTime != null) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(
+                                        progress = { sleepTimerProgress },
+                                        modifier = Modifier.size(28.dp),
+                                        color = LocalContentColor.current,
+                                        trackColor = LocalContentColor.current.copy(alpha = 0.2f),
+                                        strokeWidth = 2.dp
+                                    )
+                                    val mins = (remainingTime / 60000).toInt() + 1
+                                    Text(
+                                        text = mins.toString(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = LocalContentColor.current
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Timer,
+                                    contentDescription = stringResource(R.string.player_sleep_timer_title),
+                                    modifier = Modifier
+                                        .sharedElement(
+                                            sharedContentState = rememberSharedContentState(key = "sleep_timer_icon"),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            boundsTransform = { _, _ -> tween(durationMillis = 350) }
+                                        )
+                                        .size(28.dp)
+                                )
+                            }
                         }
+                    }
+                }
+            },
+            menuContent = {}
+        )
+
+        customItem(
+            buttonGroupContent = {
+                FilledIconButton(
+                    onClick = onPrevious,
+                    enabled = hasPrevious,
+                    shapes = IconButtonShapes(
+                        shape = CircleShape,
+                        pressedShape = RoundedCornerShape(16.dp)
+                    ),
+                    interactionSource = previousInteraction,
+                    modifier = Modifier
+                        .animateWidth(previousInteraction)
+                        .size(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SkipPrevious,
+                        contentDescription = stringResource(R.string.player_cd_previous),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            },
+            menuContent = {}
+        )
+
+        customItem(
+            buttonGroupContent = {
+                // Paused: full pill. Playing: rounded rectangle. Pressed: squarer still.
+                FilledIconToggleButton(
+                    checked = isPlaying,
+                    onCheckedChange = { onTogglePlayPause() },
+                    shapes = IconToggleButtonShapes(
+                        shape = CircleShape,
+                        pressedShape = RoundedCornerShape(8.dp),
+                        checkedShape = RoundedCornerShape(16.dp)
+                    ),
+                    colors = IconButtonDefaults.filledIconToggleButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    interactionSource = playInteraction,
+                    modifier = Modifier
+                        .weight(2f)
+                        .animateWidth(playInteraction)
+                        .height(64.dp)
+                ) {
+                    if (isLoading) {
+                        LoadingIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.Timer,
-                            contentDescription = stringResource(R.string.player_sleep_timer_title),
-                            modifier = Modifier
-                                .sharedElement(
-                                    sharedContentState = rememberSharedContentState(key = "sleep_timer_icon"),
-                                    animatedVisibilityScope = this@AnimatedVisibility,
-                                    boundsTransform = { _, _ -> tween(durationMillis = 350) }
-                                )
-                                .size(28.dp)
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 }
-            }
-        }
+            },
+            menuContent = {}
+        )
 
-        FilledIconButton(
-            onClick = onPrevious,
-            enabled = hasPrevious,
-            modifier = Modifier.size(64.dp),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = Icons.Default.SkipPrevious,
-                contentDescription = stringResource(R.string.player_cd_previous),
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        customItem(
+            buttonGroupContent = {
+                FilledIconButton(
+                    onClick = onNext,
+                    enabled = hasNext,
+                    shapes = IconButtonShapes(
+                        shape = CircleShape,
+                        pressedShape = RoundedCornerShape(16.dp)
+                    ),
+                    interactionSource = nextInteraction,
+                    modifier = Modifier
+                        .animateWidth(nextInteraction)
+                        .size(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SkipNext,
+                        contentDescription = stringResource(R.string.player_cd_next),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            },
+            menuContent = {}
+        )
 
-        FilledIconButton(
-            onClick = onTogglePlayPause,
-            modifier = Modifier.weight(2f).height(64.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            if (isLoading) {
-                androidx.compose.material3.LoadingIndicator(
-                    modifier = Modifier.size(32.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
-        }
-
-        FilledIconButton(
-            onClick = onNext,
-            enabled = hasNext,
-            modifier = Modifier.size(64.dp),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = Icons.Default.SkipNext,
-                contentDescription = stringResource(R.string.player_cd_next),
-                modifier = Modifier.size(32.dp)
-            )
-        }
-
-        FilledTonalIconButton(
-            onClick = onToggleRecording,
-            modifier = Modifier.weight(0.7f).height(64.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = if (isRecording) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Mic,
-                contentDescription = stringResource(R.string.player_cd_record),
-                modifier = Modifier.size(28.dp)
-            )
-        }
+        customItem(
+            buttonGroupContent = {
+                // Recording changes the shape (rounded -> squarer) as well as the colour.
+                FilledTonalIconToggleButton(
+                    checked = isRecording,
+                    onCheckedChange = { onToggleRecording() },
+                    shapes = IconToggleButtonShapes(
+                        shape = RoundedCornerShape(20.dp),
+                        pressedShape = RoundedCornerShape(12.dp),
+                        checkedShape = RoundedCornerShape(10.dp)
+                    ),
+                    colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        checkedContainerColor = MaterialTheme.colorScheme.error,
+                        checkedContentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    interactionSource = recordInteraction,
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .animateWidth(recordInteraction)
+                        .height(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = stringResource(R.string.player_cd_record),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            },
+            menuContent = {}
+        )
     }
 }

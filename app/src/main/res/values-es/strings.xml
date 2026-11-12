@@ -31,14 +31,9 @@
     <string name="error_cannot_open_url">No se puede abrir URL</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_appearance_section">Apariencia</string>
-    <string name="settings_dynamic_theme_title">Color dinámico</string>
-    <string name="settings_dynamic_theme_subtitle">Usar colores basados en el fondo de pantalla (Android 12+)</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Oscuro</string>
-    <string name="settings_pure_black_title">Negro puro</string>
-    <string name="settings_pure_black_subtitle">Usar fondo negro puro en modo oscuro</string>
-    <string name="settings_pure_black_disabled_subtitle">Solo disponible con el tema oscuro activo</string>
     <string name="settings_color_purple">Morado</string>
     <string name="settings_color_blue">Azul</string>
     <string name="settings_color_teal">Azul turquesa</string>
@@ -48,7 +43,6 @@
     <string name="settings_color_red">Rojo</string>
     <string name="settings_color_custom">Personalizado</string>
     <string name="settings_custom_color_title">Color personalizado</string>
-    <string name="settings_custom_color_hex">Color hexadecimal</string>
     <string name="settings_custom_color_apply">Aplicar</string>
     <string name="settings_custom_color_cancel">Cancelar</string>
     <string name="settings_show_station_thumbnails">Mostrar miniaturas de las emisoras</string>
@@ -57,8 +51,6 @@
     <string name="settings_language_title">Idioma</string>
     <string name="settings_auto_route_search_title">Ruta automática a Buscar</string>
     <string name="settings_auto_route_search_subtitle">Cambiar automáticamente a la pestaña Explorar al buscar</string>
-    <string name="settings_select_all_text_on_focus_title">Seleccionar todo el texto al buscar</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Seleccionar automáticamente el texto de la barra de búsqueda al enfocar</string>
     <string name="settings_update_section">Actualizar</string>
     <string name="settings_disable_update_check">Desactivar comprobación de actualizaciones</string>
     <string name="settings_disable_update_check_desc">No comprobar automáticamente si hay actualizaciones de la aplicación al iniciar</string>
@@ -76,7 +68,6 @@
     <string name="settings_pause_on_volume_zero">Pausar con volumen cero</string>
     <string name="settings_pause_on_volume_zero_desc">Pausar la reproducción cuando el dispositivo esté silenciado</string>
     <string name="settings_enable_volume_boost" formatted="false">Amplificación de volumen (hasta 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Permitir aumentar el volumen por encima del 100% mediante amplificación por software</string>
     <string name="settings_volume_boost_warning_title">¿Activar la amplificación de volumen?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">Amplificar el volumen por encima del 100% aplica ganancia por software (hasta el 200%). Esto puede causar distorsión de audio, saturación y podría dañar la audición sensible o los equipos de sonido. Úsalo bajo tu propio riesgo.</string>
     <string name="settings_volume_boost_warning_confirm">Activar</string>
@@ -503,7 +494,6 @@
     <string name="widget_configure_preview">Vista previa en vivo</string>
     <string name="widget_configure_presets">Preajustes</string>
     <string name="settings_widget_appearance_title">Apariencia del Widget</string>
-    <string name="settings_widget_appearance_subtitle">Personalizar transparencia y vista previa del widget de la pantalla de inicio</string>
     <string name="recording_playback_channel_name">Reproducción de la grabación</string>
     <string name="recording_playback_channel_description">Notificaciones de reproducción de audio grabado</string>
     <string name="recording_now_playing">Reproduciendo grabación</string>

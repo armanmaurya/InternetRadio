@@ -29,13 +29,9 @@
     <string name="error_cannot_open_url">Impossible d\'ouvrir l\'URL</string>
     <string name="settings_title">Réglages</string>
     <string name="settings_appearance_section">Apparence</string>
-    <string name="settings_dynamic_theme_title">Couleur dynamique</string>
-    <string name="settings_dynamic_theme_subtitle">Use wallpaper-based colors (Android 12+)</string>
     <string name="settings_theme_title">Thème</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_pure_black_title">Pure Black</string>
-    <string name="settings_pure_black_subtitle">Use pure black background in dark mode</string>
     <string name="settings_general_section">Général</string>
     <string name="settings_language_title">Langage</string>
     <string name="settings_auto_route_search_title">Auto-route on Search</string>
@@ -156,6 +152,4 @@
     <string name="select_country_title">Sélectionnez un pays</string>
     <string name="select_country_all">Tous les pays</string>
     <string name="general_discard">Enlever</string>
-    <string name="settings_select_all_text_on_focus_title">Sélectionnez tout le texte lors de la recherche</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Sélectionnez automatiquement le texte de la barre de recherche sur la mise au point</string>
 </resources>

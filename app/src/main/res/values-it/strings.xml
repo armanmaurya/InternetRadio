@@ -31,19 +31,13 @@
     <string name="error_cannot_open_url">Impossibile aprire l\'URL</string>
     <string name="settings_title">Impostazioni</string>
     <string name="settings_appearance_section">Aspetto</string>
-    <string name="settings_dynamic_theme_title">Colore dinamico</string>
-    <string name="settings_dynamic_theme_subtitle">Utilizza colori basati sullo sfondo (Android 12+)</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_light">Chiaro</string>
     <string name="settings_theme_dark">Scuro</string>
-    <string name="settings_pure_black_title">Nero puro</string>
-    <string name="settings_pure_black_subtitle">Utilizza uno sfondo nero puro in modalità scura</string>
     <string name="settings_general_section">Generali</string>
     <string name="settings_language_title">Lingua</string>
     <string name="settings_auto_route_search_title">Caricamento automatico da ricerca</string>
     <string name="settings_auto_route_search_subtitle">Passa automaticamente alla scheda Sfoglia durante la ricerca</string>
-    <string name="settings_select_all_text_on_focus_title">Seleziona tutto alla ricerca</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Seleziona automaticamente il testo quando la barra di ricerca viene attivata</string>
     <string name="settings_disable_update_check">Disabilita controllo aggiornamenti</string>
     <string name="settings_disable_update_check_desc">Non controllare automaticamente gli aggiornamenti all\'avvio</string>
     <string name="settings_auto_play">Riproduzione automatica all\'avvio</string>
@@ -361,7 +355,6 @@
     <string name="widget_preview_artist">In riproduzione</string>
     <string name="widget_description">Accesso rapido alla riproduzione e ai controlli della radio</string>
     <string name="widget_nothing_playing">Nessuna riproduzione</string>
-    <string name="settings_pure_black_disabled_subtitle">Disponibile solo quando è attivo il tema scuro</string>
     <string name="settings_color_purple">Viola</string>
     <string name="settings_color_blue">Blu</string>
     <string name="settings_color_teal">Ottanio</string>
@@ -371,7 +364,6 @@
     <string name="settings_color_red">Rosso</string>
     <string name="settings_color_custom">Personalizzato</string>
     <string name="settings_custom_color_title">Colore personalizzato</string>
-    <string name="settings_custom_color_hex">Colore esadecimale</string>
     <string name="settings_custom_color_apply">Applica</string>
     <string name="settings_custom_color_cancel">Annulla</string>
     <string name="settings_keep_screen_on_title">Mantieni schermo attivo</string>
@@ -387,7 +379,6 @@
     <string name="widget_configure_preview">Anteprima live</string>
     <string name="settings_widget_appearance_title">Aspetto del widget</string>
     <string name="widget_configure_presets">Preset</string>
-    <string name="settings_widget_appearance_subtitle">Personalizza la trasparenza del widget della schermata home e visualizza l\'anteprima</string>
     <string name="settings_show_station_thumbnails">Mostra miniature della stazioni</string>
     <string name="settings_show_station_thumbnails_desc">Mostra i loghi delle stazioni negli elenchi e nel lettore (disabilita per risparmiare dati e memoria)</string>
     <string name="settings_update_section">Aggiorna</string>
@@ -486,7 +477,6 @@
     <string name="recording_reconnecting">Riconnessione…</string>
     <string name="recording_notification_reconnecting">Connessione persa, nuovo tentativo… • %1$s</string>
     <string name="settings_enable_volume_boost" formatted="false">Amplificazione del volume (fino al 200%)</string>
-    <string name="settings_enable_volume_boost_desc" formatted="false">Consenti l\'aumento del volume oltre il 100% sfruttando l\'amplificazione software</string>
     <string name="settings_volume_boost_warning_title">Attivare l\'amplificazione del volume?</string>
     <string name="settings_volume_boost_warning_desc" formatted="false">L\'amplificazione del volume oltre il 100% applica un guadagno software (fino al 200%). Ciò potrebbe causare distorsioni audio e clipping, con il rischio di danneggiare l\'udito o i dispositivi audio più sensibili. Usa a tuo rischio e pericolo.</string>
     <string name="settings_volume_boost_warning_confirm">Attiva</string>

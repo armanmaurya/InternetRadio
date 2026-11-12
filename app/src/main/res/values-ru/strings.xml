@@ -31,19 +31,13 @@
     <string name="error_cannot_open_url">Невозможно перейти по ссылке</string>
     <string name="settings_title">Настройки</string>
     <string name="settings_appearance_section">Персонализация</string>
-    <string name="settings_dynamic_theme_title">Динамический цвет</string>
-    <string name="settings_dynamic_theme_subtitle">Использовать цвет обоев (Андроид 12+)</string>
     <string name="settings_theme_title">Тема</string>
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
-    <string name="settings_pure_black_title">Чёрное оформление</string>
-    <string name="settings_pure_black_subtitle">Использовать полностью чёрный фон в тёмной теме</string>
     <string name="settings_general_section">Общие</string>
     <string name="settings_language_title">Язык</string>
     <string name="settings_auto_route_search_title">Переключение при поиске</string>
     <string name="settings_auto_route_search_subtitle">Автоматически перейти на вкладку Обзор при поиске</string>
-    <string name="settings_select_all_text_on_focus_title">Выделись весь текст в поиске</string>
-    <string name="settings_select_all_text_on_focus_subtitle">Автоматическое выделение текста в строке поиска при фокусировке</string>
     <string name="settings_disable_update_check">Отключить проверку обновлений</string>
     <string name="settings_disable_update_check_desc">Отключать автоматическую проверку обновлений приложения при запуске приложения</string>
     <string name="settings_auto_play">Играть при запуске</string>
@@ -369,7 +363,6 @@
     <string name="widget_preview_artist">Играет</string>
     <string name="widget_description">Быстрый доступ к воспроизведению радио и управлению</string>
     <string name="widget_nothing_playing">Ничего не играет</string>
-    <string name="settings_pure_black_disabled_subtitle">Только когда темная тема активна</string>
     <string name="settings_color_purple">Фиолетовый</string>
     <string name="settings_color_blue">Голубой</string>
     <string name="settings_color_teal">Бирюзовый</string>
@@ -379,7 +372,6 @@
     <string name="settings_color_red">Красный</string>
     <string name="settings_color_custom">Своё</string>
     <string name="settings_custom_color_title">Пользовательский цвет</string>
-    <string name="settings_custom_color_hex">Hex значение</string>
     <string name="settings_custom_color_apply">Применить</string>
     <string name="settings_custom_color_cancel">Отменить</string>
     <string name="settings_keep_screen_on_title">Не гасить экран</string>
@@ -395,7 +387,6 @@
     <string name="widget_configure_preview">Предпросмотр</string>
     <string name="widget_configure_presets">Пресеты</string>
     <string name="settings_widget_appearance_title">Оформление виджета</string>
-    <string name="settings_widget_appearance_subtitle">Настройка прозрачности виджета и предпросмотр</string>
     <string name="settings_show_station_thumbnails">Показывать обложку станции</string>
     <string name="settings_show_station_thumbnails_desc">Отображать обложку станции в списке и плеере (отключите для экономии трафика и памяти)</string>
     <string name="settings_update_section">Обновить</string>

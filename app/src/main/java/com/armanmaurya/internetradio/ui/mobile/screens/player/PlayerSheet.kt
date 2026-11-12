@@ -29,6 +29,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
+import com.armanmaurya.internetradio.ui.shared.components.CastDeviceDialog
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -168,6 +171,7 @@ fun PlayerBottomSheet(
     onEditStation: (RadioStation) -> Unit,
     modifier: Modifier = Modifier,
     keepScreenOn: Boolean = false,
+    onDialogOpenChange: (Boolean) -> Unit = {},
     playerViewModel: PlayerViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -343,7 +347,8 @@ fun PlayerBottomSheet(
                     if (!trackTitle.isNullOrBlank()) {
                         playerViewModel.toggleTrackStarred(trackTitle, !uiState.isCurrentTrackStarred)
                     }
-                }
+                },
+                onDialogOpenChange = onDialogOpenChange
             )
         }
     }
@@ -376,6 +381,7 @@ fun PlayerSheetContent(
     onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
     onLoadMoreHistory: () -> Unit = {},
     onToggleCurrentTrackStarred: () -> Unit = {},
+    onDialogOpenChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val playbackState = uiState
@@ -405,21 +411,6 @@ fun PlayerSheetContent(
     var showCastDialog by remember { mutableStateOf(false) }
     var showCoverArt by remember { mutableStateOf(false) }
 
-    if (showCastDialog) {
-        com.armanmaurya.internetradio.ui.shared.components.CastDeviceDialog(
-            devices = discoveredCastDevices,
-            connectedDevice = connectedCastDevice,
-            onConnect = {
-                onConnectCastDevice(it)
-                showCastDialog = false
-            },
-            onDisconnect = {
-                onDisconnectCastDevice()
-                showCastDialog = false
-            },
-            onDismiss = { showCastDialog = false }
-        )
-    }
 
 
 
@@ -452,6 +443,12 @@ fun PlayerSheetContent(
     val showTimer = if (hasInfo) userToggledTimer else true
 
     var showVolumeDialog by remember { mutableStateOf(false) }
+
+    // Tell the sheet when a player dialog is open so dragging can't collapse it underneath.
+    val isAnyDialogOpen = showCastDialog || showVolumeDialog || showSleepTimerDialog || searchDialogTrack != null
+    val currentOnDialogOpenChange by rememberUpdatedState(onDialogOpenChange)
+    LaunchedEffect(isAnyDialogOpen) { currentOnDialogOpenChange(isAnyDialogOpen) }
+    DisposableEffect(Unit) { onDispose { currentOnDialogOpenChange(false) } }
     val volumeLevel = if (connectedCastDevice != null) volume else playbackState.volume
     val appPreferences = LocalAppPreferences.current
 
@@ -660,6 +657,7 @@ fun PlayerSheetContent(
         }
 
         val currentScale = if (baseExpandedSize.value > 0f) currentSize.value / baseExpandedSize.value else 1f
+
 
         androidx.compose.runtime.CompositionLocalProvider(
             androidx.compose.foundation.LocalOverscrollFactory provides null
@@ -960,7 +958,10 @@ fun PlayerSheetContent(
                         FilledTonalIconButton(
                             onClick = onCollapse,
                             enabled = historyProgress == 0f,
-                            shape = RoundedCornerShape(12.dp),
+                            shapes = androidx.compose.material3.IconButtonShapes(
+                                shape = RoundedCornerShape(12.dp),
+                                pressedShape = RoundedCornerShape(6.dp)
+                            ),
                             modifier = Modifier
                                 .align(Alignment.CenterStart)
                                 .padding(start = 16.dp)
@@ -972,31 +973,70 @@ fun PlayerSheetContent(
                             )
                         }
 
+                        // Cast and bookmark as a connected pair: outer corners match the collapse
+                        // button, inner corners are tight. Cast has its own container so the cast
+                        // dialog can grow out of it (shared-bounds container transform).
                         Row(
-                            modifier = Modifier.align(Alignment.CenterEnd),
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(
-                                onClick = { showCastDialog = true },
-                                enabled = historyProgress == 0f
-                            ) {
-                                Icon(
-                                    imageVector = if (connectedCastDevice != null) Icons.Default.CastConnected else Icons.Default.Cast,
-                                    contentDescription = stringResource(R.string.player_cd_cast),
-                                    modifier = Modifier.size(28.dp),
-                                    tint = if (connectedCastDevice != null) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                )
+                            val castShape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 4.dp, bottomEnd = 4.dp)
+                            val bookmarkShape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 12.dp, bottomEnd = 12.dp)
+                            val isCasting = connectedCastDevice != null
+
+                            Box(modifier = Modifier.size(width = 48.dp, height = 40.dp)) {
+                                androidx.compose.animation.AnimatedVisibility(
+                                    visible = !showCastDialog,
+                                    enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                    exit = fadeOut(androidx.compose.animation.core.tween(300))
+                                ) {
+                                    HeaderPairButton(
+                                        checked = isCasting,
+                                        shape = castShape,
+                                        enabled = historyProgress == 0f,
+                                        onClick = { showCastDialog = true },
+                                        modifier = Modifier.sharedBounds(
+                                            sharedContentState = rememberSharedContentState(
+                                                key = com.armanmaurya.internetradio.ui.shared.components.CAST_CONTAINER_KEY
+                                            ),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                            exit = fadeOut(androidx.compose.animation.core.tween(300)),
+                                            boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) },
+                                            clipInOverlayDuringTransition = OverlayClip(castShape)
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
+                                            contentDescription = stringResource(R.string.player_cd_cast),
+                                            modifier = Modifier
+                                                .sharedElement(
+                                                    sharedContentState = rememberSharedContentState(
+                                                        key = com.armanmaurya.internetradio.ui.shared.components.CAST_ICON_KEY
+                                                    ),
+                                                    animatedVisibilityScope = this@AnimatedVisibility,
+                                                    boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) }
+                                                )
+                                                .size(24.dp)
+                                        )
+                                    }
+                                }
                             }
 
-                            IconButton(
+                            HeaderPairButton(
+                                checked = isFavorite,
+                                shape = bookmarkShape,
+                                enabled = historyProgress == 0f,
                                 onClick = onToggleFavorite,
-                                enabled = historyProgress == 0f
+                                modifier = Modifier.size(width = 48.dp, height = 40.dp)
                             ) {
                                 Icon(
                                     imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                     contentDescription = stringResource(R.string.player_cd_toggle_favorite),
-                                    modifier = Modifier.size(32.dp),
-                                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
@@ -1413,7 +1453,8 @@ fun PlayerSheetContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                        // Gap between the mini-player row and the tabs while the panel is open.
+                        .padding(top = lerp(0.dp, 12.dp, historyProgress), bottom = 8.dp)
                         .draggable(
                             orientation = Orientation.Vertical,
                             state = rememberDraggableState { delta ->
@@ -1437,113 +1478,50 @@ fun PlayerSheetContent(
                 ) {
                     val isHistoryExpanded = historyProgress > 0.5f
 
-                    val tab1TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab1Text"
-                    )
-
-                    val tab2TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab2Text"
-                    )
-
-                    val tab3TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab3Text"
-                    )
-
-                    val tab4TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab4Text"
-                    )
-
-                    
                     val scrollState = rememberScrollState()
-                    val density = androidx.compose.ui.platform.LocalDensity.current
-                    val tabWidths = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
-                    val tabOffsets = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
+                    val tabTitles = listOf(
+                        stringResource(R.string.player_tab_tracks),
+                        stringResource(R.string.home_tab_recordings),
+                        stringResource(R.string.player_tab_lyrics),
+                        stringResource(R.string.player_tab_about)
+                    )
 
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                    // Expressive connected button group. The open tab fills and becomes a full pill;
+                    // nothing is selected while the panel is closed. Scrolls if labels don't fit.
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(scrollState)
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            androidx.compose.material3.ButtonGroupDefaults.ConnectedSpaceBetween
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier.horizontalScroll(scrollState)
-                        ) {
-                            if (isHistoryExpanded) {
-                                val currentOffset = tabOffsets.getOrElse(bottomPagerState.currentPage) { 0.dp }
-                                val currentWidth = tabWidths.getOrElse(bottomPagerState.currentPage) { 0.dp }
-                                
-                                val animOffset by androidx.compose.animation.core.animateDpAsState(currentOffset, label = "offset")
-                                val animWidth by androidx.compose.animation.core.animateDpAsState(currentWidth, label = "width")
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterStart)
-                                        .offset(x = animOffset)
-                                        .width(animWidth)
-                                        .height(36.dp)
-                                        .padding(horizontal = 4.dp)
-                                        .zIndex(-1f)
-                                        .background(
-                                            // The sheet sits on surfaceContainerLow; when a scheme (e.g. Monochrome
-                                            // dark) makes that identical to surface, lift the indicator so it stays visible.
-                                            if (MaterialTheme.colorScheme.surface == MaterialTheme.colorScheme.surfaceContainerLow) {
-                                                MaterialTheme.colorScheme.surfaceContainerHighest
-                                            } else {
-                                                MaterialTheme.colorScheme.surface
-                                            },
-                                            RoundedCornerShape(10.dp)
-                                        )
-                                        
-                                )
-                            }
-                            
-                            val tabs = listOf(
-                                stringResource(R.string.player_tab_tracks) to tab1TextColor,
-                                stringResource(R.string.home_tab_recordings) to tab2TextColor,
-                                stringResource(R.string.player_tab_lyrics) to tab3TextColor,
-                                stringResource(R.string.player_tab_about) to tab4TextColor
-                            )
-                            
-                            Row {
-                                tabs.forEachIndexed { index, (title, color) ->
-                                    Box(
-                                        modifier = Modifier
-                                            .onGloballyPositioned { coords ->
-                                                val width = with(density) { coords.size.width.toDp() }
-                                                val offset = with(density) { coords.positionInParent().x.toDp() }
-                                                if (tabWidths[index] != width) tabWidths[index] = width
-                                                if (tabOffsets[index] != offset) tabOffsets[index] = offset
+                        tabTitles.forEachIndexed { index, title ->
+                            androidx.compose.material3.ToggleButton(
+                                checked = isHistoryExpanded && bottomPagerState.currentPage == index,
+                                onCheckedChange = {
+                                    if (bottomPagerState.currentPage != index) {
+                                        coroutineScope.launch {
+                                            launch { bottomPagerState.animateScrollToPage(index) }
+                                            if (!isHistoryExpanded) {
+                                                launch { historyProgressAnim.animateTo(1f) }
                                             }
-                                            .clickable(
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                onClick = {
-                                                    if (bottomPagerState.currentPage != index) {
-                                                        coroutineScope.launch {
-                                                            launch { bottomPagerState.animateScrollToPage(index) }
-                                                            if (!isHistoryExpanded) {
-                                                                launch { historyProgressAnim.animateTo(1f) }
-                                                            }
-                                                        }
-                                                    } else {
-                                                        coroutineScope.launch {
-                                                            historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = title,
-                                            fontWeight = FontWeight.Bold,
-                                            color = color
-                                        )
+                                        }
+                                    } else {
+                                        coroutineScope.launch {
+                                            historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
+                                        }
                                     }
-                                }
+                                },
+                                shapes = when (index) {
+                                    0 -> androidx.compose.material3.ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                    tabTitles.lastIndex -> androidx.compose.material3.ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                    else -> androidx.compose.material3.ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                },
+                                modifier = Modifier.semantics { role = androidx.compose.ui.semantics.Role.Tab }
+                            ) {
+                                Text(text = title, maxLines = 1)
                             }
                         }
                     }
@@ -1619,6 +1597,21 @@ fun PlayerSheetContent(
             onDismissRequest = { searchDialogTrack = null }
         )
 
+        CastDeviceDialog(
+            showDialog = showCastDialog,
+            devices = discoveredCastDevices,
+            connectedDevice = connectedCastDevice,
+            onConnect = {
+                onConnectCastDevice(it)
+                showCastDialog = false
+            },
+            onDisconnect = {
+                onDisconnectCastDevice()
+                showCastDialog = false
+            },
+            onDismiss = { showCastDialog = false }
+        )
+
         VolumeDialog(
             showDialog = showVolumeDialog,
             onDismissRequest = { showVolumeDialog = false },
@@ -1638,4 +1631,36 @@ fun PlayerSheetContent(
         )
     }
 }
+}
+
+/** One half of the header's connected cast/bookmark pair: tonal when off, primary when on. */
+@Composable
+private fun HeaderPairButton(
+    checked: Boolean,
+    shape: androidx.compose.ui.graphics.Shape,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val containerColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+        label = "headerPairContainer"
+    )
+    val contentColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (checked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+        label = "headerPairContent"
+    )
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(containerColor, shape)
+            .clip(shape)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            content()
+        }
+    }
 }

@@ -50,14 +50,9 @@
     <!-- ========================================== -->
     <string name="settings_title">सेटिंग्स</string>
     <string name="settings_appearance_section">दिखावट</string>
-    <string name="settings_dynamic_theme_title">डायनामिक रंग</string>
-    <string name="settings_dynamic_theme_subtitle">वॉलपेपर-आधारित रंगों का उपयोग करें (Android 12+)</string>
     <string name="settings_theme_title">थीम</string>
     <string name="settings_theme_light">लाइट</string>
     <string name="settings_theme_dark">डार्क</string>
-    <string name="settings_pure_black_title">प्योर ब्लैक</string>
-    <string name="settings_pure_black_subtitle">डार्क मोड में शुद्ध काले रंग की पृष्ठभूमि का उपयोग करें</string>
-    <string name="settings_pure_black_disabled_subtitle">केवल डार्क थीम सक्रिय होने पर ही उपलब्ध है</string>
     <string name="settings_color_purple">बैंगनी</string>
     <string name="settings_color_blue">नीला</string>
     <string name="settings_color_teal">टील</string>
@@ -67,7 +62,6 @@
     <string name="settings_color_red">लाल</string>
     <string name="settings_color_custom">कस्टम</string>
     <string name="settings_custom_color_title">कस्टम रंग</string>
-    <string name="settings_custom_color_hex">हेक्स रंग</string>
     <string name="settings_custom_color_apply">लागू करें</string>
     <string name="settings_custom_color_cancel">रद्द करें</string>
     <string name="settings_show_station_thumbnails">स्टेशन थंबनेल दिखाएं</string>
@@ -76,8 +70,6 @@
     <string name="settings_language_title">भाषा</string>
     <string name="settings_auto_route_search_title">खोज पर ऑटो-रूट</string>
     <string name="settings_auto_route_search_subtitle">खोजते समय स्वचालित रूप से ब्राउज़ टैब पर जाएँ</string>
-    <string name="settings_select_all_text_on_focus_title">खोज पर सभी टेक्स्ट चुनें</string>
-    <string name="settings_select_all_text_on_focus_subtitle">फ़ोकस होने पर सर्च बार के टेक्स्ट को स्वचालित रूप से चुनें</string>
     <string name="settings_update_section">अपडेट</string>
     <string name="settings_disable_update_check">अपडेट जाँच बंद करें</string>
     <string name="settings_disable_update_check_desc">ऐप शुरू होने पर अपडेट की स्वचालित रूप से जाँच न करें</string>
@@ -468,5 +460,4 @@
     <string name="widget_configure_preview">लाइव पूर्वावलोकन</string>
     <string name="widget_configure_presets">प्रीसेट</string>
     <string name="settings_widget_appearance_title">विजेट की दिखावट</string>
-    <string name="settings_widget_appearance_subtitle">होम स्क्रीन विजेट की पारदर्शिता और पूर्वावलोकन अनुकूलित करें</string>
 </resources>
