@@ -372,7 +372,7 @@
     <string name="widget_configure_presets">Eelseadistused</string>
     <string name="settings_widget_appearance_title">Vidina välimus</string>
     <string name="settings_show_station_thumbnails">Näita raadiojaamade pisipilte</string>
-    <string name="settings_show_station_thumbnails_desc">Jaamade logosid kuvatakse loendites ja pleieris (väljalülitamine säästab mälu ja andmeruumi)</string>
+    <string name="settings_show_station_thumbnails_desc">Jaamade logod loendites ja pleieris</string>
     <string name="settings_update_section">Uuendus</string>
     <string name="settings_view_on_play_store">Vaata Play Store\'is</string>
     <string name="about_support">Kasutajatugi</string>
@@ -518,4 +518,6 @@
     <string name="settings_recording_time_format_title">Ajavorming failinimedes</string>
     <string name="settings_time_format_12_hour">12-tunnine</string>
     <string name="settings_time_format_24_hour">24-tunnine</string>
+    <string name="settings_color_dynamic">Dünaamilised värvid</string>
+    <string name="settings_color_monochrome">Mustvalge</string>
 </resources>
