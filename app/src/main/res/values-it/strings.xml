@@ -68,7 +68,7 @@
     <string name="settings_number_of_tracks">Numero di tracce</string>
     <string name="settings_checking_for_updates">Controllo aggiornamenti…</string>
     <string name="settings_no_update_available">Nessun aggiornamento disponibile</string>
-    <string name="settings_theme_system">Predefinito di sistema</string>
+    <string name="settings_theme_system">Sistema</string>
     <string name="settings_backup_section">Backup e ripristino</string>
     <string name="settings_conflict_title">Quando avviene un conflitto</string>
     <string name="settings_conflict_skip">Salta esistente</string>
@@ -380,7 +380,7 @@
     <string name="settings_widget_appearance_title">Aspetto del widget</string>
     <string name="widget_configure_presets">Preset</string>
     <string name="settings_show_station_thumbnails">Mostra miniature della stazioni</string>
-    <string name="settings_show_station_thumbnails_desc">Mostra i loghi delle stazioni negli elenchi e nel lettore (disabilita per risparmiare dati e memoria)</string>
+    <string name="settings_show_station_thumbnails_desc">Loghi delle stazione negli elenchi e nel player</string>
     <string name="settings_update_section">Aggiorna</string>
     <string name="settings_view_on_play_store">Visualizza nel Play Store</string>
     <string name="about_support">Sostieni</string>
@@ -534,4 +534,6 @@
     <string name="settings_recording_time_format_title">Formato dell\'ora nei nomi dei file</string>
     <string name="settings_time_format_12_hour">12 ore</string>
     <string name="settings_time_format_24_hour">24 ore</string>
+    <string name="settings_color_dynamic">Dinamici</string>
+    <string name="settings_color_monochrome">Mono</string>
 </resources>
