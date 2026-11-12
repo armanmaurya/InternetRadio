@@ -68,7 +68,7 @@
     <string name="settings_number_of_tracks">Liczba utworów</string>
     <string name="settings_checking_for_updates">Sprawdzanie aktualizacji...</string>
     <string name="settings_no_update_available">Brak dostępnych aktualizacji</string>
-    <string name="settings_theme_system">Domyślny systemu</string>
+    <string name="settings_theme_system">Systemowy</string>
     <string name="settings_backup_section">Kopia zapasowa i przywracanie</string>
     <string name="settings_conflict_title">W przypadku wystąpienia konfliktu</string>
     <string name="settings_conflict_skip">Pomiń</string>
@@ -389,7 +389,7 @@
     <string name="widget_configure_presets">Szablony</string>
     <string name="settings_widget_appearance_title">Wygląd widżetu</string>
     <string name="settings_show_station_thumbnails">Pokaż miniatury stacji</string>
-    <string name="settings_show_station_thumbnails_desc">Wyświetlaj logo stacji na listach i w odtwarzaczu (wyłącz, aby zaoszczędzić dane i pamięć)</string>
+    <string name="settings_show_station_thumbnails_desc">Logo stacji na listach i w odtwarzaczu</string>
     <string name="settings_update_section">Aktualizacja</string>
     <string name="settings_view_on_play_store">Zobacz w Sklepie Play</string>
     <string name="about_support">Wsparcie</string>
@@ -551,4 +551,6 @@
     <string name="settings_recording_time_format_title">Format godziny w nazwach plików</string>
     <string name="settings_time_format_12_hour">12-godzinny</string>
     <string name="settings_time_format_24_hour">24-godzinny</string>
+    <string name="settings_color_dynamic">Dynamiczny</string>
+    <string name="settings_color_monochrome">Monochromatyczny</string>
 </resources>
