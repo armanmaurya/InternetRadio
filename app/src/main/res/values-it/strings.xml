@@ -536,4 +536,8 @@
     <string name="settings_time_format_24_hour">24 ore</string>
     <string name="settings_color_dynamic">Dinamici</string>
     <string name="settings_color_monochrome">Mono</string>
+    <string name="cd_preview">Anteprima</string>
+    <string name="settings_tv_screensaver">Screensaver</string>
+    <string name="library_cd_lock_reordering">Blocca riordino</string>
+    <string name="library_cd_unlock_reordering">Sblocca riordino</string>
 </resources>
