@@ -553,4 +553,8 @@
     <string name="settings_time_format_24_hour">24-godzinny</string>
     <string name="settings_color_dynamic">Dynamiczny</string>
     <string name="settings_color_monochrome">Monochromatyczny</string>
+    <string name="cd_preview">Podgląd</string>
+    <string name="settings_tv_screensaver">Wygaszacz ekranu</string>
+    <string name="library_cd_lock_reordering">Zablokuj zmianę kolejności</string>
+    <string name="library_cd_unlock_reordering">Odblokuj zmianę kolejności</string>
 </resources>
