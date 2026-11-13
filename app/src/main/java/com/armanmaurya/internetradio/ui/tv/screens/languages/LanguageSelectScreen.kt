@@ -1,6 +1,8 @@
 package com.armanmaurya.internetradio.ui.tv.screens.languages
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,21 +45,21 @@ fun LanguageSelectScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 24.dp, end = 24.dp)) {
         Text(
-            text = "Select Language",
+            text = stringResource(R.string.select_language_title),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading languages...")
+                androidx.compose.material3.CircularProgressIndicator()
             }
         } else if (uiState.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = uiState.error ?: "Unknown error")
+                Text(text = uiState.error ?: stringResource(R.string.error_unknown))
             }
         } else {
-            val allLanguagesItem = Language(name = "All Languages", isoCode = "", stationCount = 0)
+            val allLanguagesItem = Language(name = stringResource(R.string.select_language_all), isoCode = "", stationCount = 0)
             
             val displayList = listOf(allLanguagesItem) + uiState.languages
 
@@ -101,7 +103,7 @@ fun LanguageSelectScreen(
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected"
+                                    contentDescription = null
                                 )
                             }
                         }

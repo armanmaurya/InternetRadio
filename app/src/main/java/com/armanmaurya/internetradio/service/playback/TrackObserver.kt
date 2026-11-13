@@ -216,6 +216,9 @@ class TrackObserver @Inject constructor(
         val rawTrack = TrackParser.parse(metadata)
         if (lastTrack == rawTrack || rawTrack.isNullOrBlank()) return
 
+        // Synced lyrics need to know where this song started. That's only known for a song that
+        // changes while listening; the first one after tuning in (or resuming) started earlier.
+        val isFirstTrackSinceTuneIn = lastTrack == null
         lastTrack = rawTrack
         val track = TrackSanitizer.sanitize(rawTrack)
         if (track.isBlank()) return
@@ -223,6 +226,7 @@ class TrackObserver @Inject constructor(
         val currentPlayer = attachedPlayer ?: return
         val currentMediaItem = currentPlayer.currentMediaItem ?: return
         val stationUuid = currentMediaItem.mediaId
+        val trackStartTime = if (isFirstTrackSinceTuneIn) UNKNOWN_TRACK_START else currentPlayer.currentPosition
         historyTrack = HistoryTrack(stationUuid = stationUuid, title = track, rawTitle = rawTrack)
 
         val fallbackArtUri = stationArtworkUri ?: currentMediaItem.mediaMetadata.artworkUri
@@ -231,6 +235,7 @@ class TrackObserver @Inject constructor(
         baseExtras.remove("track_cover_art_url")
         baseExtras.putString("raw_track_name", rawTrack)
         baseExtras.putString("is_fetching_artwork", "true")
+        baseExtras.putLong(EXTRA_TRACK_START_TIME, trackStartTime)
 
         val baseMetadata = currentMediaItem.mediaMetadata.buildUpon()
             .setTitle(track)
@@ -296,6 +301,7 @@ class TrackObserver @Inject constructor(
                 }
                 finalExtras.putString("raw_track_name", rawTrack)
                 finalExtras.putString("is_fetching_artwork", "false")
+                finalExtras.putLong(EXTRA_TRACK_START_TIME, trackStartTime)
                 if (trackName.isNotBlank()) {
                     finalExtras.putString("clean_track_name", trackName)
                 }
@@ -328,6 +334,7 @@ class TrackObserver @Inject constructor(
                 try {
                     val errExtras = currentMediaItem.mediaMetadata.extras?.let { Bundle(it) } ?: Bundle()
                     errExtras.putString("is_fetching_artwork", "false")
+                    errExtras.putLong(EXTRA_TRACK_START_TIME, trackStartTime)
                     val errMetadata = currentMediaItem.mediaMetadata.buildUpon()
                         .setExtras(errExtras)
                         .build()
@@ -338,5 +345,13 @@ class TrackObserver @Inject constructor(
                 } catch (_: Exception) {}
             }
         }
+    }
+
+    companion object {
+        /** Player position (ms) where the current song started, read by PlayerControllerImpl for synced lyrics. */
+        const val EXTRA_TRACK_START_TIME = "track_start_time"
+
+        /** The song was already playing when we tuned in, so its start is unknown. */
+        const val UNKNOWN_TRACK_START = -1L
     }
 }

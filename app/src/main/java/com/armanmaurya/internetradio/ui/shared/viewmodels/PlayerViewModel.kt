@@ -93,6 +93,8 @@ class PlayerViewModel @Inject constructor(
     sealed interface LyricsUiState {
         data object Loading : LyricsUiState
         data object NotAvailable : LyricsUiState
+        /** Lyrics couldn't be fetched right now (rate limit or network); they may still exist. */
+        data object Error : LyricsUiState
         data class Success(
             val plainLyrics: String?,
             val syncedLyrics: List<LrcLine>?
@@ -125,10 +127,15 @@ class PlayerViewModel @Inject constructor(
                     emit(LyricsUiState.Loading)
                 } else {
                     emit(LyricsUiState.Loading)
-                    val lyrics = if (data.cleanTrack != null) {
-                        lyricsRepository.getLyricsForTrack(data.cleanTrack, data.cleanArtist)
-                    } else {
-                        lyricsRepository.getLyricsForTrack(data.track, null)
+                    val lyrics = try {
+                        if (data.cleanTrack != null) {
+                            lyricsRepository.getLyricsForTrack(data.cleanTrack, data.cleanArtist)
+                        } else {
+                            lyricsRepository.getLyricsForTrack(data.track, null)
+                        }
+                    } catch (_: com.armanmaurya.internetradio.domain.repository.LyricsFetchException) {
+                        emit(LyricsUiState.Error)
+                        return@flow
                     }
                     if (lyrics != null) {
                         emit(LyricsUiState.Success(lyrics))
@@ -643,7 +650,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    // Survives configuration changes (e.g. a language switch), so auto-play runs once per launch.
+    private var hasCheckedAutoPlay = false
+
     fun autoPlayRecentStationIfEnabled() {
+        if (hasCheckedAutoPlay) return
+        hasCheckedAutoPlay = true
         viewModelScope.launch {
             delay(100)
             if (isShortcutPlaybackActive) return@launch

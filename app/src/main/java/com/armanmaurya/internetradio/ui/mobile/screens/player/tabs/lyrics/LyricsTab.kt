@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.stringResource
 import com.armanmaurya.internetradio.R
+import com.armanmaurya.internetradio.domain.model.sungFraction
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +95,22 @@ fun LyricsTab(
                     ) {
                         item {
                             LoadingIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+                is LyricsUiState.Error -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.error_something_went_wrong),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -344,15 +361,9 @@ fun SyncedLyricsView(
             
             var textLayoutResult by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
 
+            // Word-synced lines follow the sung words; others fill evenly until the line ends.
             val progress = if (isActive) {
-                val adjustedTime = currentTimeMs + syncOffsetMs
-                val lineDuration = if (index + 1 < lines.size) {
-                    lines[index + 1].timestampMs - line.timestampMs
-                } else {
-                    5000L // Fallback duration for the last line
-                }
-                
-                ((adjustedTime - line.timestampMs).toFloat() / java.lang.Math.max(1L, lineDuration).toFloat()).coerceIn(0f, 1f)
+                line.sungFraction(currentTimeMs + syncOffsetMs, lines.getOrNull(index + 1)?.timestampMs)
             } else {
                 0f
             }

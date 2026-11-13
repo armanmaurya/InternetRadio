@@ -1,6 +1,8 @@
 package com.armanmaurya.internetradio.ui.tv.screens.countries
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,22 +45,22 @@ fun CountrySelectScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 24.dp, end = 24.dp)) {
         Text(
-            text = "Select Country",
+            text = stringResource(R.string.select_country_title),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading countries...")
+                androidx.compose.material3.CircularProgressIndicator()
             }
         } else if (uiState.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = uiState.error ?: "Unknown error")
+                Text(text = uiState.error ?: stringResource(R.string.error_unknown))
             }
         } else {
             val totalStations = uiState.countries.sumOf { it.stationCount }
-            val allCountriesItem = Country(name = "All Countries", isoCode = "", stationCount = totalStations)
+            val allCountriesItem = Country(name = stringResource(R.string.select_country_all), isoCode = "", stationCount = totalStations)
             
             val displayList = listOf(allCountriesItem) + uiState.countries
 
@@ -73,7 +75,7 @@ fun CountrySelectScreen(
             ) {
                 items(displayList.size, key = { displayList[it].name }) { index ->
                     val country = displayList[index]
-                    val isSelected = if (country.name == "All Countries") selectedCountryCode.isNullOrBlank() else country.isoCode == selectedCountryCode
+                    val isSelected = if (country.isoCode.isBlank()) selectedCountryCode.isNullOrBlank() else country.isoCode == selectedCountryCode
                     
                     Surface(
                         onClick = { onCountrySelected(country) },
@@ -102,7 +104,7 @@ fun CountrySelectScreen(
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected"
+                                    contentDescription = null
                                 )
                             }
                         }

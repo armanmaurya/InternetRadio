@@ -20,6 +20,7 @@
     <string name="general_save">Save</string>
     <string name="general_add">Add</string>
     <string name="cd_back">Back</string>
+    <string name="cd_preview">Preview</string>
     <string name="cd_close_search">Close search</string>
     <string name="cd_search">Search</string>
     <string name="cd_clear_search">Clear search</string>
@@ -77,6 +78,7 @@
     <string name="settings_disable_update_check_desc">Do not automatically check for app updates on startup</string>
     <string name="settings_auto_play">Auto play on start</string>
     <string name="settings_auto_play_desc">Play the last listened station when app starts</string>
+    <string name="settings_tv_screensaver">Screensaver</string>
     <string name="settings_about_foss_edition">FOSS Edition</string>
     <string name="settings_about_play_edition">Google Play Edition</string>
     <string name="settings_update_up_to_date">App is up to date</string>
@@ -309,6 +311,8 @@
     <string name="library_cd_sort_a_z">A-Z</string>
     <string name="library_cd_sort_z_a">Z-A</string>
     <string name="home_cd_in_library">In Library</string>
+    <string name="library_cd_lock_reordering">Lock reordering</string>
+    <string name="library_cd_unlock_reordering">Unlock reordering</string>
 
     <!-- ========================================== -->
     <!-- 8. SELECT COUNTRY                          -->

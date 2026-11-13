@@ -65,6 +65,8 @@ class SettingsRepositoryImpl @Inject constructor(
         val RECENT_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("recent_limit")
         val DEFAULT_TAB = androidx.datastore.preferences.core.intPreferencesKey("default_tab")
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
+        val TV_SCREENSAVER_MINUTES = androidx.datastore.preferences.core.intPreferencesKey("tv_screensaver_minutes")
+        val TV_LYRICS_OPEN = booleanPreferencesKey("tv_lyrics_open")
         val APP_LAUNCH_COUNT = androidx.datastore.preferences.core.intPreferencesKey("app_launch_count")
         val HAS_RATED_APP = booleanPreferencesKey("has_rated_app")
         val DISABLE_UPDATE_CHECK = booleanPreferencesKey("disable_update_check")
@@ -146,6 +148,8 @@ class SettingsRepositoryImpl @Inject constructor(
             val recentLimit = preferences[PreferencesKeys.RECENT_LIMIT] ?: 50
             val defaultTab = preferences[PreferencesKeys.DEFAULT_TAB] ?: 0
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
+            val tvScreensaverMinutes = preferences[PreferencesKeys.TV_SCREENSAVER_MINUTES] ?: 5
+            val tvLyricsOpen = preferences[PreferencesKeys.TV_LYRICS_OPEN] ?: false
             val appLaunchCount = preferences[PreferencesKeys.APP_LAUNCH_COUNT] ?: 0
             val hasRatedApp = preferences[PreferencesKeys.HAS_RATED_APP] ?: false
             val disableUpdateCheck = preferences[PreferencesKeys.DISABLE_UPDATE_CHECK] ?: false
@@ -201,6 +205,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 recentLimit = recentLimit,
                 defaultTab = defaultTab,
                 autoPlayOnStart = autoPlayOnStart,
+                tvScreensaverMinutes = tvScreensaverMinutes,
+                tvLyricsOpen = tvLyricsOpen,
                 appLaunchCount = appLaunchCount,
                 hasRatedApp = hasRatedApp,
                 disableUpdateCheck = disableUpdateCheck,
@@ -238,6 +244,14 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setAutoPlayOnStart(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.AUTO_PLAY_ON_START] = enabled }
+    }
+
+    override suspend fun setTvScreensaverMinutes(minutes: Int) {
+        context.dataStore.edit { it[PreferencesKeys.TV_SCREENSAVER_MINUTES] = minutes }
+    }
+
+    override suspend fun setTvLyricsOpen(open: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.TV_LYRICS_OPEN] = open }
     }
 
     override suspend fun setAppLaunchCount(count: Int) {

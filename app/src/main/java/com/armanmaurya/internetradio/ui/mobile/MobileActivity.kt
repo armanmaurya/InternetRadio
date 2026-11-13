@@ -56,7 +56,10 @@ class MobileActivity : AppCompatActivity() {
 
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
-            startActivity(Intent(this, TvActivity::class.java))
+            // Pass on "open the player" (media notification, TV now-playing card) so it isn't lost.
+            startActivity(Intent(this, TvActivity::class.java).apply {
+                if (TvActivity.wantsPlayer(intent)) putExtra(TvActivity.EXTRA_OPEN_PLAYER, true)
+            })
             finish()
             return
         }

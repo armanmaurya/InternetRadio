@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.armanmaurya.internetradio.domain.model.MalformedBackupException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -112,6 +113,21 @@ class SettingsViewModel @Inject constructor(
     fun setAutoPlayOnStart(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoPlayOnStart(enabled)
+        }
+    }
+
+    fun setTvScreensaverMinutes(minutes: Int) {
+        viewModelScope.launch {
+            settingsRepository.setTvScreensaverMinutes(minutes)
+        }
+    }
+
+    /** The stored preferences, waiting for them to load (unlike [uiState], which starts with defaults). */
+    suspend fun loadPreferences(): AppPreferences = settingsRepository.appPreferencesFlow.first()
+
+    fun setTvLyricsOpen(open: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setTvLyricsOpen(open)
         }
     }
 

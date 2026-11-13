@@ -12,6 +12,8 @@ internal class FakeSettingsRepository : SettingsRepository {
     override suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean) {}
     override suspend fun setSearchBarHidden(hidden: Boolean) {}
     override suspend fun setAutoPlayOnStart(enabled: Boolean) {}
+    override suspend fun setTvScreensaverMinutes(minutes: Int) {}
+    override suspend fun setTvLyricsOpen(open: Boolean) {}
     override suspend fun setAppLaunchCount(count: Int) {}
     override suspend fun setHasRatedApp(rated: Boolean) {}
     override suspend fun setDisableUpdateCheck(disabled: Boolean) {}

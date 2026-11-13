@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 
@@ -23,6 +24,8 @@ import com.armanmaurya.internetradio.ui.tv.screens.player.PlayerScreen
 import com.armanmaurya.internetradio.ui.tv.screens.recent.RecentScreen
 import com.armanmaurya.internetradio.ui.tv.screens.about.AboutScreen
 import com.armanmaurya.internetradio.ui.tv.screens.settings.SettingsScreen
+import com.armanmaurya.internetradio.ui.tv.screens.settings.AppLanguageScreen
+import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 import com.armanmaurya.internetradio.ui.tv.screens.tags.TagSelectScreen
 import com.armanmaurya.internetradio.ui.tv.screens.edit.AddEditStationScreen
 import androidx.navigation.navArgument
@@ -37,6 +40,9 @@ fun AppNavHost(
     playerViewModel: PlayerViewModel,
     homeViewModel: HomeViewModel,
     startDestination: String = AppDestination.Browse.route,
+    isVolumeBoostEnabled: Boolean = false,
+    isLyricsOpen: Boolean = false,
+    onLyricsOpenChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -77,7 +83,17 @@ fun AppNavHost(
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(
-                onAboutClick = { navController.navigate(AppDestination.About.route) }
+                onAboutClick = { navController.navigate(AppDestination.About.route) },
+                onAppLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) }
+            )
+        }
+        composable(AppDestination.AppLanguage.route) {
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            AppLanguageScreen(
+                onLanguageSelected = { tag ->
+                    navController.popBackStack()
+                    settingsViewModel.setAppLanguage(tag)
+                }
             )
         }
         composable(AppDestination.About.route) {
@@ -89,6 +105,9 @@ fun AppNavHost(
             PlayerScreen(
                 playerViewModel = playerViewModel,
                 libraryViewModel = libraryViewModel,
+                isVolumeBoostEnabled = isVolumeBoostEnabled,
+                isLyricsOpen = isLyricsOpen,
+                onLyricsOpenChange = onLyricsOpenChange,
                 onEditStation = { uuid -> navController.navigate(AppDestination.AddEditStation.createRoute(uuid)) }
             )
         }

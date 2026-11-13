@@ -10,5 +10,9 @@ data class LrcLibResponse(
     val duration: Double,
     val instrumental: Boolean,
     val plainLyrics: String?,
-    val syncedLyrics: String?
+    val syncedLyrics: String?,
+    /** True when [lyricsfile] carries word-level timings. Missing in older responses. */
+    val hasWordSync: Boolean? = null,
+    /** Raw Lyricsfile YAML (see LyricsfileParser). */
+    val lyricsfile: String? = null
 )

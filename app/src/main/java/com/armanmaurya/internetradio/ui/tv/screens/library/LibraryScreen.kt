@@ -17,13 +17,10 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import android.view.ViewConfiguration
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -43,6 +42,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -56,6 +57,8 @@ import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.ui.tv.components.StationCard
+import com.armanmaurya.internetradio.ui.tv.components.TvSelectionDialog
+import com.armanmaurya.internetradio.ui.tv.components.TvSelectionOption
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 
 @Composable
@@ -76,6 +79,8 @@ fun LibraryScreen(
     var isDragLocked by remember { mutableStateOf(true) }
     var movingStationUuid by remember { mutableStateOf<String?>(null) }
     var currentStations by remember { mutableStateOf(stations ?: emptyList()) }
+    val confirmGate = remember { ConfirmKeyGate() }
+    val isReorderEnabled = sortOption == LibrarySortOption.CUSTOM && !isDragLocked
 
     LaunchedEffect(stations) {
         if (movingStationUuid == null) {
@@ -103,6 +108,14 @@ fun LibraryScreen(
             if (movingStationUuid != null) {
                 viewModel.updateStationsOrder(currentStations)
             }
+        }
+    }
+
+    // Leaving for another app (or recent apps) mid-move: save now, since the app may be killed
+    // in the background without this screen ever being disposed.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        if (movingStationUuid != null) {
+            viewModel.updateStationsOrder(currentStations)
         }
     }
 
@@ -173,89 +186,44 @@ fun LibraryScreen(
                                     )
                                 }
                             }
-                            DropdownMenu(
-                                expanded = sortExpanded,
-                                onDismissRequest = { sortExpanded = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { androidx.compose.material3.Text(stringResource(R.string.home_sort_played)) },
-                                    onClick = {
-                                        if (sortOption == LibrarySortOption.RECENTLY_PLAYED) {
-                                            viewModel.setSortOption(LibrarySortOption.LEAST_RECENTLY_PLAYED)
-                                        } else {
-                                            viewModel.setSortOption(LibrarySortOption.RECENTLY_PLAYED)
-                                        }
-                                        sortExpanded = false
-                                    },
-                                    trailingIcon = {
-                                        if (sortOption == LibrarySortOption.RECENTLY_PLAYED || sortOption == LibrarySortOption.LEAST_RECENTLY_PLAYED) {
-                                            androidx.compose.material3.Icon(
-                                                imageVector = if (sortOption == LibrarySortOption.RECENTLY_PLAYED) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                                contentDescription = if (sortOption == LibrarySortOption.RECENTLY_PLAYED) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
+                            if (sortExpanded) {
+                                // Each pair is (descending, ascending); picking the current one again flips it.
+                                val directional = listOf(
+                                    Triple(R.string.home_sort_played, LibrarySortOption.RECENTLY_PLAYED, LibrarySortOption.LEAST_RECENTLY_PLAYED),
+                                    Triple(R.string.home_sort_added, LibrarySortOption.RECENTLY_ADDED, LibrarySortOption.OLDEST_ADDED),
+                                    Triple(R.string.home_sort_name, LibrarySortOption.NAME_A_Z, LibrarySortOption.NAME_Z_A)
                                 )
-                                DropdownMenuItem(
-                                    text = { androidx.compose.material3.Text(stringResource(R.string.home_sort_added)) },
-                                    onClick = {
-                                        if (sortOption == LibrarySortOption.RECENTLY_ADDED) {
-                                            viewModel.setSortOption(LibrarySortOption.OLDEST_ADDED)
-                                        } else {
-                                            viewModel.setSortOption(LibrarySortOption.RECENTLY_ADDED)
-                                        }
-                                        sortExpanded = false
-                                    },
-                                    trailingIcon = {
-                                        if (sortOption == LibrarySortOption.RECENTLY_ADDED || sortOption == LibrarySortOption.OLDEST_ADDED) {
-                                            androidx.compose.material3.Icon(
-                                                imageVector = if (sortOption == LibrarySortOption.RECENTLY_ADDED) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                                contentDescription = if (sortOption == LibrarySortOption.RECENTLY_ADDED) stringResource(R.string.home_descending) else stringResource(R.string.home_ascending),
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { androidx.compose.material3.Text(stringResource(R.string.home_sort_name)) },
-                                    onClick = {
-                                        if (sortOption == LibrarySortOption.NAME_A_Z) {
-                                            viewModel.setSortOption(LibrarySortOption.NAME_Z_A)
-                                        } else {
-                                            viewModel.setSortOption(LibrarySortOption.NAME_A_Z)
-                                        }
-                                        sortExpanded = false
-                                    },
-                                    trailingIcon = {
-                                        if (sortOption == LibrarySortOption.NAME_A_Z || sortOption == LibrarySortOption.NAME_Z_A) {
-                                            androidx.compose.material3.Icon(
-                                                imageVector = if (sortOption == LibrarySortOption.NAME_A_Z) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                                contentDescription = if (sortOption == LibrarySortOption.NAME_A_Z) stringResource(R.string.library_cd_sort_a_z) else stringResource(R.string.library_cd_sort_z_a),
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { androidx.compose.material3.Text(stringResource(R.string.home_sort_custom)) },
-                                    onClick = {
-                                        viewModel.setSortOption(LibrarySortOption.CUSTOM)
-                                        sortExpanded = false
-                                    },
-                                    trailingIcon = {
-                                        if (sortOption == LibrarySortOption.CUSTOM) {
-                                            androidx.compose.material3.Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = "Active",
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
+                                TvSelectionDialog(
+                                    title = stringResource(R.string.library_cd_sort_options),
+                                    options = directional.map { (labelRes, first, second) ->
+                                        val isCurrent = sortOption == first || sortOption == second
+                                        TvSelectionOption(
+                                            label = stringResource(labelRes),
+                                            selected = isCurrent,
+                                            onClick = {
+                                                viewModel.setSortOption(if (sortOption == first) second else first)
+                                            },
+                                            trailing = if (isCurrent) {
+                                                {
+                                                    val isFirst = sortOption == first
+                                                    Icon(
+                                                        imageVector = if (isFirst) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                                        contentDescription = when {
+                                                            first == LibrarySortOption.NAME_A_Z ->
+                                                                stringResource(if (isFirst) R.string.library_cd_sort_a_z else R.string.library_cd_sort_z_a)
+                                                            isFirst -> stringResource(R.string.home_descending)
+                                                            else -> stringResource(R.string.home_ascending)
+                                                        }
+                                                    )
+                                                }
+                                            } else null
+                                        )
+                                    } + TvSelectionOption(
+                                        label = stringResource(R.string.home_sort_custom),
+                                        selected = sortOption == LibrarySortOption.CUSTOM,
+                                        onClick = { viewModel.setSortOption(LibrarySortOption.CUSTOM) }
+                                    ),
+                                    onDismiss = { sortExpanded = false }
                                 )
                             }
                         }
@@ -276,7 +244,7 @@ fun LibraryScreen(
                             ) {
                                 Icon(
                                     imageVector = if (isDragLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                                    contentDescription = if (isDragLocked) "Unlock reordering" else "Lock reordering",
+                                    contentDescription = stringResource(if (isDragLocked) R.string.library_cd_unlock_reordering else R.string.library_cd_lock_reordering),
                                     modifier = Modifier.padding(end = 8.dp)
                                 )
                                 Text(if (isDragLocked) "Locked" else "Reorder")
@@ -324,6 +292,23 @@ fun LibraryScreen(
 
                     val moveModifier = if (isMoving) {
                         Modifier.onPreviewKeyEvent { event ->
+                            if (event.isConfirmKey()) {
+                                // Only a fresh press, made after OK was let go, drops the item.
+                                // Everything belonging to the hold that started the move is passed
+                                // to the Card (its onClick is a no-op while moving), so it can
+                                // reset its long-click state.
+                                return@onPreviewKeyEvent when (event.type) {
+                                    KeyEventType.KeyDown -> confirmGate.onKeyDown(event)
+                                    KeyEventType.KeyUp -> {
+                                        if (confirmGate.onKeyUp(event)) {
+                                            movingStationUuid = null
+                                            viewModel.updateStationsOrder(currentStations)
+                                            true
+                                        } else false
+                                    }
+                                    else -> false
+                                }
+                            }
                             if (event.type == KeyEventType.KeyDown) {
                                 val currentIndex = currentStations.indexOfFirst { it.stationUuid == station.stationUuid }
                                 if (currentIndex != -1) {
@@ -332,7 +317,7 @@ fun LibraryScreen(
                                         Key.DirectionRight -> (currentIndex + 1).coerceAtMost(currentStations.lastIndex)
                                         Key.DirectionUp -> (currentIndex - 4).coerceAtLeast(0)
                                         Key.DirectionDown -> (currentIndex + 4).coerceAtMost(currentStations.lastIndex)
-                                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter, Key.Spacebar, Key.Back, Key.Escape -> {
+                                        Key.Back, Key.Escape -> {
                                             movingStationUuid = null
                                             viewModel.updateStationsOrder(currentStations)
                                             return@onPreviewKeyEvent true
@@ -349,11 +334,7 @@ fun LibraryScreen(
                                     }
                                 }
                             } else if (event.type == KeyEventType.KeyUp) {
-                                val isNavOrConfirm = event.key == Key.DirectionCenter ||
-                                        event.key == Key.Enter ||
-                                        event.key == Key.NumPadEnter ||
-                                        event.key == Key.Spacebar ||
-                                        event.key == Key.Back ||
+                                val isNavOrConfirm = event.key == Key.Back ||
                                         event.key == Key.Escape ||
                                         event.key == Key.DirectionLeft ||
                                         event.key == Key.DirectionRight ||
@@ -365,32 +346,34 @@ fun LibraryScreen(
                             }
                             false
                         }
+                    } else if (isReorderEnabled) {
+                        // Not moving yet: just note OK timings so the hold that picks the item
+                        // up is recognised once move mode starts.
+                        Modifier.onPreviewKeyEvent { event ->
+                            if (event.isConfirmKey()) confirmGate.record(event)
+                            false
+                        }
                     } else Modifier
+
+                    // Starts a move. Dropping is done only by the key handler above, so a held
+                    // OK (repeats, or a stream of down/up pairs on some remotes) can't toggle it.
+                    val startMove = {
+                        if (movingStationUuid == null) {
+                            confirmGate.reset()
+                            movingStationUuid = station.stationUuid
+                        }
+                    }
 
                     StationCard(
                         station = station,
                         onClick = {
-                            if (sortOption == LibrarySortOption.CUSTOM && !isDragLocked) {
-                                if (movingStationUuid == station.stationUuid) {
-                                    movingStationUuid = null
-                                    viewModel.updateStationsOrder(currentStations)
-                                } else {
-                                    movingStationUuid = station.stationUuid
-                                }
+                            if (isReorderEnabled) {
+                                startMove()
                             } else {
                                 onStationClick(currentStations, index, "tv_library")
                             }
                         },
-                        onLongClick = if (sortOption == LibrarySortOption.CUSTOM && !isDragLocked) {
-                            {
-                                if (movingStationUuid == station.stationUuid) {
-                                    movingStationUuid = null
-                                    viewModel.updateStationsOrder(currentStations)
-                                } else {
-                                    movingStationUuid = station.stationUuid
-                                }
-                            }
-                        } else null,
+                        onLongClick = if (isReorderEnabled) startMove else null,
                         modifier = Modifier
                             .animateItem()
                             .focusRequester(focusRequester)
@@ -402,5 +385,41 @@ fun LibraryScreen(
                 }
             }
         }
+    }
+}
+
+private fun KeyEvent.isConfirmKey(): Boolean =
+    key == Key.DirectionCenter || key == Key.Enter || key == Key.NumPadEnter || key == Key.Spacebar
+
+/**
+ * Tells a fresh OK press apart from a held one. Depending on the remote, a held OK arrives as
+ * repeat events or as a fast stream of separate down/up pairs, so a press only counts as fresh
+ * when OK was idle for longer than the key-repeat delay.
+ */
+private class ConfirmKeyGate {
+    private val holdGapMs = ViewConfiguration.getKeyRepeatTimeout().toLong() + 100L
+    private var lastEventTime = 0L
+    private var dropArmed = false
+
+    fun record(event: KeyEvent) {
+        lastEventTime = event.nativeKeyEvent.eventTime
+    }
+
+    fun reset() {
+        dropArmed = false
+    }
+
+    /** Returns true when the event is consumed (a fresh press that will drop on release). */
+    fun onKeyDown(event: KeyEvent): Boolean {
+        val native = event.nativeKeyEvent
+        if (native.repeatCount == 0 && native.eventTime - lastEventTime > holdGapMs) dropArmed = true
+        lastEventTime = native.eventTime
+        return dropArmed
+    }
+
+    /** Returns true when this release should drop the moving item. */
+    fun onKeyUp(event: KeyEvent): Boolean {
+        lastEventTime = event.nativeKeyEvent.eventTime
+        return dropArmed.also { dropArmed = false }
     }
 }

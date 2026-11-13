@@ -1,6 +1,8 @@
 package com.armanmaurya.internetradio.ui.tv.screens.recent
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -70,7 +72,7 @@ fun RecentScreen(
                             contentDescription = null,
                             modifier = Modifier.padding(end = 8.dp)
                         )
-                        Text(if (useFilter) "Filters Active" else "Use Filters")
+                        Text(stringResource(if (useFilter) R.string.home_filters_active else R.string.home_use_filters))
                     }
                 }
             }
@@ -78,7 +80,7 @@ fun RecentScreen(
             if (safeStations.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(modifier = Modifier.fillMaxWidth().padding(top = 64.dp), contentAlignment = Alignment.Center) {
-                        Text("No recent stations", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.home_no_recent_stations), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {

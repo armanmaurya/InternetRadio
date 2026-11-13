@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.tv.screens.edit
 
 import androidx.activity.compose.BackHandler
+import kotlinx.coroutines.android.awaitFrame
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -122,6 +123,18 @@ fun AddEditStationScreen(
     }
 
     val firstFieldFocusRequester = remember { FocusRequester() }
+    val backButtonFocusRequester = remember { FocusRequester() }
+
+    // Take focus when the screen opens; the button that opened it is gone, and otherwise focus
+    // falls back to the drawer. Back rather than a text field, so the keyboard doesn't pop up.
+    LaunchedEffect(Unit) {
+        awaitFrame()
+        awaitFrame()
+        try {
+            backButtonFocusRequester.requestFocus()
+        } catch (_: Exception) {
+        }
+    }
 
     val canSave = name.isNotBlank() && url.isNotBlank() && !isProbing
 
@@ -193,6 +206,7 @@ fun AddEditStationScreen(
                 // Back button
                 Surface(
                     onClick = onNavigateBack,
+                    modifier = Modifier.focusRequester(backButtonFocusRequester),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = Color.Transparent,
@@ -206,11 +220,11 @@ fun AddEditStationScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.cd_back),
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Back", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.cd_back), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -231,7 +245,7 @@ fun AddEditStationScreen(
                                 .data(favicon)
                                 .size(coil3.size.Size.ORIGINAL)
                                 .build(),
-                            contentDescription = "Preview",
+                            contentDescription = stringResource(R.string.cd_preview),
                             filterQuality = FilterQuality.High,
                             placeholder = fallbackPainter,
                             error = fallbackPainter,
@@ -252,7 +266,7 @@ fun AddEditStationScreen(
                 Spacer(Modifier.height(24.dp))
 
                 Text(
-                    text = name.ifBlank { if (isEditing) "Edit Station" else "New Station" },
+                    text = name.ifBlank { stringResource(if (isEditing) R.string.edit_station_title else R.string.edit_station_add_station) },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     maxLines = 2
                 )
@@ -355,7 +369,10 @@ fun AddEditStationScreen(
                             label = "saveButtonAnimation"
                         ) { isUpload ->
                             Text(
-                                text = if (isUpload) (if (isEditing) "Upload & Save" else "Upload & Add") else (if (isEditing) "Save" else "Add"),
+                                text = stringResource(
+                                    if (isUpload) (if (isEditing) R.string.edit_station_upload_save else R.string.edit_station_upload_add)
+                                    else (if (isEditing) R.string.general_save else R.string.general_add)
+                                ),
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(vertical = 4.dp)
                             )
@@ -379,7 +396,7 @@ fun AddEditStationScreen(
                         ) {
                             androidx.compose.material3.Icon(
                                 imageVector = Icons.Filled.SwapVert,
-                                contentDescription = "Toggle save mode",
+                                contentDescription = stringResource(R.string.edit_station_cd_toggle_save_mode),
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -397,7 +414,7 @@ fun AddEditStationScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Text(
-                    text = if (isEditing) "Edit Station" else "Add Custom Station",
+                    text = stringResource(if (isEditing) R.string.edit_station_title else R.string.edit_station_add_station),
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                 )
 
@@ -413,7 +430,7 @@ fun AddEditStationScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { androidx.compose.material3.Text("Name *") },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_name_field)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(firstFieldFocusRequester),
@@ -430,7 +447,7 @@ fun AddEditStationScreen(
                         url = it
                         viewModel.checkDuplicateUrl(it)
                     },
-                    label = { androidx.compose.material3.Text("Stream URL *") },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_stream_url_field)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = fieldColors,
@@ -442,7 +459,7 @@ fun AddEditStationScreen(
                 OutlinedTextField(
                     value = favicon,
                     onValueChange = { favicon = it },
-                    label = { androidx.compose.material3.Text("Favicon URL (Optional)") },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_favicon_url_optional)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = fieldColors,
@@ -458,7 +475,7 @@ fun AddEditStationScreen(
                     OutlinedTextField(
                         value = countryCode,
                         onValueChange = { countryCode = it },
-                        label = { androidx.compose.material3.Text("Country Code (Optional)") },
+                        label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_country_field)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         colors = fieldColors,
@@ -469,7 +486,7 @@ fun AddEditStationScreen(
                     OutlinedTextField(
                         value = languageCodes,
                         onValueChange = { languageCodes = it },
-                        label = { androidx.compose.material3.Text("Languages (Optional)") },
+                        label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_language_field)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         colors = fieldColors,
@@ -482,7 +499,7 @@ fun AddEditStationScreen(
                 OutlinedTextField(
                     value = homepage,
                     onValueChange = { homepage = it },
-                    label = { androidx.compose.material3.Text("Homepage URL (Optional)") },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_homepage_url_optional)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = fieldColors,
@@ -494,7 +511,7 @@ fun AddEditStationScreen(
                 OutlinedTextField(
                     value = tags,
                     onValueChange = { tags = it.lowercase() },
-                    label = { androidx.compose.material3.Text("Tags (comma separated, Optional)") },
+                    label = { androidx.compose.material3.Text(stringResource(R.string.edit_station_tags_optional)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = fieldColors,
@@ -545,7 +562,7 @@ fun AddEditStationScreen(
                                 ) {
                                     androidx.compose.material3.Icon(
                                         imageVector = androidx.compose.material.icons.Icons.Filled.Refresh,
-                                        contentDescription = "Refresh Metadata"
+                                        contentDescription = stringResource(R.string.edit_station_refresh_metadata)
                                     )
                                 }
                             }
@@ -562,7 +579,7 @@ fun AddEditStationScreen(
 
                 if (isEditing && station?.isCustom == true) {
                     Text(
-                        text = "Custom",
+                        text = stringResource(R.string.edit_station_custom),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.fillMaxWidth(),

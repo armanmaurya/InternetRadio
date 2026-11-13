@@ -29,8 +29,8 @@ room = "2.7.0"
 media3 = "1.11.1"
 datastore = "1.1.2"
 carApp = "1.7.0"
-tvFoundation = "1.0.0-alpha12"
-tvMaterial = "1.0.0"
+tvMaterial = "1.1.0"
+snakeyamlEngine = "2.10"
 composeMarkdown = "0.5.2"
 fcast = "0.4.0"
 jna = "5.19.1"
@@ -87,8 +87,8 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-androidx-tv-foundation = { group = "androidx.tv", name = "tv-foundation", version.ref = "tvFoundation" }
 androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
+snakeyaml-engine = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "snakeyamlEngine" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 fcast-sdk = { module = "org.futo.gitlab.videostreaming.fcast-sdk-jitpack:sender-sdk-minimal", version.ref = "fcast" }
 calvin-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }

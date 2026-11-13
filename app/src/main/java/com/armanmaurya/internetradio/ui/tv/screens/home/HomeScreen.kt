@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.tv.screens.home
 
 import android.view.KeyEvent
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.animation.animateContentSize
@@ -50,10 +51,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import kotlinx.coroutines.delay
+import com.armanmaurya.internetradio.ui.tv.screensaver.NowPlayingScreensaver
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.android.awaitFrame
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -100,7 +118,8 @@ fun HomeScreen(
     libraryViewModel: LibraryViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel(),
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    openPlayerRequests: Flow<Unit> = emptyFlow()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -109,11 +128,41 @@ fun HomeScreen(
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
-    val startDestination = remember(settingsUiState.defaultTab) {
-        when (settingsUiState.defaultTab) {
+    // Read once from stored settings. Building the graph from the not-yet-loaded defaults and then
+    // changing it would rebuild navigation and drop the back stack (including one restored after
+    // the app was killed in the background). A new default tab applies on the next launch.
+    val startDestination by produceState<String?>(initialValue = null) {
+        // Unreadable settings fall back to Browse rather than leaving the app without a screen.
+        val defaultTab = try {
+            settingsViewModel.loadPreferences().defaultTab
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            0
+        }
+        value = when (defaultTab) {
             1 -> AppDestination.Recent.route
             2 -> AppDestination.Library.route
             else -> AppDestination.Browse.route
+        }
+    }
+
+    // Same as the phone: resume the last station on launch when "Auto play on start" is on.
+    LaunchedEffect(Unit) {
+        playerViewModel.autoPlayRecentStationIfEnabled()
+    }
+
+    // Open the player when asked from outside (media notification, the TV's now-playing card).
+    // Waits for the navigation graph; navigation errors are ignored rather than crashing.
+    val hasGraph = startDestination != null
+    LaunchedEffect(hasGraph) {
+        if (!hasGraph) return@LaunchedEffect
+        awaitFrame()
+        openPlayerRequests.collect {
+            try {
+                navController.navigate(AppDestination.Player.route) { launchSingleTop = true }
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -131,7 +180,9 @@ fun HomeScreen(
     val playbackState by playerViewModel.uiState.collectAsStateWithLifecycle()
     
     // Helper for drawer navigation
-    val navigateToDrawerItem: (String) -> Unit = { route ->
+    val navigateToDrawerItem: (String) -> Unit = navigate@{ route ->
+        // The graph is set only once the start screen is known; navigating before that would throw.
+        if (startDestination == null) return@navigate
         navController.navigate(route) {
             popUpTo(navController.graph.findStartDestination().id) {
                 saveState = true
@@ -141,7 +192,68 @@ fun HomeScreen(
         }
     }
 
-    TvInternetRadioTheme {
+    // Choosing a tab moves focus into the new screen, which also closes the drawer
+    // (it only closes once focus leaves it).
+    val openFromDrawer: (String) -> Unit = { route ->
+        navigateToDrawerItem(route)
+        coroutineScope.launch {
+            // Wait for the screen-change animation to finish. Until then the old screen is still
+            // there, and focus handed over early lands in it and is lost when it goes away.
+            withTimeoutOrNull(2_000L) {
+                navController.visibleEntries.first { entries ->
+                    entries.size == 1 && entries.single().destination.route == route
+                }
+            }
+            awaitFrame()
+            try {
+                contentFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    // ── In-app screensaver ──────────────────────────────────────────────
+    // Shows after the chosen minutes without input while something plays. The key that wakes it
+    // (and its release) is swallowed so it doesn't also act on the screen underneath.
+    var lastInputAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var isScreensaverOn by remember { mutableStateOf(false) }
+    var swallowKeyUp by remember { mutableStateOf<Key?>(null) }
+    val screensaverMinutes = settingsUiState.tvScreensaverMinutes
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+    val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED)
+    LaunchedEffect(lastInputAt, playbackState.isPlaying, screensaverMinutes, isResumed) {
+        // In the background (e.g. sitting in recent apps) the timer stops, and coming back
+        // starts a fresh wait instead of opening straight into the screensaver.
+        if (!isResumed) {
+            isScreensaverOn = false
+            return@LaunchedEffect
+        }
+        if (screensaverMinutes > 0 && playbackState.isPlaying) {
+            delay(screensaverMinutes * 60_000L)
+            isScreensaverOn = true
+        }
+    }
+
+    TvInternetRadioTheme(appPreferences = settingsUiState) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onPreviewKeyEvent { event ->
+                    lastInputAt = System.currentTimeMillis()
+                    when {
+                        isScreensaverOn && event.type == KeyEventType.KeyDown -> {
+                            isScreensaverOn = false
+                            swallowKeyUp = event.key
+                            true
+                        }
+                        event.type == KeyEventType.KeyUp && swallowKeyUp == event.key -> {
+                            swallowKeyUp = null
+                            true
+                        }
+                        else -> false
+                    }
+                }
+        ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             ModalNavigationDrawer(
                 drawerState = drawerState,
@@ -165,7 +277,7 @@ fun HomeScreen(
                                 label = "miniplayerWidth"
                             )
                             Surface(
-                                onClick = { navigateToDrawerItem(AppDestination.Player.route) },
+                                onClick = { openFromDrawer(AppDestination.Player.route) },
                                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
                                 colors = ClickableSurfaceDefaults.colors(
                                     containerColor = Color.Transparent,
@@ -197,7 +309,7 @@ fun HomeScreen(
                                                 .size(coil3.size.Size.ORIGINAL)
                                                 .crossfade(true)
                                                 .build(),
-                                            contentDescription = if (hasCoverArt) "Track Artwork" else "Station Thumbnail",
+                                            contentDescription = null,
                                             filterQuality = FilterQuality.High,
                                             placeholder = fallbackPainter,
                                             error = fallbackPainter,
@@ -244,7 +356,7 @@ fun HomeScreen(
                                                         .size(coil3.size.Size.ORIGINAL)
                                                         .crossfade(true)
                                                         .build(),
-                                                    contentDescription = "Station Logo",
+                                                    contentDescription = stringResource(R.string.schedule_station_logo_cd),
                                                     filterQuality = FilterQuality.High,
                                                     placeholder = fallbackPainter,
                                                     error = fallbackPainter,
@@ -308,11 +420,11 @@ fun HomeScreen(
                                             isSearchEditing = false
                                         }
                                     },
-                                placeholder = { Text("Search...") },
+                                placeholder = { Text(stringResource(R.string.general_search)) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Search,
-                                        contentDescription = "Search"
+                                        contentDescription = stringResource(R.string.cd_search)
                                     )
                                 },
                                 singleLine = true,
@@ -372,12 +484,12 @@ fun HomeScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Search,
-                                        contentDescription = "Search"
+                                        contentDescription = stringResource(R.string.cd_search)
                                     )
                                     if (drawerValue == DrawerValue.Open) {
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
-                                            text = if (homeUiState.searchQuery.isNotEmpty()) homeUiState.searchQuery else "Search",
+                                            text = if (homeUiState.searchQuery.isNotEmpty()) homeUiState.searchQuery else stringResource(R.string.general_search),
                                             maxLines = 1,
                                             softWrap = false
                                         )
@@ -409,7 +521,7 @@ fun HomeScreen(
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 Icons.Default.Sell,
-                                                contentDescription = "Tags"
+                                                contentDescription = stringResource(R.string.home_cd_select_tags)
                                             )
                                             if (homeUiState.selectedTags.isNotEmpty()) {
                                                 Text(
@@ -443,7 +555,7 @@ fun HomeScreen(
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 Icons.Default.Translate,
-                                                contentDescription = "Language"
+                                                contentDescription = stringResource(R.string.home_cd_select_language)
                                             )
                                             if (!homeUiState.selectedLanguage.isNullOrBlank()) {
                                                 Text(
@@ -480,7 +592,7 @@ fun HomeScreen(
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 Icons.Default.Public,
-                                                contentDescription = "Country"
+                                                contentDescription = stringResource(R.string.home_cd_select_country)
                                             )
                                             if (!homeUiState.selectedCountryCode.isNullOrBlank()) {
                                                 Text(
@@ -509,7 +621,7 @@ fun HomeScreen(
                                 leadingContent = {
                                     Icon(
                                         imageVector = Icons.Default.FilterList,
-                                        contentDescription = "Filters",
+                                        contentDescription = stringResource(R.string.home_use_filters),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
@@ -526,35 +638,35 @@ fun HomeScreen(
 
                         NavigationDrawerItem(
                             selected = currentDestination == AppDestination.Browse.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Browse.route) },
+                            onClick = { openFromDrawer(AppDestination.Browse.route) },
                             shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                Icon(imageVector = Icons.Default.Explore, contentDescription = "Browse")
+                                Icon(imageVector = Icons.Default.Explore, contentDescription = stringResource(R.string.home_tab_browse))
                             }
                         ) {
-                            Text("Browse")
+                            Text(stringResource(R.string.home_tab_browse))
                         }
                         
                         NavigationDrawerItem(
                             selected = currentDestination == AppDestination.Recent.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Recent.route) },
+                            onClick = { openFromDrawer(AppDestination.Recent.route) },
                             shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                Icon(imageVector = Icons.Default.History, contentDescription = "Recent")
+                                Icon(imageVector = Icons.Default.History, contentDescription = stringResource(R.string.home_tab_recent))
                             }
                         ) {
-                            Text("Recent")
+                            Text(stringResource(R.string.home_tab_recent))
                         }
 
                         NavigationDrawerItem(
                             selected = currentDestination == AppDestination.Library.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Library.route) },
+                            onClick = { openFromDrawer(AppDestination.Library.route) },
                             shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                Icon(imageVector = Icons.Default.LibraryMusic, contentDescription = "Library")
+                                Icon(imageVector = Icons.Default.LibraryMusic, contentDescription = stringResource(R.string.home_tab_library))
                             }
                         ) {
-                            Text("Library")
+                            Text(stringResource(R.string.home_tab_library))
                         }
 
 
@@ -563,13 +675,13 @@ fun HomeScreen(
 
                         NavigationDrawerItem(
                             selected = currentDestination == AppDestination.Settings.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Settings.route) },
+                            onClick = { openFromDrawer(AppDestination.Settings.route) },
                             shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
+                                Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.home_cd_settings))
                             }
                         ) {
-                            Text("Settings")
+                            Text(stringResource(R.string.settings_title))
                         }
                     }
                 }
@@ -583,17 +695,31 @@ fun HomeScreen(
                         .focusRequester(contentFocusRequester)
                         .focusRestorer()
                 ) {
-                    AppNavHost(
+                    val start = startDestination
+                    if (start != null) AppNavHost(
                         navController = navController,
                         browseViewModel = browseViewModel,
                         recentViewModel = recentViewModel,
                         libraryViewModel = libraryViewModel,
                         playerViewModel = playerViewModel,
                         homeViewModel = homeViewModel,
-                        startDestination = startDestination
+                        startDestination = start,
+                        isVolumeBoostEnabled = settingsUiState.enableVolumeBoost,
+                        isLyricsOpen = settingsUiState.tvLyricsOpen,
+                        onLyricsOpenChange = settingsViewModel::setTvLyricsOpen
                     )
                 }
             }
+        }
+
+        if (isScreensaverOn) {
+            NowPlayingScreensaver(
+                station = playbackState.currentStation,
+                trackTitle = playbackState.cleanTrackName ?: playbackState.currentTrack,
+                artist = playbackState.cleanArtistName,
+                coverArtUri = playbackState.trackCoverArtUri
+            )
+        }
         }
     }
 }

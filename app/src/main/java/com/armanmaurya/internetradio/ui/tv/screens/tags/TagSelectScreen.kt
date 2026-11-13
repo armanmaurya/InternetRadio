@@ -1,6 +1,8 @@
 package com.armanmaurya.internetradio.ui.tv.screens.tags
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,7 +55,7 @@ fun TagSelectScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Select Tags",
+                text = stringResource(R.string.select_tags_title),
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -61,17 +63,17 @@ fun TagSelectScreen(
             Button(
                 onClick = { onTagsSelected(uiState.selectedTags) }
             ) {
-                Text("Apply Filters")
+                Text(stringResource(R.string.select_tags_cd_apply))
             }
         }
 
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading tags...")
+                androidx.compose.material3.CircularProgressIndicator()
             }
         } else if (uiState.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = uiState.error ?: "Unknown error")
+                Text(text = uiState.error ?: stringResource(R.string.error_unknown))
             }
         } else {
             LazyVerticalGrid(
@@ -118,7 +120,7 @@ fun TagSelectScreen(
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected"
+                                    contentDescription = null
                                 )
                             }
                         }

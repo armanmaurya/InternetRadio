@@ -188,7 +188,7 @@ fun LibraryContent(
                         ) {
                             Icon(
                                 imageVector = if (isDragLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                                contentDescription = if (isDragLocked) "Unlock dragging" else "Lock dragging",
+                                contentDescription = stringResource(if (isDragLocked) R.string.library_cd_unlock_reordering else R.string.library_cd_lock_reordering),
                                 tint = if (isDragLocked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }

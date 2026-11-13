@@ -6,6 +6,7 @@ sealed class AppDestination(val route: String) {
     data object Library : AppDestination("library")
     data object Settings : AppDestination("settings")
     data object About : AppDestination("about")
+    data object AppLanguage : AppDestination("app_language")
     data object Player : AppDestination("player")
     data object Tags : AppDestination("tags")
     data object Language : AppDestination("language")

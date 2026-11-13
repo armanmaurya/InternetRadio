@@ -1,6 +1,7 @@
 package com.armanmaurya.internetradio.ui.tv.components
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -136,7 +137,7 @@ fun StationCard(
 
                 Icon(
                     imageVector = Icons.Default.Bookmark,
-                    contentDescription = "In Library",
+                    contentDescription = stringResource(R.string.home_cd_in_library),
                     tint = if (isCurrentlyPlaying) playingColor else Color.White,
                     modifier = Modifier
                         .align(Alignment.TopEnd)

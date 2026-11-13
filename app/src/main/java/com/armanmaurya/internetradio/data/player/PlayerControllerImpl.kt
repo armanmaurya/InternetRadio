@@ -301,7 +301,7 @@ class PlayerControllerImpl @Inject constructor(
         if (trackInfo != null && trackInfo.isNotBlank() && !isStationName) {
             // Read the exact start time recorded by the background service. 
             // If it's -1, it means it's the tune-in track and we don't know the position.
-            val exactStartTime = mediaMetadata.extras?.getLong("track_start_time")?.takeIf { it > 0L }
+            val exactStartTime = mediaMetadata.extras?.getLong(com.armanmaurya.internetradio.service.playback.TrackObserver.EXTRA_TRACK_START_TIME)?.takeIf { it > 0L }
             val isFetching = mediaMetadata.extras?.getString("is_fetching_artwork") == "true"
             _isFetchingArtwork.value = isFetching
             

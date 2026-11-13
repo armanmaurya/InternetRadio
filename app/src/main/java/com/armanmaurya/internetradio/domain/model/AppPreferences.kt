@@ -26,6 +26,10 @@ data class AppPreferences(
     val isGridViewBrowse: Boolean = true,
     val isGridViewRecent: Boolean = true,
     val autoPlayOnStart: Boolean = false,
+    /** TV only: minutes of no input while playing before the in-app screensaver shows; 0 = off. */
+    val tvScreensaverMinutes: Int = 5,
+    /** TV only: whether the lyrics panel is open in the player. */
+    val tvLyricsOpen: Boolean = false,
     val appLaunchCount: Int = 0,
     val hasRatedApp: Boolean = false,
     val isGridViewFavorites: Boolean = true,

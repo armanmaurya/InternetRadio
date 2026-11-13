@@ -15,6 +15,8 @@ interface SettingsRepository {
     suspend fun setAutoRouteToBrowseOnSearch(enabled: Boolean)
     suspend fun setSearchBarHidden(hidden: Boolean)
     suspend fun setAutoPlayOnStart(enabled: Boolean)
+    suspend fun setTvScreensaverMinutes(minutes: Int)
+    suspend fun setTvLyricsOpen(open: Boolean)
     suspend fun setAppLaunchCount(count: Int)
     suspend fun setHasRatedApp(rated: Boolean)
     suspend fun setDisableUpdateCheck(disabled: Boolean)

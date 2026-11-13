@@ -75,7 +75,7 @@ fun AboutScreen(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Icon",
+                    contentDescription = stringResource(R.string.about_cd_app_icon),
                     modifier = Modifier.size(96.dp),
                     tint = Color.Unspecified
                 )
@@ -86,7 +86,7 @@ fun AboutScreen(
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
             Text(
-                text = "Version $versionName",
+                text = stringResource(R.string.version_format, versionName),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
@@ -113,28 +113,28 @@ fun AboutScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Author",
+                text = stringResource(R.string.about_author),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
             )
             Text(
-                text = "Arman Maurya",
+                text = stringResource(R.string.about_author_name),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 TvIconLinkButton(
                     icon = R.drawable.ic_linkedin,
-                    label = "LinkedIn",
+                    label = stringResource(R.string.about_cd_linkedin),
                     onClick = { openUrl("https://www.linkedin.com/in/arman-maurya-2391aa263/") }
                 )
                 TvIconLinkButton(
                     icon = R.drawable.ic_github,
-                    label = "GitHub",
+                    label = stringResource(R.string.about_cd_github),
                     onClick = { openUrl("https://github.com/armanmaurya") }
                 )
                 TvIconLinkButton(
                     icon = R.drawable.ic_instagram,
-                    label = "Instagram",
+                    label = stringResource(R.string.about_cd_instagram),
                     onClick = { openUrl("https://www.instagram.com/param.cs/") }
                 )
             }
@@ -153,11 +153,11 @@ fun AboutScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Contributors",
+                text = stringResource(R.string.about_contributors),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
             )
             Text(
-                text = "Internet Radio is in its early days. Contributions are welcome 💡",
+                text = stringResource(R.string.about_contribute_msg),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)

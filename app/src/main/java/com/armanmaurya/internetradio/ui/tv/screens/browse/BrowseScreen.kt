@@ -26,8 +26,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,6 +41,8 @@ import androidx.tv.material3.Text
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.ui.tv.components.StationCard
+import com.armanmaurya.internetradio.ui.tv.components.TvSelectionDialog
+import com.armanmaurya.internetradio.ui.tv.components.TvSelectionOption
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 
@@ -78,7 +78,13 @@ fun BrowseScreen(
 
         if (uiState.stations.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(if (uiState.isLoading) "Loading..." else "No stations found")
+                when {
+                    uiState.isLoading -> androidx.compose.material3.CircularProgressIndicator()
+                    uiState.searchQuery.isNotBlank() -> Text(
+                        text = stringResource(R.string.home_no_stations_found_for, uiState.searchQuery),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             LazyVerticalGrid(
@@ -124,33 +130,31 @@ fun BrowseScreen(
                                     modifier = Modifier.padding(start = 6.dp).size(18.dp)
                                 )
                             }
-                            DropdownMenu(
-                                expanded = orderExpanded,
-                                onDismissRequest = { orderExpanded = false }
-                            ) {
-                                orderOptions.forEach { (value, label) ->
-                                    DropdownMenuItem(
-                                        text = { androidx.compose.material3.Text(label) },
-                                        onClick = {
-                                            if (uiState.order == value) {
-                                                viewModel.onReverseChange(!uiState.reverse)
-                                            } else {
-                                                viewModel.onOrderChange(value)
-                                            }
-                                            orderExpanded = false
-                                        },
-                                        trailingIcon = {
-                                            if (uiState.order == value) {
-                                                androidx.compose.material3.Icon(
-                                                    imageVector = if (uiState.reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                                    contentDescription = if (uiState.reverse) "Descending" else "Ascending",
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
+                            if (orderExpanded) {
+                                TvSelectionDialog(
+                                    title = stringResource(R.string.library_cd_sort_options),
+                                    options = orderOptions.map { (value, label) ->
+                                        val isCurrent = uiState.order == value
+                                        TvSelectionOption(
+                                            label = label,
+                                            selected = isCurrent,
+                                            // Picking the current order again flips the direction.
+                                            onClick = {
+                                                if (isCurrent) viewModel.onReverseChange(!uiState.reverse)
+                                                else viewModel.onOrderChange(value)
+                                            },
+                                            trailing = if (isCurrent) {
+                                                {
+                                                    Icon(
+                                                        imageVector = if (uiState.reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                                        contentDescription = stringResource(if (uiState.reverse) R.string.home_cd_descending else R.string.home_cd_ascending)
+                                                    )
+                                                }
+                                            } else null
+                                        )
+                                    },
+                                    onDismiss = { orderExpanded = false }
+                                )
                             }
                         }
                     }

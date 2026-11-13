@@ -146,8 +146,8 @@ dependencies {
     implementation(libs.androidx.media3.datasource.okhttp)
     implementation(libs.androidx.car.app)
 
-    implementation(libs.androidx.tv.foundation)
     implementation(libs.androidx.tv.material)
+    implementation(libs.snakeyaml.engine)
 
     implementation(libs.calvin.reorderable)
 
