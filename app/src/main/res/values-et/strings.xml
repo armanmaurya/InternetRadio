@@ -520,4 +520,8 @@
     <string name="settings_time_format_24_hour">24-tunnine</string>
     <string name="settings_color_dynamic">Dünaamilised värvid</string>
     <string name="settings_color_monochrome">Mustvalge</string>
+    <string name="cd_preview">Eelvaade</string>
+    <string name="settings_tv_screensaver">Ekraanisäästja</string>
+    <string name="library_cd_lock_reordering">Lukusta muudetud järjestus</string>
+    <string name="library_cd_unlock_reordering">Ava muudetud järjestuse lukustus</string>
 </resources>
