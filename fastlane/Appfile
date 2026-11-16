@@ -1,0 +1,5 @@
+# Path to the Google Play service account JSON key.
+# CI writes it from the PLAY_SERVICE_ACCOUNT_JSON secret; never commit the key.
+json_key_file(ENV["PLAY_JSON_KEY_PATH"])
+
+package_name("com.armanmaurya.internetradio")

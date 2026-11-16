@@ -19,3 +19,10 @@ app/foss
 app/play
 /.idea
 /.kotlin
+*.jks
+*.keystore
+fastlane/report.xml
+fastlane/*.json
+vendor/bundle
+.bundle
+

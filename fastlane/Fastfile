@@ -1,0 +1,21 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload the play AAB to production as a draft."
+  desc "'What's new' comes from metadata/android/<locale>/changelogs/<versionCode>.txt."
+  desc "Store listing text and graphics are not touched."
+  lane :play do
+    upload_to_play_store(
+      track: "production",
+      release_status: "draft",
+      aab: ENV.fetch("AAB_PATH"),
+      mapping: ENV.fetch("MAPPING_PATH"),
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_changelogs: false,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
