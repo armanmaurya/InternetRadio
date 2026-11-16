@@ -460,4 +460,141 @@
     <string name="widget_configure_preview">लाइव पूर्वावलोकन</string>
     <string name="widget_configure_presets">प्रीसेट</string>
     <string name="settings_widget_appearance_title">विजेट की दिखावट</string>
+
+    <!-- Missing translations added -->
+    <string name="cd_preview">पूर्वावलोकन</string>
+    <string name="settings_color_dynamic">डायनामिक</string>
+    <string name="settings_color_monochrome">मोनो</string>
+    <string name="settings_tv_screensaver">स्क्रीनसेवर</string>
+    <string name="settings_enable_volume_boost" formatted="false">वॉल्यूम बूस्ट (200% तक)</string>
+    <string name="settings_volume_boost_warning_title">वॉल्यूम बूस्ट चालू करें?</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">वॉल्यूम को 100% से ऊपर बढ़ाने पर सॉफ़्टवेयर गेन (200% तक) लागू होता है। इससे आवाज़ बिगड़ सकती है, क्लिपिंग हो सकती है, और संवेदनशील सुनने की क्षमता या ऑडियो उपकरणों को नुकसान पहुँच सकता है। अपने जोखिम पर उपयोग करें।</string>
+    <string name="settings_volume_boost_warning_confirm">चालू करें</string>
+    <string name="settings_auto_sync_title">ऑटो सिंक</string>
+    <string name="settings_auto_sync_subtitle">अपनी लाइब्रेरी को सिंक में रखें</string>
+    <string name="settings_sync_status_syncing">सिंक हो रहा है…</string>
+    <string name="settings_sync_status_success">पिछला सिंक: %1$s</string>
+    <string name="settings_sync_status_failed">सिंक विफल: %1$s</string>
+    <string name="settings_sync_status_no_folder">सिंक शुरू करने के लिए एक फ़ोल्डर चुनें</string>
+    <string name="settings_sync_status_never">अभी तक सिंक नहीं हुआ</string>
+    <string name="settings_folder_title">फ़ोल्डर</string>
+    <string name="settings_folder_select">एक फ़ोल्डर चुनें (जैसे Google Drive)</string>
+    <string name="settings_folder_selected">चुना गया फ़ोल्डर: %1$s</string>
+    <string name="settings_folder_error">फ़ोल्डर चुनने में विफल: %1$s</string>
+    <string name="settings_folder_cleared">फ़ोल्डर डिस्कनेक्ट किया गया</string>
+    <string name="settings_clear_folder">फ़ोल्डर डिस्कनेक्ट करें</string>
+    <string name="settings_sync_now">अभी सिंक करें</string>
+    <string name="settings_malformed_backup_title">बैकअप फ़ाइल खराब है</string>
+    <string name="settings_malformed_backup_desc">चुने गए फ़ोल्डर में बैकअप फ़ाइल (stations.json) खराब है या उसमें अमान्य डेटा है। आप आगे क्या करना चाहेंगे?</string>
+    <string name="settings_malformed_backup_overwrite">मौजूदा लाइब्रेरी से बदलें</string>
+    <plurals name="settings_malformed_backup_overwrite_desc">
+        <item quantity="one">खराब फ़ाइल को अपने %1$d लोकल स्टेशन से बदलें</item>
+        <item quantity="other">खराब फ़ाइल को अपने %1$d लोकल स्टेशनों से बदलें</item>
+    </plurals>
+    <string name="settings_malformed_backup_choose_folder">दूसरा फ़ोल्डर चुनें</string>
+    <string name="settings_malformed_backup_choose_folder_desc">कोई अलग फ़ोल्डर या बैकअप स्थान चुनें</string>
+    <string name="settings_malformed_backup_cancel">फ़ाइल को जैसा है वैसा रहने दें</string>
+    <string name="settings_malformed_backup_overwritten">बैकअप को मौजूदा लाइब्रेरी से बदल दिया गया</string>
+    <plurals name="settings_sync_backup_created">
+        <item quantity="one">बैकअप बनाया गया: %1$d स्टेशन सहेजा गया</item>
+        <item quantity="other">बैकअप बनाया गया: %1$d स्टेशन सहेजे गए</item>
+    </plurals>
+    <plurals name="settings_sync_restored">
+        <item quantity="one">बैकअप से %1$d स्टेशन रिस्टोर किया गया</item>
+        <item quantity="other">बैकअप से %1$d स्टेशन रिस्टोर किए गए</item>
+    </plurals>
+    <string name="settings_sync_up_to_date">सिंक पूरा: लाइब्रेरी अप-टू-डेट है</string>
+    <plurals name="settings_sync_success_merged">
+        <item quantity="one">सिंक पूरा: %1$d स्टेशन रिस्टोर/अपडेट किया गया</item>
+        <item quantity="other">सिंक पूरा: %1$d स्टेशन रिस्टोर/अपडेट किए गए</item>
+    </plurals>
+    <string name="settings_backup_error_no_folder">कोई बैकअप फ़ोल्डर सेट नहीं है</string>
+    <string name="settings_backup_error_permission_revoked">स्टोरेज अनुमति वापस ले ली गई है। कृपया बैकअप फ़ोल्डर फिर से चुनें।</string>
+    <string name="settings_backup_error_folder_deleted">बैकअप फ़ोल्डर अब मौजूद नहीं है। कृपया फ़ोल्डर फिर से चुनें।</string>
+    <string name="settings_backup_error_cannot_write">चुने गए बैकअप फ़ोल्डर में लिखा नहीं जा सकता। अनुमति अस्वीकृत।</string>
+    <string name="settings_backup_error_create_file">बैकअप फ़ोल्डर में %1$s नहीं बनाई जा सकी</string>
+    <string name="settings_backup_error_open_write">%1$s को लिखने के लिए नहीं खोला जा सका</string>
+    <string name="settings_backup_error_file_not_found">बैकअप फ़ोल्डर में %1$s नहीं मिली</string>
+    <string name="settings_backup_error_open_read">%1$s को पढ़ने के लिए नहीं खोला जा सका</string>
+    <string name="settings_backup_error_file_empty">%1$s खाली है</string>
+    <string name="settings_backup_error_corrupted_json">बैकअप फ़ाइल (%1$s) खराब है या उसमें अमान्य JSON है</string>
+    <string name="settings_backup_error_no_stations">%1$s में कोई स्टेशन नहीं है या उसका फ़ॉर्मेट अमान्य है</string>
+    <string name="settings_backup_error_invalid_stations">बैकअप फ़ाइल में अमान्य स्टेशन प्रविष्टियाँ हैं</string>
+    <string name="settings_backup_error_read">%1$s को पढ़ा नहीं जा सका</string>
+    <string name="settings_backup_error_permission_denied">स्टोरेज अनुमति अस्वीकृत</string>
+    <string name="settings_backup_error_not_found">फ़ोल्डर या बैकअप फ़ाइल नहीं मिली</string>
+    <string name="settings_backup_error_io">स्टोरेज पढ़ने/लिखने में त्रुटि</string>
+    <string name="settings_recording_section">रिकॉर्डिंग</string>
+    <string name="settings_recording_time_format_title">फ़ाइल नामों में समय का फ़ॉर्मेट</string>
+    <string name="settings_time_format_12_hour">12-घंटे</string>
+    <string name="settings_time_format_24_hour">24-घंटे</string>
+    <string name="settings_community_section">कम्युनिटी</string>
+    <string name="settings_community_telegram_title">Telegram कम्युनिटी</string>
+    <string name="settings_community_telegram_desc">चर्चाओं में शामिल हों, अपडेट पाएँ और स्टेशन शेयर करें</string>
+    <string name="settings_community_reddit_title">Reddit कम्युनिटी</string>
+    <string name="settings_community_reddit_desc">r/InternetRadioFolks से जुड़ें</string>
+    <string name="about_cd_telegram">Telegram</string>
+    <string name="about_cd_reddit">Reddit</string>
+    <string name="library_remove_title">%1$s को लाइब्रेरी से हटाएँ?</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="one">इस स्टेशन का %1$d शेड्यूल है। वह भी हटा दिया जाएगा।</item>
+        <item quantity="other">इस स्टेशन के %1$d शेड्यूल हैं। वे भी हटा दिए जाएँगे।</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">जब तक आप स्टेशन को फिर से नहीं जोड़ते, इसका होम स्क्रीन शॉर्टकट काम नहीं करेगा।</string>
+    <string name="library_remove_confirm">हटाएँ</string>
+    <string name="action_shortcut_added">शॉर्टकट जोड़ा गया</string>
+    <string name="shortcut_disabled_station_removed">स्टेशन लाइब्रेरी से हटा दिया गया</string>
+    <string name="shortcut_station_not_in_library">यह स्टेशन अब आपकी लाइब्रेरी में नहीं है</string>
+    <string name="library_cd_lock_reordering">क्रम बदलना लॉक करें</string>
+    <string name="library_cd_unlock_reordering">क्रम बदलना अनलॉक करें</string>
+    <string name="player_saved_songs">सहेजे गए</string>
+    <string name="player_station_history">इतिहास</string>
+    <string name="player_cd_star_track">ट्रैक सहेजें</string>
+    <string name="player_cd_unstar_track">सहेजा गया ट्रैक हटाएँ</string>
+    <string name="player_track_saved">ट्रैक में सहेजा गया</string>
+    <string name="player_track_removed">सहेजे गए ट्रैक से हटाया गया</string>
+    <string name="schedule_delete_title">शेड्यूल हटाएँ</string>
+    <string name="schedule_delete_confirmation">क्या आप वाकई इस शेड्यूल को हटाना चाहते हैं?</string>
+    <string name="settings_recent_limit">हाल के स्टेशनों की सीमा</string>
+    <string name="settings_number_of_stations">स्टेशनों की संख्या</string>
+    <plurals name="stations_count">
+        <item quantity="one">%1$d स्टेशन</item>
+        <item quantity="other">%1$d स्टेशन</item>
+    </plurals>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d मिनट</item>
+        <item quantity="other">%1$d मिनट</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="one">%1$d गाना</item>
+        <item quantity="other">%1$d गाने</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$d घं %2$d मि</string>
+    <string name="player_session_duration_m">%1$d मि</string>
+    <string name="player_session_gap_minutes">%1$d मि का अंतराल</string>
+    <string name="player_session_gap_hours">%1$d घं का अंतराल</string>
+    <string name="player_session_gap_days">%1$d दिन का अंतराल</string>
+    <string name="player_session_today">आज</string>
+    <string name="player_session_yesterday">कल</string>
+    <string name="recording_reconnecting">फिर से कनेक्ट हो रहा है…</string>
+    <string name="recording_notification_reconnecting">कनेक्शन टूट गया, पुनः प्रयास हो रहा है… • %1$s</string>
+    <string name="shortcut_not_supported">लॉन्चर पिन किए गए शॉर्टकट को सपोर्ट नहीं करता</string>
+    <string name="recording_playback_channel_name">रिकॉर्डिंग प्लेबैक</string>
+    <string name="recording_playback_channel_description">रिकॉर्ड किया गया ऑडियो चलाने की सूचनाएँ</string>
+    <string name="recording_now_playing">रिकॉर्डिंग चल रही है</string>
+    <string name="recording_cd_go_to_recording">मूल रिकॉर्डिंग पर जाएँ</string>
+    <string name="recording_cd_stop_playback">प्लेबैक रोकें</string>
+    <string name="recording_speed">प्लेबैक स्पीड</string>
+    <string name="recording_speed_normal">1.0x (सामान्य)</string>
+    <string name="recording_cd_loop_enabled">अनंत लूप बंद करें</string>
+    <string name="recording_cd_loop_disabled">अनंत लूप चालू करें</string>
+    <string name="recording_add_note">नोट जोड़ें</string>
+    <string name="recording_edit_note">नोट संपादित करें</string>
+    <string name="recording_note_placeholder">एक नोट जोड़ें…</string>
+    <string name="recording_save_note">नोट सहेजें</string>
+    <string name="recording_cancel_note">रद्द करें</string>
+    <string name="recording_folder_access_title">फ़ोल्डर एक्सेस आवश्यक है</string>
+    <string name="recording_folder_access_message">Music/InternetRadio तक एक्सेस दें, ताकि ट्रैक सूचियाँ और नोट्स आपकी रिकॉर्डिंग के साथ रखे जा सकें और आपकी पुरानी रिकॉर्डिंग दिखाई जा सकें।</string>
+    <string name="recording_folder_access_grant">एक्सेस दें</string>
+    <string name="recording_folder_access_wrong_folder">कृपया Music/InternetRadio फ़ोल्डर चुनें</string>
 </resources>
