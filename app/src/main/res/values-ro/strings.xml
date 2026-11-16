@@ -536,4 +536,8 @@
     <string name="settings_time_format_24_hour">24 de ore</string>
     <string name="settings_color_dynamic">Dinamic</string>
     <string name="settings_color_monochrome">Mono</string>
+    <string name="cd_preview">Previzualizare</string>
+    <string name="settings_tv_screensaver">Economizor de ecran</string>
+    <string name="library_cd_lock_reordering">Blocare reordonare</string>
+    <string name="library_cd_unlock_reordering">Deblocare reordonare</string>
 </resources>
