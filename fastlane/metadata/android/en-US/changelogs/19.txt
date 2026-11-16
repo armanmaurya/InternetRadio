@@ -1,0 +1,29 @@
+### What's New
+
+- Timeline view for track history.
+- Starred tracks in station track history.
+- Recording sidecars are now stored next to the recordings, and older recordings can be imported through folder access.
+- Recording folders now show the station logo.
+- Recording file names use the schedule name for scheduled recordings (#230).
+- New setting for the time format used in recording file names (#227).
+- Loading indicator on the recordings tab.
+- The search bar's hidden state is remembered across app restarts.
+- Volume boost is now opt-in, with a safety warning before it's turned on.
+
+### Improvements & Fixes
+
+- Fixed playlist stream URLs not resolving.
+- Fixed player controls becoming unresponsive when the player was expanded with the keyboard open (#221).
+- Fixed playback stopping when opening the app after playback was started from a cold start.
+- In-app volume now persists across station changes until playback stops.
+- Fixed stations overriding in library.
+
+### Thank You
+
+Special thanks to everyone who reported bugs, suggested new features, contributed translations, and tested the latest builds. Your feedback continues to make Internet Radio better with each release.
+
+Thanks to:
+
+- @ghvxx43696: for suggesting schedule names in recording file names (#230) and reporting the recording time format issue (#227).
+- @AndroidSuggest: for reporting the unresponsive player controls with the keyboard open (#221)
+- All the translators on Weblate for keeping the app localized in multiple languages, and a warm welcome to our new Spanish translation!

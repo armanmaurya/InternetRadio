@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Validate tag, version and changelog
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          VERSION_NAME=$(grep -m1 -oP 'versionName = "\K[0-9][^"]*' app/build.gradle.kts)
+          VERSION_CODE=$(grep -m1 -oP 'versionCode = \K[0-9]+' app/build.gradle.kts)
+          CHANGELOG="fastlane/metadata/android/en-US/changelogs/${VERSION_CODE}.txt"
+
+          echo "Tag:          $TAG"
+          echo "versionName:  $VERSION_NAME"
+          echo "versionCode:  $VERSION_CODE"
+
+          if [ "$TAG" != "v${VERSION_NAME}" ]; then
+            echo "::error::Tag '$TAG' does not match versionName 'v${VERSION_NAME}' in app/build.gradle.kts"
+            exit 1
+          fi
+          if [ ! -s "$CHANGELOG" ]; then
+            echo "::error::Missing or empty changelog: $CHANGELOG"
+            exit 1
+          fi
+
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "CHANGELOG=$CHANGELOG" >> "$GITHUB_ENV"
+
+      - name: Decode release keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "::error::Secret RELEASE_KEYSTORE_BASE64 is not set"
+            exit 1
+          fi
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -di > "$RUNNER_TEMP/release.jks"
+          echo "RELEASE_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        env:
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew assembleFossRelease
+
+      - name: Verify signature and rename APK
+        run: |
+          set -euo pipefail
+          APK=$(ls app/build/outputs/apk/foss/release/*.apk | head -n1)
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n1)apksigner
+
+          CERTS=$("$APKSIGNER" verify --print-certs "$APK")
+          echo "$CERTS"
+          # SHA-256 of the release key (radio-app-signing.jks / radio-signing),
+          # same cert as previous GitHub releases so users can update in place.
+          EXPECTED_SHA256="cea0d7863936fda44846d3701f47076ee5b0c7fef337712d1785a98795fbba95"
+          if ! echo "$CERTS" | grep -q "certificate SHA-256 digest: $EXPECTED_SHA256"; then
+            echo "::error::APK is not signed with the expected release key"
+            exit 1
+          fi
+
+          OUT="internetradio-v${VERSION_NAME}.apk"
+          mv "$APK" "$OUT"
+          echo "APK_PATH=$OUT" >> "$GITHUB_ENV"
+
+      - name: Create draft GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NOTES="$CHANGELOG"
+
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists; updating notes and asset."
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --notes-file "$NOTES"
+            gh release upload "$GITHUB_REF_NAME" "$APK_PATH" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$APK_PATH" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file "$NOTES"
+          fi
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
