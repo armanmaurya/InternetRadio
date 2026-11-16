@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ========================================== -->
+    <!-- 1. APP DEFINITION                          -->
+    <!-- ========================================== -->
+    <string name="app_name">Internet Radio</string>
+    <string name="version_format">版本 %1$s</string>
+
+    <!-- ========================================== -->
+    <!-- 2. GENERAL ACTIONS                         -->
+    <!-- ========================================== -->
+    <string name="general_search">搜索</string>
+    <string name="general_clear">清除</string>
+    <string name="general_later">稍后</string>
+    <string name="general_update_now">立即更新</string>
+    <string name="general_cancel">取消</string>
+    <string name="general_ok">确定</string>
+    <string name="general_reset">重置</string>
+    <string name="general_discard">放弃</string>
+    <string name="general_save">保存</string>
+    <string name="general_add">添加</string>
+    <string name="cd_back">返回</string>
+    <string name="cd_preview">预览</string>
+    <string name="cd_close_search">关闭搜索</string>
+    <string name="cd_search">搜索</string>
+    <string name="cd_clear_search">清除搜索</string>
+    <string name="cd_delete">删除</string>
+
+    <!-- ========================================== -->
+    <!-- 3. GENERAL LABELS                          -->
+    <!-- ========================================== -->
+    <string name="general_name">名称</string>
+    <string name="general_hours">小时</string>
+    <string name="general_minutes">分钟</string>
+    <string name="general_unknown">未知</string>
+    <string name="general_station_count_msg">%1$d 个电台</string>
+    <string name="general_no_recordings">暂无录音</string>
+
+    <!-- ========================================== -->
+    <!-- 4. ERRORS                                  -->
+    <!-- ========================================== -->
+    <string name="error_unknown">未知错误</string>
+    <string name="error_something_went_wrong">出了点问题，请重试。</string>
+    <string name="error_station_not_found">未找到电台</string>
+    <string name="error_invalid_url">无效的 URL</string>
+    <string name="error_cannot_open_website">无法打开网站</string>
+    <string name="error_cannot_open_url">无法打开 URL</string>
+
+    <!-- ========================================== -->
+    <!-- 5. SETTINGS                                -->
+    <!-- ========================================== -->
+    <string name="settings_title">设置</string>
+    <string name="settings_appearance_section">外观</string>
+    <string name="settings_theme_title">主题</string>
+    <string name="settings_theme_light">浅色</string>
+    <string name="settings_theme_dark">深色</string>
+    <string name="settings_color_dynamic">动态</string>
+    <string name="settings_color_monochrome">单色</string>
+    <string name="settings_color_purple">紫色</string>
+    <string name="settings_color_blue">蓝色</string>
+    <string name="settings_color_teal">青色</string>
+    <string name="settings_color_green">绿色</string>
+    <string name="settings_color_yellow">黄色</string>
+    <string name="settings_color_pink">粉色</string>
+    <string name="settings_color_red">红色</string>
+    <string name="settings_color_custom">自定义</string>
+    <string name="settings_custom_color_title">自定义颜色</string>
+    <string name="settings_custom_color_apply">应用</string>
+    <string name="settings_custom_color_cancel">取消</string>
+    <string name="settings_show_station_thumbnails">显示电台缩略图</string>
+    <string name="settings_show_station_thumbnails_desc">在列表和播放器中显示电台图标</string>
+    <string name="settings_general_section">常规</string>
+    <string name="settings_language_title">语言</string>
+    <string name="settings_auto_route_search_title">搜索时自动跳转</string>
+    <string name="settings_auto_route_search_subtitle">搜索时自动切换到“浏览”标签页</string>
+    <string name="settings_update_section">更新</string>
+    <string name="settings_disable_update_check">停用更新检查</string>
+    <string name="settings_disable_update_check_desc">启动时不自动检查应用更新</string>
+    <string name="settings_auto_play">启动时自动播放</string>
+    <string name="settings_auto_play_desc">应用启动时播放上次收听的电台</string>
+    <string name="settings_tv_screensaver">屏幕保护程序</string>
+    <string name="settings_about_foss_edition">FOSS 版</string>
+    <string name="settings_about_play_edition">Google Play 版</string>
+    <string name="settings_update_up_to_date">应用已是最新版本</string>
+    <string name="settings_update_failed">检查更新失败</string>
+    <string name="settings_support_app">支持本应用</string>
+    <string name="settings_default_tab">启动时的默认标签页</string>
+    <string name="settings_player_section">播放器</string>
+    <string name="settings_stop_on_audio_noisy">设备断开时暂停</string>
+    <string name="settings_stop_on_audio_noisy_desc">蓝牙或有线耳机断开连接时暂停播放</string>
+    <string name="settings_pause_on_volume_zero">音量为零时暂停</string>
+    <string name="settings_pause_on_volume_zero_desc">设备静音时暂停播放</string>
+    <string name="settings_enable_volume_boost" formatted="false">音量增强（最高 200%）</string>
+    <string name="settings_volume_boost_warning_title">启用音量增强？</string>
+    <string name="settings_volume_boost_warning_desc" formatted="false">将音量放大到 100% 以上会使用软件增益（最高 200%）。这可能导致音频失真、削波，并可能损伤听力或音频设备。使用风险自负。</string>
+    <string name="settings_volume_boost_warning_confirm">启用</string>
+    <string name="settings_keep_screen_on_title">保持屏幕常亮</string>
+    <string name="settings_keep_screen_on_desc">播放器展开时保持屏幕常亮</string>
+    <string name="settings_show_cover_art">通知中显示封面</string>
+    <string name="settings_show_cover_art_desc">在锁屏和通知中显示曲目封面，而不是电台缩略图</string>
+    <string name="settings_max_retry_duration">最长重试时间</string>
+    <string name="settings_retry_1_min">1 分钟</string>
+    <string name="settings_retry_5_min">5 分钟</string>
+    <string name="settings_retry_15_min">15 分钟</string>
+    <string name="settings_retry_30_min">30 分钟</string>
+    <string name="settings_retry_indefinitely">无限期</string>
+    <string name="settings_check_updates">检查更新</string>
+    <string name="settings_rate_review">评分和评价</string>
+    <string name="settings_view_on_play_store">在 Play 商店中查看</string>
+    <string name="settings_track_history_limit">曲目历史记录上限</string>
+    <string name="settings_widget_section">小部件</string>
+    <string name="settings_widget_transparency_title">背景不透明度</string>
+    <string name="settings_widget_transparency_subtitle">调整主屏幕小部件的背景不透明度</string>
+    <string name="settings_widget_opacity_opaque">100%（不透明）</string>
+    <string name="settings_widget_opacity_transparent">0%（透明）</string>
+    <string name="settings_widget_opacity_percent">%1$d%%</string>
+    <string name="settings_system_default">跟随系统</string>
+    <string name="settings_start_week_title">每周起始日</string>
+    <string name="settings_start_week_sunday">星期日</string>
+    <string name="settings_start_week_monday">星期一</string>
+    <string name="settings_start_week_friday">星期五</string>
+    <string name="settings_start_week_saturday">星期六</string>
+    <string name="settings_number_of_tracks">曲目数量</string>
+    <string name="settings_checking_for_updates">正在检查更新…</string>
+    <string name="settings_no_update_available">没有可用的更新</string>
+    <string name="settings_theme_system">跟随系统</string>
+
+    <!-- ========================================== -->
+    <string name="settings_backup_section">备份与恢复</string>
+    <string name="settings_auto_sync_title">自动同步</string>
+    <string name="settings_auto_sync_subtitle">让您的收藏库保持同步</string>
+    <string name="settings_sync_status_syncing">正在同步…</string>
+    <string name="settings_sync_status_success">上次同步：%1$s</string>
+    <string name="settings_sync_status_failed">同步失败：%1$s</string>
+    <string name="settings_sync_status_no_folder">选择一个文件夹以开始同步</string>
+    <string name="settings_sync_status_never">尚未同步</string>
+    <string name="settings_folder_title">文件夹</string>
+    <string name="settings_folder_select">选择文件夹（例如 Google 云端硬盘）</string>
+    <string name="settings_folder_selected">已选文件夹：%1$s</string>
+    <string name="settings_folder_error">选择文件夹失败：%1$s</string>
+    <string name="settings_folder_cleared">已断开文件夹</string>
+    <string name="settings_clear_folder">断开文件夹</string>
+    <string name="settings_sync_now">立即同步</string>
+    <string name="settings_malformed_backup_title">备份文件已损坏</string>
+    <string name="settings_malformed_backup_desc">所选文件夹中的备份文件 (stations.json) 已损坏或包含无效数据。您想如何处理？</string>
+    <string name="settings_malformed_backup_overwrite">用当前收藏库覆盖</string>
+    <plurals name="settings_malformed_backup_overwrite_desc">
+        <item quantity="other">用本地的 %1$d 个电台替换损坏的文件</item>
+    </plurals>
+    <string name="settings_malformed_backup_choose_folder">选择其他文件夹</string>
+    <string name="settings_malformed_backup_choose_folder_desc">选择其他文件夹或备份位置</string>
+    <string name="settings_malformed_backup_cancel">保持文件不变</string>
+    <string name="settings_malformed_backup_overwritten">已用当前收藏库替换备份</string>
+    <plurals name="settings_sync_backup_created">
+        <item quantity="other">已创建备份：保存了 %1$d 个电台</item>
+    </plurals>
+    <plurals name="settings_sync_restored">
+        <item quantity="other">已从备份恢复 %1$d 个电台</item>
+    </plurals>
+    <string name="settings_sync_up_to_date">同步完成：收藏库已是最新</string>
+    <plurals name="settings_sync_success_merged">
+        <item quantity="other">同步完成：已恢复/更新 %1$d 个电台</item>
+    </plurals>
+    <string name="settings_backup_error_no_folder">未设置备份文件夹</string>
+    <string name="settings_backup_error_permission_revoked">存储权限已被撤销。请重新选择备份文件夹。</string>
+    <string name="settings_backup_error_folder_deleted">备份文件夹已不存在。请重新选择文件夹。</string>
+    <string name="settings_backup_error_cannot_write">无法写入所选备份文件夹。权限被拒绝。</string>
+    <string name="settings_backup_error_create_file">无法在备份文件夹中创建 %1$s</string>
+    <string name="settings_backup_error_open_write">无法打开 %1$s 进行写入</string>
+    <string name="settings_backup_error_file_not_found">在备份文件夹中未找到 %1$s</string>
+    <string name="settings_backup_error_open_read">无法打开 %1$s 进行读取</string>
+    <string name="settings_backup_error_file_empty">%1$s 为空</string>
+    <string name="settings_backup_error_corrupted_json">备份文件 (%1$s) 已损坏或包含无效的 JSON</string>
+    <string name="settings_backup_error_no_stations">%1$s 不包含任何电台或格式无效</string>
+    <string name="settings_backup_error_invalid_stations">备份文件包含无效的电台条目</string>
+    <string name="settings_backup_error_read">无法读取 %1$s</string>
+    <string name="settings_backup_error_permission_denied">存储权限被拒绝</string>
+    <string name="settings_backup_error_not_found">未找到文件夹或备份文件</string>
+    <string name="settings_backup_error_io">存储读写错误</string>
+    <string name="settings_conflict_title">发生冲突时</string>
+    <string name="settings_conflict_skip">跳过已有项</string>
+    <string name="settings_conflict_skip_desc">保留您当前的版本</string>
+    <string name="settings_conflict_overwrite">覆盖已有项</string>
+    <string name="settings_conflict_overwrite_desc">始终使用备份中的版本</string>
+    <string name="settings_conflict_keep_newer">保留较新的</string>
+    <string name="settings_conflict_keep_newer_desc">保留最近添加的那一个</string>
+    <string name="settings_export_title">导出电台</string>
+    <string name="settings_export_subtitle">将您的电台保存到文件</string>
+    <string name="settings_exported_failed">导出失败：无法打开文件进行写入</string>
+    <string name="settings_exported_failed_exception">导出失败：%1$s</string>
+    <plurals name="settings_exported_success">
+        <item quantity="other">已成功导出 %1$d 个电台</item>
+    </plurals>
+    <string name="settings_gradual_volume">定时任务音量渐强</string>
+    <string name="settings_gradual_volume_disabled">关闭</string>
+    <string name="settings_gradual_volume_enabled">%1$s 淡入</string>
+    <plurals name="settings_gradual_volume_seconds">
+        <item quantity="other">%1$d 秒</item>
+    </plurals>
+    <string name="settings_import_title">导入电台</string>
+    <string name="settings_import_subtitle">从备份文件恢复电台</string>
+    <string name="settings_imported">已导入：%1$d</string>
+    <string name="settings_imported_empty">无变化 — 所有电台均已存在</string>
+    <plurals name="settings_imported_failed">
+        <item quantity="other">%1$d 个文件读取失败</item>
+    </plurals>
+    <string name="settings_imported_skipped">已跳过（已存在）：%1$d</string>
+    <string name="settings_imported_updated">已更新：%1$d</string>
+    <string name="settings_recording_section">录音</string>
+    <string name="settings_recording_time_format_title">文件名中的时间格式</string>
+    <string name="settings_time_format_12_hour">12 小时制</string>
+    <string name="settings_time_format_24_hour">24 小时制</string>
+    <string name="settings_schedule_section">定时任务</string>
+
+    <!-- Community Section -->
+    <string name="settings_community_section">社区</string>
+    <string name="settings_community_telegram_title">Telegram 社区</string>
+    <string name="settings_community_telegram_desc">参与讨论、获取更新并分享电台</string>
+    <string name="settings_community_reddit_title">Reddit 社区</string>
+    <string name="settings_community_reddit_desc">加入 r/InternetRadioFolks</string>
+    <string name="about_cd_telegram">Telegram</string>
+    <string name="about_cd_reddit">Reddit</string>
+
+    <!-- ========================================== -->
+    <!-- 6. ABOUT                                   -->
+    <!-- ========================================== -->
+    <string name="about_title">关于</string>
+    <string name="about_us">关于我们</string>
+    <string name="about_app_description">发现并收听世界各地的电台</string>
+    <string name="about_view_contributors">查看贡献者</string>
+    <string name="about_view_github">在 GitHub 上查看</string>
+    <string name="about_author">作者</string>
+    <string name="about_author_name">Arman Maurya</string>
+    <string name="about_contributors">贡献者</string>
+    <string name="about_contribute_msg">Internet Radio 尚处于早期阶段，欢迎贡献 💡</string>
+    <string name="about_cd_app_icon">应用图标</string>
+    <string name="about_cd_linkedin">LinkedIn</string>
+    <string name="about_cd_github">GitHub</string>
+    <string name="about_cd_instagram">Instagram</string>
+    <string name="about_support">支持</string>
+    <string name="about_github_sponsors">GitHub Sponsors</string>
+    <string name="about_buy_me_a_coffee">Buy Me a Coffee</string>
+    <string name="settings_donate_section">捐赠</string>
+    <string name="about_upi">UPI</string>
+    <string name="about_donate_via_upi">通过 UPI 捐赠</string>
+    <string name="about_upi_copied">已复制 UPI ID：%1$s</string>
+    <string name="about_cd_copy_upi">复制 UPI ID</string>
+
+    <!-- ========================================== -->
+    <!-- 7. HOME                                    -->
+    <!-- ========================================== -->
+    <string name="home_tab_browse">浏览</string>
+    <string name="home_tab_recent">最近</string>
+    <string name="home_tab_library">收藏库</string>
+    <string name="home_tab_recordings">录音</string>
+    <string name="home_tab_schedules">定时任务</string>
+    <string name="home_filters_active">筛选已启用</string>
+    <string name="home_use_filters">使用筛选</string>
+    <string name="home_cd_settings">设置</string>
+    <string name="home_votes">投票数</string>
+    <string name="home_clicks">点击数</string>
+    <string name="home_trend">趋势</string>
+    <string name="home_verified">已验证</string>
+    <string name="home_toggle_view">切换视图</string>
+    <string name="home_add_to_library">添加到收藏库</string>
+    <string name="home_remove_from_library">从收藏库中移除</string>
+    <string name="library_remove_title">要从收藏库中移除 %1$s 吗？</string>
+    <plurals name="library_remove_schedules_desc">
+        <item quantity="other">此电台有 %1$d 个定时任务，它们也将被删除。</item>
+    </plurals>
+    <string name="library_remove_shortcut_desc">在您重新添加此电台之前，它的主屏幕快捷方式将无法使用。</string>
+    <string name="library_remove_confirm">移除</string>
+    <string name="action_shortcut_added">已添加快捷方式</string>
+    <string name="shortcut_disabled_station_removed">电台已从收藏库中移除</string>
+    <string name="shortcut_station_not_in_library">此电台已不在您的收藏库中</string>
+    <string name="home_remove_from_recent">从最近中移除</string>
+    <string name="home_descending">降序</string>
+    <string name="home_ascending">升序</string>
+    <string name="home_cd_descending">降序</string>
+    <string name="home_cd_ascending">升序</string>
+    <string name="home_cd_select_tags">选择标签</string>
+    <string name="home_cd_select_language">选择语言</string>
+    <string name="home_cd_select_country">选择国家/地区</string>
+    <string name="home_cd_back_to_folders">返回文件夹</string>
+    <string name="home_cd_scroll_to_top">回到顶部</string>
+    <string name="home_cd_tags">标签</string>
+    <string name="home_cd_station_logo">%1$s 的图标</string>
+    <string name="home_cd_favorite">收藏</string>
+    <string name="home_cd_more_options">更多选项</string>
+    <string name="home_export_station">导出电台</string>
+    <string name="home_no_recent_stations_filtered">没有符合筛选条件的最近播放电台。</string>
+    <string name="home_no_recent_stations">没有最近播放的电台</string>
+    <string name="home_no_stations_found_for">未找到与“%1$s”相关的电台</string>
+    <string name="home_no_library_stations_filter">收藏库中没有符合筛选条件的电台</string>
+    <string name="home_no_library_stations_yet">收藏库中还没有电台</string>
+    <string name="home_clear_recent_title">清除最近记录？</string>
+    <string name="home_clear_recent_message">确定要清除所有最近播放的电台吗？此操作无法撤消。</string>
+    <string name="home_sort_played">播放时间</string>
+    <string name="home_sort_added">添加时间</string>
+    <string name="home_sort_name">名称</string>
+    <string name="home_sort_custom">自定义</string>
+    <string name="library_cd_sort_options">排序选项</string>
+    <string name="library_cd_sort_a_z">A-Z</string>
+    <string name="library_cd_sort_z_a">Z-A</string>
+    <string name="home_cd_in_library">已在收藏库中</string>
+    <string name="library_cd_lock_reordering">锁定排序</string>
+    <string name="library_cd_unlock_reordering">解锁排序</string>
+
+    <!-- ========================================== -->
+    <!-- 8. SELECT COUNTRY                          -->
+    <!-- ========================================== -->
+    <string name="select_country_search">搜索国家/地区</string>
+    <string name="select_country_title">选择国家/地区</string>
+    <string name="select_country_all">所有国家/地区</string>
+    <string name="select_country_search_states">搜索州/省…</string>
+    <string name="select_country_select_state_in">选择 %1$s 的州/省</string>
+    <string name="select_country_all_of">%1$s 全部</string>
+    <plurals name="select_country_states_count">
+        <item quantity="other">%1$d 个州/省</item>
+    </plurals>
+
+    <!-- ========================================== -->
+    <!-- 9. SELECT LANGUAGE                         -->
+    <!-- ========================================== -->
+    <string name="select_language_search">搜索语言</string>
+    <string name="select_language_title">选择语言</string>
+    <string name="select_language_all">所有语言</string>
+
+    <!-- ========================================== -->
+    <!-- 10. SELECT TAGS                            -->
+    <!-- ========================================== -->
+    <string name="select_tags_search">搜索标签</string>
+    <string name="select_tags_title">选择标签</string>
+    <string name="select_tags_cd_clear_all">全部清除</string>
+    <string name="select_tags_cd_apply">应用</string>
+    <string name="select_tags_cd_remove_tag">移除标签</string>
+    <string name="select_tags_discard_changes">放弃更改？</string>
+    <string name="select_tags_discard_changes_message">您有未保存的标签选择。确定要返回并放弃这些选择吗？</string>
+
+    <!-- ========================================== -->
+    <!-- 11. EDIT STATION                           -->
+    <!-- ========================================== -->
+    <string name="edit_station_add_station">添加电台</string>
+    <string name="edit_station_title">编辑电台</string>
+    <string name="edit_station_name_field">名称 *</string>
+    <string name="edit_station_stream_url_field">流媒体 URL *</string>
+    <string name="edit_station_favicon_url_optional">图标 URL（可选）</string>
+    <string name="edit_station_favicon_url_field">图标 URL</string>
+    <string name="edit_station_country_field">国家/地区（可选）</string>
+    <string name="edit_station_state_field">州/省/地区（可选）</string>
+    <string name="edit_station_language_field">语言（可选）</string>
+    <string name="edit_station_add_languages">添加语言（可选）</string>
+    <string name="edit_station_tags_optional">标签（可选）</string>
+    <string name="edit_station_add_tags">添加标签（可选）</string>
+    <string name="edit_station_failed_fetch_original_data">获取原始数据失败</string>
+    <string name="edit_station_unsaved_changes">未保存的更改</string>
+    <string name="edit_station_unsaved_changes_message_exit">您有未保存的更改。确定要放弃更改并退出吗？</string>
+    <string name="edit_station_reset_title">重置电台</string>
+    <string name="edit_station_reset_message">确定要将此电台重置为原始状态吗？这将放弃您的所有自定义编辑。</string>
+    <string name="edit_station_fields_reset_message">已重置为原始数据</string>
+    <string name="edit_station_overwrite_title">覆盖元数据？</string>
+    <string name="edit_station_overwrite_message">要用获取到的元数据替换当前的电台信息吗？</string>
+    <string name="edit_station_error_empty_url">流媒体 URL 不能为空</string>
+    <string name="edit_station_saved_message">已保存</string>
+    <string name="edit_station_cd_reset_to_original">重置为原始数据</string>
+    <string name="edit_station_similar_stations">相似电台</string>
+    <string name="edit_station_custom">自定义</string>
+    <string name="edit_station_error_empty_fields">必填字段不能为空</string>
+    <string name="edit_station_upload_save">上传并保存</string>
+    <string name="edit_station_upload_add">上传并添加</string>
+    <string name="edit_station_homepage_url_optional">主页 URL（可选）</string>
+    <string name="edit_station_create_tag">创建标签：“%1$s”</string>
+    <string name="edit_station_uploaded_successfully">电台上传成功</string>
+    <string name="edit_station_upload_failed">上传失败：%1$s</string>
+    <string name="edit_station_cd_toggle_save_mode">切换保存模式</string>
+    <string name="edit_station_cd_remove_language">移除语言</string>
+    <string name="edit_station_cd_remove_tag">移除标签</string>
+    <string name="edit_station_refresh_metadata">刷新元数据</string>
+
+    <!-- ========================================== -->
+    <!-- 12. PLAYER                                 -->
+    <!-- ========================================== -->
+    <string name="player_buffering">正在缓冲</string>
+    <string name="player_no_track_data">无曲目信息</string>
+    <string name="player_station_info">电台信息</string>
+    <string name="player_label_tags">标签</string>
+    <string name="player_label_website">网站</string>
+    <string name="player_sleep_timer_title">睡眠定时器</string>
+    <string name="player_turn_off_timer">关闭定时器</string>
+    <string name="player_set_sleep_timer">设置睡眠定时器</string>
+    <string name="player_start_button">开始</string>
+    <plurals name="player_timer_ends_in_msg">
+        <item quantity="other">定时器将在 %1$d 分钟后结束。</item>
+    </plurals>
+    <string name="player_timer_min">%1$d 分钟</string>
+    <string name="player_recording_saved">录音已保存！</string>
+    <string name="player_copied_track_to_clipboard">已将曲目复制到剪贴板</string>
+    <string name="player_copied_to_clipboard">已复制到剪贴板</string>
+    <string name="player_website_copied">已复制网站</string>
+    <string name="player_stream_url_copied">已复制流媒体 URL</string>
+    <string name="player_favicon_url_copied">已复制图标 URL</string>
+    <string name="player_station_codec_bitrate">%1$s • %2$s kbps</string>
+    <string name="player_station_bitrate_only">%1$s kbps</string>
+    <string name="unit_kbps">kbps</string>
+    <string name="player_cd_pause">暂停</string>
+    <string name="player_cd_play">播放</string>
+    <string name="player_cd_previous">上一个</string>
+    <string name="player_cd_next">下一个</string>
+    <string name="player_cd_toggle_favorite">切换收藏</string>
+    <string name="player_cd_collapse">收起</string>
+    <string name="player_cd_homepage">主页</string>
+    <string name="player_cd_record">录音</string>
+    <string name="player_cd_copy_track_name">复制曲目名称</string>
+    <string name="player_cd_search_youtube">在 YouTube 上搜索</string>
+    <string name="player_cd_search_spotify">在 Spotify 上搜索</string>
+    <string name="player_cd_search_google">在 Google 上搜索</string>
+    <string name="player_no_tracks_played">还没有播放过曲目</string>
+    <string name="player_tab_about">关于</string>
+    <string name="player_tab_about_stream_url">流媒体 URL</string>
+    <string name="player_tab_tracks">曲目</string>
+    <string name="player_retrying_in">%1$d 秒后重试…</string>
+    <string name="player_retrying_connection">正在重新连接…</string>
+    <string name="player_tab_lyrics">歌词</string>
+    <string name="player_original_stream_metadata">原始流元数据</string>
+    <string name="player_lyrics_not_available">暂无歌词</string>
+    <string name="player_cd_cast">投放</string>
+    <string name="player_cd_volume">音量</string>
+    <string name="player_volume_boost_label">增强</string>
+    <string name="player_cast_connected">已连接</string>
+    <string name="player_cd_delay_lyrics">延后歌词</string>
+    <string name="player_cd_fast_forward_lyrics">提前歌词</string>
+    <string name="player_saved_songs">已保存</string>
+    <string name="player_station_history">历史记录</string>
+    <string name="player_cd_star_track">保存曲目</string>
+    <string name="player_cd_unstar_track">移除已保存的曲目</string>
+    <string name="player_track_saved">已保存到曲目</string>
+    <string name="player_track_removed">已从保存的曲目中移除</string>
+
+    <!-- ========================================== -->
+    <!-- 13. CAST DIALOG                            -->
+    <!-- ========================================== -->
+    <string name="cast_connected_to">已连接到</string>
+    <string name="cast_to_device">投放到设备</string>
+    <string name="cast_available_devices">可用设备</string>
+    <string name="cast_no_devices_found">在网络中未找到设备。</string>
+    <string name="cast_disconnect">断开连接</string>
+    <string name="cast_close">关闭</string>
+
+    <string name="update_new_available">有新版本可用</string>
+    <string name="update_version_available">版本 %1$s 现已推出。</string>
+    <string name="export_success">已成功导出“%1$s”</string>
+    <string name="export_failed">导出失败：%1$s</string>
+
+    <string name="action_retry">重试</string>
+
+    <!-- ========================================== -->
+    <!-- 14. SCHEDULE                               -->
+    <!-- ========================================== -->
+    <string name="schedule_create">创建定时任务</string>
+    <string name="schedule_edit">编辑定时任务</string>
+    <string name="schedule_name_optional">定时任务名称（可选）</string>
+    <string name="schedule_select_station_title">选择电台</string>
+    <string name="schedule_search_library">搜索收藏库</string>
+    <string name="schedule_no_stations_library">收藏库中没有电台。</string>
+    <string name="schedule_no_matches_found">未找到匹配项。</string>
+    <string name="schedule_select_a_station">选择一个电台</string>
+    <string name="schedule_start_time">开始时间</string>
+    <string name="schedule_end_time">结束时间</string>
+    <string name="schedule_hold_to_clear">（长按清除）</string>
+    <string name="schedule_playback">播放</string>
+    <string name="schedule_record">录音</string>
+    <string name="schedule_keep_playback_after_recording">录音结束后继续播放</string>
+    <string name="schedule_deleted">定时任务已删除</string>
+    <string name="schedule_delete_title">删除定时任务</string>
+    <string name="schedule_delete_confirmation">确定要删除此定时任务吗？</string>
+    <string name="schedule_saved">定时任务已保存</string>
+    <string name="schedule_action_save">保存</string>
+    <string name="schedule_action_create">创建</string>
+    <string name="schedule_none">无</string>
+    <string name="schedule_listen_while_recording">录音时收听</string>
+    <string name="schedule_listen_while_recording_subtitle">后台录音时播放电台音频</string>
+    <string name="schedule_grant_exact_alarm_permission">请授予“闹钟和提醒”权限以使用定时任务</string>
+    <string name="schedule_indefinite">无限期</string>
+    <string name="schedule_once">一次</string>
+    <string name="schedule_station_logo_cd">电台图标</string>
+    <string name="schedule_no_schedules_yet">还没有定时任务，创建一个吧！</string>
+    <string name="schedule_add_schedule_cd">添加定时任务</string>
+    <string name="schedule_volume">音量：%1$d%%</string>
+    <string name="schedule_select_time">选择时间</string>
+    <string name="schedule_dismiss">关闭</string>
+    <string name="schedule_snooze">稍后提醒（10 分钟）</string>
+    <string name="schedule_alarm_channel_name">定时闹钟</string>
+    <string name="schedule_alarm_channel_description">定时电台闹钟的通知</string>
+    <string name="schedule_alarm_playing">闹钟正在播放</string>
+    <string name="delete_recording">删除</string>
+    <plurals name="delete_recordings_message">
+        <item quantity="other">确定要删除 %1$d 项吗？</item>
+    </plurals>
+    <string name="notification_recording">正在录音：%1$s</string>
+    <string name="notification_recording_duration">时长：%1$s</string>
+    <plurals name="recordings_count">
+        <item quantity="other">%1$d 个录音</item>
+    </plurals>
+    <string name="recordings_selected">已选择 %1$d 项</string>
+    <string name="settings_recent_limit">最近电台数量上限</string>
+    <string name="settings_number_of_stations">电台数量</string>
+    <plurals name="stations_count">
+        <item quantity="other">%1$d 个电台</item>
+    </plurals>
+    <plurals name="tracks_count">
+        <item quantity="other">%1$d 首曲目</item>
+    </plurals>
+    <plurals name="minutes_count">
+        <item quantity="other">%1$d 分钟</item>
+    </plurals>
+    <plurals name="player_session_songs_count">
+        <item quantity="other">%1$d 首歌曲</item>
+    </plurals>
+    <string name="player_session_duration_hm">%1$d 小时 %2$d 分钟</string>
+    <string name="player_session_duration_m">%1$d 分钟</string>
+    <string name="player_session_gap_minutes">间隔 %1$d 分钟</string>
+    <string name="player_session_gap_hours">间隔 %1$d 小时</string>
+    <string name="player_session_gap_days">间隔 %1$d 天</string>
+    <string name="player_session_today">今天</string>
+    <string name="player_session_yesterday">昨天</string>
+    <string name="schedule_keep_playback_subtitle">关闭后，录音结束时将停止播放</string>
+
+    <!-- ========================================== -->
+    <!-- 15. ANDROID AUTO                           -->
+    <!-- ========================================== -->
+    <string name="auto_for_you">为您推荐</string>
+
+    <string name="more_options">更多选项</string>
+    <string name="nav_all_languages">所有语言</string>
+    <string name="player_cd_stop">停止</string>
+
+    <string name="recordings_currently_recording">正在录音</string>
+    <string name="recordings_saved">已保存的录音</string>
+    <string name="action_stop_recording">停止录音</string>
+    <string name="recording_reconnecting">正在重新连接…</string>
+    <string name="recording_notification_reconnecting">连接已断开，正在重试… • %1$s</string>
+    <string name="action_record_station">录制电台</string>
+    <string name="action_create_shortcut">创建快捷方式</string>
+    <string name="shortcut_not_supported">启动器不支持固定快捷方式</string>
+    <string name="lyrics_powered_by">歌词来源：</string>
+
+    <string name="review_message_foss">喜欢 Internet Radio 吗？如果喜欢，请考虑在 GitHub 上为项目点个 Star 来支持我们。您的支持对我们意义重大！</string>
+    <string name="review_message_play">喜欢 Internet Radio 吗？如果喜欢，请花点时间为应用评分。您的支持对我们意义重大！</string>
+    <string name="review_rate_now">立即评分</string>
+    <string name="review_star_github">在 GitHub 上点 Star</string>
+    <string name="review_no_thanks">不用了，谢谢</string>
+
+    <!-- Widget -->
+    <string name="widget_preview_title">Internet Radio</string>
+    <string name="widget_preview_artist">正在播放</string>
+    <string name="widget_description">快速访问电台播放和控制</string>
+    <string name="widget_nothing_playing">未在播放</string>
+    <string name="widget_configure_title">小部件设置</string>
+    <string name="widget_configure_apply">应用</string>
+    <string name="widget_configure_preview">实时预览</string>
+    <string name="widget_configure_presets">预设</string>
+    <string name="settings_widget_appearance_title">小部件外观</string>
+
+    <!-- Recording Playback -->
+    <string name="recording_playback_channel_name">录音播放</string>
+    <string name="recording_playback_channel_description">播放录音时的通知</string>
+    <string name="recording_now_playing">正在播放录音</string>
+    <string name="recording_cd_go_to_recording">前往原始录音</string>
+    <string name="recording_cd_stop_playback">停止播放</string>
+    <string name="recording_speed">播放速度</string>
+    <string name="recording_speed_normal">1.0x（正常）</string>
+    <string name="recording_cd_loop_enabled">停用无限循环</string>
+    <string name="recording_cd_loop_disabled">启用无限循环</string>
+    <string name="recording_add_note">添加备注</string>
+    <string name="recording_edit_note">编辑备注</string>
+    <string name="recording_note_placeholder">添加备注…</string>
+    <string name="recording_save_note">保存备注</string>
+    <string name="recording_cancel_note">取消</string>
+    <string name="recording_folder_access_title">需要文件夹访问权限</string>
+    <string name="recording_folder_access_message">允许访问 Music/InternetRadio，以便将曲目列表和备注保存在录音旁边，并显示您较早的录音。</string>
+    <string name="recording_folder_access_grant">授予访问权限</string>
+    <string name="recording_folder_access_wrong_folder">请选择 Music/InternetRadio 文件夹</string>
+</resources>

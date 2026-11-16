@@ -35,7 +35,7 @@ android {
     }
 
     androidResources {
-        localeFilters += listOf("en", "hi", "tr", "hu", "de", "fr", "ro", "et", "pl", "ru", "es", "it")
+        localeFilters += listOf("en", "hi", "tr", "hu", "de", "fr", "ro", "et", "pl", "ru", "es", "it", "pt-rBR", "zh-rCN")
     }
 
     flavorDimensions += "store"
