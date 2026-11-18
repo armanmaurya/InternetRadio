@@ -20,6 +20,7 @@
     <string name="general_save">Speichern</string>
     <string name="general_add">Hinzufügen</string>
     <string name="cd_back">Zurück</string>
+    <string name="cd_preview">Vorschau</string>
     <string name="cd_close_search">Suche schließen</string>
     <string name="cd_search">Suchen</string>
     <string name="cd_clear_search">Suche löschen</string>
@@ -53,6 +54,8 @@
     <string name="settings_theme_title">Design</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_color_dynamic">Dynamisch</string>
+    <string name="settings_color_monochrome">Einfarbig</string>
     <string name="settings_color_purple">Violett</string>
     <string name="settings_color_blue">Blau</string>
     <string name="settings_color_teal">Blaugrün</string>
@@ -75,15 +78,16 @@
     <string name="settings_disable_update_check_desc">Suche beim Start nicht automatisch nach App-Aktualisierungen</string>
     <string name="settings_auto_play">Automatisches Abspielen beim Start</string>
     <string name="settings_auto_play_desc">Beim Start der App den zuletzt gehörten Sender abspielen</string>
-    <string name="settings_default_tab">Standardtab beim Start</string>
-    <string name="settings_player_section">Wiedergabe</string>
-    <string name="settings_stop_on_audio_noisy">Pause bei Gerätetrennung</string>
-    <string name="settings_stop_on_audio_noisy_desc">Wiedergabe pausieren, wenn Bluetooth- oder kabelgebundene Kopfhörer getrennt werden</string>
+    <string name="settings_tv_screensaver">Bildschirmschoner</string>
     <string name="settings_about_foss_edition">FOSS Edition</string>
     <string name="settings_about_play_edition">Google Play Edition</string>
     <string name="settings_update_up_to_date">Die App ist aktuell</string>
     <string name="settings_update_failed">Suche nach Aktualisierungen fehlgeschlagen</string>
     <string name="settings_support_app">Unterstütze die App</string>
+    <string name="settings_default_tab">Standardtab beim Start</string>
+    <string name="settings_player_section">Wiedergabe</string>
+    <string name="settings_stop_on_audio_noisy">Pause bei Gerätetrennung</string>
+    <string name="settings_stop_on_audio_noisy_desc">Wiedergabe pausieren, wenn Bluetooth- oder kabelgebundene Kopfhörer getrennt werden</string>
     <string name="settings_pause_on_volume_zero">Anhalten bei keiner Lautstärke</string>
     <string name="settings_pause_on_volume_zero_desc">Die Wiedergabe anhalten, wenn das Gerät stumm ist</string>
     <string name="settings_enable_volume_boost" formatted="false">Lautstärken-Verstärkung (Bis zu 200%)</string>
@@ -307,6 +311,8 @@
     <string name="library_cd_sort_a_z">A-Z</string>
     <string name="library_cd_sort_z_a">Z-A</string>
     <string name="home_cd_in_library">In Bibliothek</string>
+    <string name="library_cd_lock_reordering">Neuanordnung speeren</string>
+    <string name="library_cd_unlock_reordering">Neuanordnung entsperren</string>
 
     <!-- ========================================== -->
     <!-- 8. SELECT COUNTRY                          -->
