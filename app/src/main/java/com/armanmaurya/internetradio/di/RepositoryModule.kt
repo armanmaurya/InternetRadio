@@ -113,9 +113,4 @@ abstract class RepositoryModule {
     abstract fun bindUpdateRepository(
         impl: UpdateRepositoryImpl
     ): UpdateRepository
-
-    @Binds
-    abstract fun bindAutoBackupManager(
-        impl: com.armanmaurya.internetradio.data.backup.AutoBackupManagerImpl
-    ): com.armanmaurya.internetradio.domain.controller.AutoBackupManager
 }

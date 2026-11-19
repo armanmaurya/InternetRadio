@@ -140,6 +140,7 @@ fun SettingsScreen(
                 else viewModel.setEnableVolumeBoost(false)
             },
             onAppLanguageClick = onAppLanguageClick,
+            onSetIncludeTracks = viewModel::setIncludeTracksInBackup,
             onExport = { launchPicker(exportUnavailable) { exportLauncher.launch("stations.json") } },
             onImport = { launchPicker(importUnavailable) { importLauncher.launch(arrayOf("application/json")) } },
             onAboutClick = onAboutClick
@@ -260,6 +261,7 @@ private fun SettingsMainList(
     onSetPauseOnVolumeZero: (Boolean) -> Unit,
     onSetVolumeBoost: (Boolean) -> Unit,
     onAppLanguageClick: () -> Unit,
+    onSetIncludeTracks: (Boolean) -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
     onAboutClick: () -> Unit
@@ -383,6 +385,15 @@ private fun SettingsMainList(
             }
 
             item { SettingsSectionHeader(stringResource(R.string.settings_backup_section)) }
+            item {
+                SettingsToggleRow(
+                    title = stringResource(R.string.settings_include_tracks_title),
+                    description = stringResource(R.string.settings_include_tracks_subtitle),
+                    icon = Icons.Default.History,
+                    checked = prefs.includeTracksInBackup,
+                    onCheckedChange = onSetIncludeTracks
+                )
+            }
             item {
                 SettingsRow(
                     title = stringResource(R.string.settings_export_title),

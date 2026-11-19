@@ -127,56 +127,6 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">备份与恢复</string>
-    <string name="settings_auto_sync_title">自动同步</string>
-    <string name="settings_auto_sync_subtitle">让您的收藏库保持同步</string>
-    <string name="settings_sync_status_syncing">正在同步…</string>
-    <string name="settings_sync_status_success">上次同步：%1$s</string>
-    <string name="settings_sync_status_failed">同步失败：%1$s</string>
-    <string name="settings_sync_status_no_folder">选择一个文件夹以开始同步</string>
-    <string name="settings_sync_status_never">尚未同步</string>
-    <string name="settings_folder_title">文件夹</string>
-    <string name="settings_folder_select">选择文件夹（例如 Google 云端硬盘）</string>
-    <string name="settings_folder_selected">已选文件夹：%1$s</string>
-    <string name="settings_folder_error">选择文件夹失败：%1$s</string>
-    <string name="settings_folder_cleared">已断开文件夹</string>
-    <string name="settings_clear_folder">断开文件夹</string>
-    <string name="settings_sync_now">立即同步</string>
-    <string name="settings_malformed_backup_title">备份文件已损坏</string>
-    <string name="settings_malformed_backup_desc">所选文件夹中的备份文件 (stations.json) 已损坏或包含无效数据。您想如何处理？</string>
-    <string name="settings_malformed_backup_overwrite">用当前收藏库覆盖</string>
-    <plurals name="settings_malformed_backup_overwrite_desc">
-        <item quantity="other">用本地的 %1$d 个电台替换损坏的文件</item>
-    </plurals>
-    <string name="settings_malformed_backup_choose_folder">选择其他文件夹</string>
-    <string name="settings_malformed_backup_choose_folder_desc">选择其他文件夹或备份位置</string>
-    <string name="settings_malformed_backup_cancel">保持文件不变</string>
-    <string name="settings_malformed_backup_overwritten">已用当前收藏库替换备份</string>
-    <plurals name="settings_sync_backup_created">
-        <item quantity="other">已创建备份：保存了 %1$d 个电台</item>
-    </plurals>
-    <plurals name="settings_sync_restored">
-        <item quantity="other">已从备份恢复 %1$d 个电台</item>
-    </plurals>
-    <string name="settings_sync_up_to_date">同步完成：收藏库已是最新</string>
-    <plurals name="settings_sync_success_merged">
-        <item quantity="other">同步完成：已恢复/更新 %1$d 个电台</item>
-    </plurals>
-    <string name="settings_backup_error_no_folder">未设置备份文件夹</string>
-    <string name="settings_backup_error_permission_revoked">存储权限已被撤销。请重新选择备份文件夹。</string>
-    <string name="settings_backup_error_folder_deleted">备份文件夹已不存在。请重新选择文件夹。</string>
-    <string name="settings_backup_error_cannot_write">无法写入所选备份文件夹。权限被拒绝。</string>
-    <string name="settings_backup_error_create_file">无法在备份文件夹中创建 %1$s</string>
-    <string name="settings_backup_error_open_write">无法打开 %1$s 进行写入</string>
-    <string name="settings_backup_error_file_not_found">在备份文件夹中未找到 %1$s</string>
-    <string name="settings_backup_error_open_read">无法打开 %1$s 进行读取</string>
-    <string name="settings_backup_error_file_empty">%1$s 为空</string>
-    <string name="settings_backup_error_corrupted_json">备份文件 (%1$s) 已损坏或包含无效的 JSON</string>
-    <string name="settings_backup_error_no_stations">%1$s 不包含任何电台或格式无效</string>
-    <string name="settings_backup_error_invalid_stations">备份文件包含无效的电台条目</string>
-    <string name="settings_backup_error_read">无法读取 %1$s</string>
-    <string name="settings_backup_error_permission_denied">存储权限被拒绝</string>
-    <string name="settings_backup_error_not_found">未找到文件夹或备份文件</string>
-    <string name="settings_backup_error_io">存储读写错误</string>
     <string name="settings_conflict_title">发生冲突时</string>
     <string name="settings_conflict_skip">跳过已有项</string>
     <string name="settings_conflict_skip_desc">保留您当前的版本</string>

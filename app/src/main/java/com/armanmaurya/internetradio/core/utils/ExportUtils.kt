@@ -13,14 +13,22 @@ import java.util.Date
 import java.util.Locale
 
 object ExportUtils {
-    suspend fun exportStation(context: Context, uri: Uri, station: RadioStation, fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade, systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade): Result<Unit> {
+    suspend fun exportStation(
+        context: Context,
+        uri: Uri,
+        station: RadioStation,
+        fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
+        systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade,
+        tracks: List<com.armanmaurya.internetradio.data.backup.BackupTrack>? = null,
+        starredTracks: List<com.armanmaurya.internetradio.data.backup.BackupStarredTrack>? = null
+    ): Result<Unit> {
         return try {
             val versionName = systemFacade.getAppVersionName()
 
             val exportedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                 .format(Date())
 
-            val backupStation = station.toEntity().toBackupStation()
+            val backupStation = station.toEntity().toBackupStation(tracks = tracks, starredTracks = starredTracks)
 
             val backup = LibraryBackup(
                 exportedAt = exportedAt,

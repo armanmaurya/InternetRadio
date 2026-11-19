@@ -85,12 +85,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val WIDGET_BACKGROUND_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("widget_background_alpha")
         val SHOW_STATION_THUMBNAILS = booleanPreferencesKey("show_station_thumbnails")
-        val IS_AUTO_BACKUP_ENABLED = booleanPreferencesKey("is_auto_backup_enabled")
-        val AUTO_BACKUP_TREE_URI = stringPreferencesKey("auto_backup_tree_uri")
-        val AUTO_BACKUP_FOLDER_NAME = stringPreferencesKey("auto_backup_folder_name")
-        val LAST_AUTO_BACKUP_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_auto_backup_time")
-        val LAST_AUTO_BACKUP_STATUS = stringPreferencesKey("last_auto_backup_status")
-        val LAST_AUTO_BACKUP_ERROR = stringPreferencesKey("last_auto_backup_error")
+        val INCLUDE_TRACKS_IN_BACKUP = booleanPreferencesKey("include_tracks_in_backup")
     }
 
     override val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -168,13 +163,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val alarmVolumeTransitionSeconds = preferences[PreferencesKeys.ALARM_VOLUME_TRANSITION_SECONDS] ?: 15
             val widgetBackgroundAlpha = preferences[PreferencesKeys.WIDGET_BACKGROUND_ALPHA] ?: 1.0f
             val showStationThumbnails = preferences[PreferencesKeys.SHOW_STATION_THUMBNAILS] ?: true
-            val isAutoBackupEnabled = preferences[PreferencesKeys.IS_AUTO_BACKUP_ENABLED] ?: false
-            val autoBackupTreeUri = preferences[PreferencesKeys.AUTO_BACKUP_TREE_URI]
-            val autoBackupFolderName = preferences[PreferencesKeys.AUTO_BACKUP_FOLDER_NAME]
-            val lastAutoBackupTime = preferences[PreferencesKeys.LAST_AUTO_BACKUP_TIME] ?: 0L
-            val lastAutoBackupStatusName = preferences[PreferencesKeys.LAST_AUTO_BACKUP_STATUS]
-            val lastAutoBackupStatus = com.armanmaurya.internetradio.domain.model.AutoBackupStatus.entries.find { it.name == lastAutoBackupStatusName } ?: com.armanmaurya.internetradio.domain.model.AutoBackupStatus.IDLE
-            val lastAutoBackupErrorMessage = preferences[PreferencesKeys.LAST_AUTO_BACKUP_ERROR]
+            val includeTracksInBackup = preferences[PreferencesKeys.INCLUDE_TRACKS_IN_BACKUP] ?: true
 
             AppPreferences(
                 themeMode = themeMode, 
@@ -221,12 +210,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 alarmVolumeTransitionSeconds = alarmVolumeTransitionSeconds,
                 widgetBackgroundAlpha = widgetBackgroundAlpha,
                 showStationThumbnails = showStationThumbnails,
-                isAutoBackupEnabled = isAutoBackupEnabled,
-                autoBackupTreeUri = autoBackupTreeUri,
-                autoBackupFolderName = autoBackupFolderName,
-                lastAutoBackupTime = lastAutoBackupTime,
-                lastAutoBackupStatus = lastAutoBackupStatus,
-                lastAutoBackupErrorMessage = lastAutoBackupErrorMessage
+                includeTracksInBackup = includeTracksInBackup
             )
         }
 
@@ -482,40 +466,9 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setAutoBackupEnabled(enabled: Boolean) {
+    override suspend fun setIncludeTracksInBackup(enabled: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.IS_AUTO_BACKUP_ENABLED] = enabled
-        }
-    }
-
-    override suspend fun setAutoBackupFolder(uri: String?, folderName: String?) {
-        context.dataStore.edit { preferences ->
-            if (uri != null) {
-                preferences[PreferencesKeys.AUTO_BACKUP_TREE_URI] = uri
-            } else {
-                preferences.remove(PreferencesKeys.AUTO_BACKUP_TREE_URI)
-            }
-            if (folderName != null) {
-                preferences[PreferencesKeys.AUTO_BACKUP_FOLDER_NAME] = folderName
-            } else {
-                preferences.remove(PreferencesKeys.AUTO_BACKUP_FOLDER_NAME)
-            }
-        }
-    }
-
-    override suspend fun setLastAutoBackupResult(
-        time: Long,
-        status: com.armanmaurya.internetradio.domain.model.AutoBackupStatus,
-        errorMessage: String?
-    ) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.LAST_AUTO_BACKUP_TIME] = time
-            preferences[PreferencesKeys.LAST_AUTO_BACKUP_STATUS] = status.name
-            if (errorMessage != null) {
-                preferences[PreferencesKeys.LAST_AUTO_BACKUP_ERROR] = errorMessage
-            } else {
-                preferences.remove(PreferencesKeys.LAST_AUTO_BACKUP_ERROR)
-            }
+            preferences[PreferencesKeys.INCLUDE_TRACKS_IN_BACKUP] = enabled
         }
     }
 }

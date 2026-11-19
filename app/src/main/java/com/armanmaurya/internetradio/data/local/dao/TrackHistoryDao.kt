@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,9 +16,12 @@ interface TrackHistoryDao {
     @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT :limit")
     fun getTrackHistoryForStation(stationUuid: String, limit: Int = 50): Flow<List<TrackHistoryEntity>>
 
-    @Query("DELETE FROM track_history WHERE stationUuid = :stationUuid AND isStarred = 0 AND id NOT IN (SELECT id FROM track_history WHERE stationUuid = :stationUuid AND isStarred = 0 ORDER BY timestamp DESC LIMIT :keepCount)")
+    @Query("DELETE FROM track_history WHERE stationUuid = :stationUuid AND id NOT IN (SELECT id FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT :keepCount)")
     suspend fun cleanupOldTracksForStation(stationUuid: String, keepCount: Int = 50)
     
+    @Query("SELECT * FROM track_history WHERE id = :id LIMIT 1")
+    suspend fun getTrackById(id: Long): TrackHistoryEntity?
+
     @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLatestTrackForStation(stationUuid: String): TrackHistoryEntity?
 
@@ -27,21 +31,15 @@ interface TrackHistoryDao {
     @Query("UPDATE track_history SET trackTitle = :newTrackTitle, coverArtUrl = :coverArtUrl WHERE id = :id")
     suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?)
 
-    @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid AND isStarred = 1 GROUP BY LOWER(TRIM(trackTitle)) ORDER BY timestamp DESC")
-    fun getStarredTracksForStation(stationUuid: String): Flow<List<TrackHistoryEntity>>
-
-    @Query("SELECT EXISTS(SELECT 1 FROM track_history WHERE stationUuid = :stationUuid AND isStarred = 1 AND (LOWER(TRIM(trackTitle)) = LOWER(TRIM(:trackTitle)) OR (rawTrackTitle != '' AND LOWER(TRIM(rawTrackTitle)) = LOWER(TRIM(:rawTrackTitle)))))")
-    suspend fun isTrackStarred(stationUuid: String, trackTitle: String, rawTrackTitle: String = ""): Boolean
-
-    @Query("SELECT EXISTS(SELECT 1 FROM track_history WHERE stationUuid = (SELECT stationUuid FROM track_history WHERE id = :id) AND isStarred = 1 AND (LOWER(TRIM(trackTitle)) = LOWER(TRIM(:trackTitle)) OR (rawTrackTitle != '' AND LOWER(TRIM(rawTrackTitle)) = LOWER(TRIM(:trackTitle)))))")
-    suspend fun isTrackStarredForTrackIdStation(id: Long, trackTitle: String): Boolean
-
-    @Query("UPDATE track_history SET isStarred = :isStarred WHERE stationUuid = :stationUuid AND (LOWER(TRIM(trackTitle)) = LOWER(TRIM(:trackTitle)) OR (rawTrackTitle != '' AND LOWER(TRIM(rawTrackTitle)) = LOWER(TRIM(:trackTitle))))")
-    suspend fun setTrackStarred(stationUuid: String, trackTitle: String, isStarred: Boolean)
-
-    @Query("UPDATE track_history SET isStarred = :isStarred WHERE id = :id")
-    suspend fun setTrackStarredById(id: Long, isStarred: Boolean)
-
     @Query("UPDATE track_history SET endTimestamp = :endTimestamp, durationMs = durationMs + :addedDurationMs WHERE id = :id")
     suspend fun recordTrackListeningProgress(id: Long, endTimestamp: Long, addedDurationMs: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(trackHistories: List<TrackHistoryEntity>): List<Long>
+
+    @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp ASC")
+    suspend fun getAllTracksForStationSync(stationUuid: String): List<TrackHistoryEntity>
+
+    @Update
+    suspend fun updateTrack(trackHistory: TrackHistoryEntity)
 }

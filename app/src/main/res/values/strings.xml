@@ -127,60 +127,6 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Backup &amp; Restore</string>
-    <string name="settings_auto_sync_title">Auto Sync</string>
-    <string name="settings_auto_sync_subtitle">Keep your library synced</string>
-    <string name="settings_sync_status_syncing">Syncing...</string>
-    <string name="settings_sync_status_success">Last synced: %1$s</string>
-    <string name="settings_sync_status_failed">Sync failed: %1$s</string>
-    <string name="settings_sync_status_no_folder">Select a folder to start syncing</string>
-    <string name="settings_sync_status_never">Not synced yet</string>
-    <string name="settings_folder_title">Folder</string>
-    <string name="settings_folder_select">Choose a folder (e.g. Google Drive)</string>
-    <string name="settings_folder_selected">Selected folder: %1$s</string>
-    <string name="settings_folder_error">Failed to select folder: %1$s</string>
-    <string name="settings_folder_cleared">Folder disconnected</string>
-    <string name="settings_clear_folder">Disconnect folder</string>
-    <string name="settings_sync_now">Sync now</string>
-    <string name="settings_malformed_backup_title">Corrupted Backup File</string>
-    <string name="settings_malformed_backup_desc">The backup file (stations.json) in your selected folder is corrupted or contains invalid data. How would you like to proceed?</string>
-    <string name="settings_malformed_backup_overwrite">Overwrite with current library</string>
-    <plurals name="settings_malformed_backup_overwrite_desc">
-        <item quantity="one">Replace the damaged file with your %1$d local station</item>
-        <item quantity="other">Replace the damaged file with your %1$d local stations</item>
-    </plurals>
-    <string name="settings_malformed_backup_choose_folder">Choose another folder</string>
-    <string name="settings_malformed_backup_choose_folder_desc">Select a different folder or backup location</string>
-    <string name="settings_malformed_backup_cancel">Keep file untouched</string>
-    <string name="settings_malformed_backup_overwritten">Backup replaced with current library</string>
-    <plurals name="settings_sync_backup_created">
-        <item quantity="one">Backup created: %1$d station saved</item>
-        <item quantity="other">Backup created: %1$d stations saved</item>
-    </plurals>
-    <plurals name="settings_sync_restored">
-        <item quantity="one">Restored %1$d station from backup</item>
-        <item quantity="other">Restored %1$d stations from backup</item>
-    </plurals>
-    <string name="settings_sync_up_to_date">Sync complete: Library is up to date</string>
-    <plurals name="settings_sync_success_merged">
-        <item quantity="one">Sync complete: %1$d station restored/updated</item>
-        <item quantity="other">Sync complete: %1$d stations restored/updated</item>
-    </plurals>
-    <string name="settings_backup_error_no_folder">No backup folder configured</string>
-    <string name="settings_backup_error_permission_revoked">Storage permission revoked. Please re-select backup folder.</string>
-    <string name="settings_backup_error_folder_deleted">Backup folder no longer exists. Please re-select a folder.</string>
-    <string name="settings_backup_error_cannot_write">Cannot write to selected backup folder. Permission denied.</string>
-    <string name="settings_backup_error_create_file">Could not create %1$s in backup folder</string>
-    <string name="settings_backup_error_open_write">Could not open %1$s for writing</string>
-    <string name="settings_backup_error_file_not_found">%1$s not found in backup folder</string>
-    <string name="settings_backup_error_open_read">Could not open %1$s for reading</string>
-    <string name="settings_backup_error_file_empty">%1$s is empty</string>
-    <string name="settings_backup_error_corrupted_json">Backup file (%1$s) is corrupted or contains invalid JSON</string>
-    <string name="settings_backup_error_no_stations">%1$s contains no stations or has invalid format</string>
-    <string name="settings_backup_error_invalid_stations">Backup file contains invalid station entries</string>
-    <string name="settings_backup_error_read">Could not read %1$s</string>
-    <string name="settings_backup_error_permission_denied">Storage permission denied</string>
-    <string name="settings_backup_error_not_found">Folder or backup file not found</string>
-    <string name="settings_backup_error_io">Storage read/write error</string>
     <string name="settings_conflict_title">When a conflict occurs</string>
     <string name="settings_conflict_skip">Skip existing</string>
     <string name="settings_conflict_skip_desc">Keep your current version</string>
@@ -188,6 +134,8 @@
     <string name="settings_conflict_overwrite_desc">Always use the backup version</string>
     <string name="settings_conflict_keep_newer">Keep newer</string>
     <string name="settings_conflict_keep_newer_desc">Keep whichever was added more recently</string>
+    <string name="settings_include_tracks_title">Include Track History</string>
+    <string name="settings_include_tracks_subtitle">Include played and starred tracks in station backups</string>
     <string name="settings_export_title">Export Stations</string>
     <string name="settings_export_subtitle">Save your stations to a file</string>
     <string name="settings_exported_failed">Export failed: could not open file for writing</string>

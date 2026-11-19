@@ -57,7 +57,7 @@ internal class FakeSettingsRepository : SettingsRepository {
     override suspend fun setKeepScreenOn(enabled: Boolean) {}
     override suspend fun setWidgetBackgroundAlpha(alpha: Float) {}
     override suspend fun setShowStationThumbnails(enabled: Boolean) {}
-    override suspend fun setAutoBackupEnabled(enabled: Boolean) {}
-    override suspend fun setAutoBackupFolder(uri: String?, folderName: String?) {}
-    override suspend fun setLastAutoBackupResult(time: Long, status: com.armanmaurya.internetradio.domain.model.AutoBackupStatus, errorMessage: String?) {}
+    override suspend fun setIncludeTracksInBackup(enabled: Boolean) {
+        prefsFlow.value = prefsFlow.value.copy(includeTracksInBackup = enabled)
+    }
 }

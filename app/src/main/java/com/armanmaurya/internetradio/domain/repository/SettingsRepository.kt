@@ -56,8 +56,6 @@ interface SettingsRepository {
     suspend fun setKeepScreenOn(enabled: Boolean)
     suspend fun setWidgetBackgroundAlpha(alpha: Float)
     suspend fun setShowStationThumbnails(enabled: Boolean)
-    suspend fun setAutoBackupEnabled(enabled: Boolean)
-    suspend fun setAutoBackupFolder(uri: String?, folderName: String?)
-    suspend fun setLastAutoBackupResult(time: Long, status: com.armanmaurya.internetradio.domain.model.AutoBackupStatus, errorMessage: String?)
+    suspend fun setIncludeTracksInBackup(enabled: Boolean)
 }
 

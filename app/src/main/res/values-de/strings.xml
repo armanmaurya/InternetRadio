@@ -127,60 +127,6 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Sicherung &amp; Wiederherstellung</string>
-    <string name="settings_auto_sync_title">Automatische Synchronisation</string>
-    <string name="settings_auto_sync_subtitle">Bibliothek synchron halten</string>
-    <string name="settings_sync_status_syncing">Synchronisieren...</string>
-    <string name="settings_sync_status_success">Zuletzt synchronisiert: %1$s</string>
-    <string name="settings_sync_status_failed">Synchronisation fehlgeschlagen: %1$s</string>
-    <string name="settings_sync_status_no_folder">Ordner zum Starten der Synchronisation auswählen</string>
-    <string name="settings_sync_status_never">Noch nicht synchronisiert</string>
-    <string name="settings_folder_title">Synchronisations-Ordner</string>
-    <string name="settings_folder_select">Wählen einen Ordner (z.B. Google Drive)</string>
-    <string name="settings_folder_selected">Ausgewählter Ordner: %1$s</string>
-    <string name="settings_folder_error">Ordnerauswahl fehlgeschlagen: %1$s</string>
-    <string name="settings_folder_cleared">Ordner getrennt</string>
-    <string name="settings_clear_folder">Ordner trennen</string>
-    <string name="settings_sync_now">Jetzt synchronisieren</string>
-    <string name="settings_malformed_backup_title">Beschädigte Sicherungsdatei</string>
-    <string name="settings_malformed_backup_desc">Die Sicherungsdatei (stations.json) im ausgewählten Ordner ist beschädigt oder enthält ungültige Daten. Wie möchtest du fortfahren?</string>
-    <string name="settings_malformed_backup_overwrite">Überschreibe mit aktueller Bibliothek</string>
-    <plurals name="settings_malformed_backup_overwrite_desc">
-        <item quantity="one">Beschädigte Datei durch %1$d lokale Station ersetzen</item>
-        <item quantity="other">Beschädigte Datei durch %1$d lokale Stationen ersetzen</item>
-    </plurals>
-    <string name="settings_malformed_backup_choose_folder">Anderen Ordner auswählen</string>
-    <string name="settings_malformed_backup_choose_folder_desc">Wähle einen anderen Sicherungsordner aus</string>
-    <string name="settings_malformed_backup_cancel">Datei unverändert lassen</string>
-    <string name="settings_malformed_backup_overwritten">Sicherung durch aktuelle Bibliothek ersetzt</string>
-    <plurals name="settings_sync_backup_created">
-        <!-- <item quantity="one">Restored %1$d station from backup</item> -->
-        <item quantity="other">Sicherung erstellt: %1$d Sender gesichert</item>
-    </plurals>
-    <plurals name="settings_sync_restored">
-        <!-- <item quantity="one">Restored %1$d station from backup</item> -->
-        <item quantity="other">%1$d Sender von der Sicherung wiederhergestellt</item>
-    </plurals>
-    <string name="settings_sync_up_to_date">Synchronisation beendet: Die Bibliothek ist aktuell</string>
-    <plurals name="settings_sync_success_merged">
-        <!-- <item quantity="one">Sync complete: %1$d station restored/updated</item> -->
-        <item quantity="other">Synchronisation beendet: %1$d Sender aktualisiert</item>
-    </plurals>
-    <string name="settings_backup_error_no_folder">Kein Sicherungsordner konfiguriert</string>
-    <string name="settings_backup_error_permission_revoked">Speicherberechtigung widerrufen. Wähle den Sicherungsordner erneut aus.</string>
-    <string name="settings_backup_error_folder_deleted">Sicherungsordner existiert nicht mehr. Wähle einen neuen Ordner aus.</string>
-    <string name="settings_backup_error_cannot_write">Es kann nicht in den ausgewählten Sicherungsordner geschrieben werden. Zugriff verweigert.</string>
-    <string name="settings_backup_error_create_file">%1$s konnte nicht im Sicherungsordner erstellt werden</string>
-    <string name="settings_backup_error_open_write">%1$s konnte nicht zum Schreiben geöffnet werden</string>
-    <string name="settings_backup_error_file_not_found">%1$s wurde im Sicherungsordner nicht gefunden</string>
-    <string name="settings_backup_error_open_read">%1$s konnte nicht zum Lesen geöffnet werden</string>
-    <string name="settings_backup_error_file_empty">%1$s ist leer</string>
-    <string name="settings_backup_error_corrupted_json">Sicherungsdatei (%1$s) ist beschädigt oder enthält ungültigen JSON</string>
-    <string name="settings_backup_error_no_stations">%1$s enthält keine Sender oder hat ungültiges Format</string>
-    <string name="settings_backup_error_invalid_stations">Sicherungsdatei enthält ungültige Sendereinträge</string>
-    <string name="settings_backup_error_read">%1$s kann nicht gelesen werden</string>
-    <string name="settings_backup_error_permission_denied">Speicherzugriff verweigert</string>
-    <string name="settings_backup_error_not_found">Ordner oder Sicherungsdatei nicht gefunden</string>
-    <string name="settings_backup_error_io">Fehler beim Lesen oder Schreiben des Speichers</string>
     <string name="settings_conflict_title">Wenn ein Konflikt auftritt</string>
     <string name="settings_conflict_skip">Vorhandene überspringen</string>
     <string name="settings_conflict_skip_desc">Die aktuelle Version beibehalten</string>

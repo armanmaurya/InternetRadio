@@ -11,12 +11,16 @@ import com.armanmaurya.internetradio.domain.model.Tag
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
+import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
+import com.armanmaurya.internetradio.data.backup.toBackupStarredTrack
+import com.armanmaurya.internetradio.data.backup.toBackupTrack
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.ShortcutController
 import com.armanmaurya.internetradio.domain.usecase.library.RemoveStationFromLibraryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +47,7 @@ class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val settingsRepository: SettingsRepository,
     private val stationRepository: StationRepository,
+    private val trackHistoryRepository: TrackHistoryRepository,
     private val playerController: PlayerController,
     private val okHttpClient: OkHttpClient,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
@@ -398,7 +403,16 @@ class LibraryViewModel @Inject constructor(
 
     fun exportStation(context: android.content.Context, uri: android.net.Uri, station: RadioStation, onResult: (Result<Unit>) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = com.armanmaurya.internetradio.core.utils.ExportUtils.exportStation(context, uri, station, fileSystemFacade, systemFacade)
+            val prefs = settingsRepository.appPreferencesFlow.first()
+            val tracks = if (prefs.includeTracksInBackup) {
+                trackHistoryRepository.getAllTracksForStation(station.stationUuid).map { it.toBackupTrack() }
+            } else null
+            val starredTracks = if (prefs.includeTracksInBackup) {
+                trackHistoryRepository.getAllStarredTracksForStation(station.stationUuid).map { it.toBackupStarredTrack() }
+            } else null
+            val result = com.armanmaurya.internetradio.core.utils.ExportUtils.exportStation(
+                context, uri, station, fileSystemFacade, systemFacade, tracks, starredTracks
+            )
             withContext(Dispatchers.Main) {
                 onResult(result)
             }

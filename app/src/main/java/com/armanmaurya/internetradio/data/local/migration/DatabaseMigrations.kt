@@ -159,5 +159,67 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11, MIGRATION_11_12)
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS `starred_tracks` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `stationUuid` TEXT NOT NULL,
+                    `trackTitle` TEXT NOT NULL,
+                    `rawTrackTitle` TEXT NOT NULL DEFAULT '',
+                    `artist` TEXT DEFAULT NULL,
+                    `coverArtUrl` TEXT DEFAULT NULL,
+                    `starredAt` INTEGER NOT NULL DEFAULT 0
+                )
+            """.trimIndent())
+            database.execSQL("""
+                CREATE UNIQUE INDEX IF NOT EXISTS `index_starred_tracks_stationUuid_trackTitle` 
+                ON `starred_tracks` (`stationUuid`, `trackTitle`)
+            """.trimIndent())
+            database.execSQL("""
+                CREATE INDEX IF NOT EXISTS `index_starred_tracks_stationUuid_starredAt` 
+                ON `starred_tracks` (`stationUuid`, `starredAt`)
+            """.trimIndent())
+
+            database.execSQL("""
+                INSERT OR IGNORE INTO `starred_tracks` (
+                    `stationUuid`, `trackTitle`, `rawTrackTitle`, `artist`, `coverArtUrl`, `starredAt`
+                )
+                SELECT
+                    `stationUuid`, `trackTitle`, `rawTrackTitle`, `artist`, `coverArtUrl`, `timestamp`
+                FROM `track_history`
+                WHERE `isStarred` = 1
+                GROUP BY `stationUuid`, LOWER(TRIM(`trackTitle`))
+            """.trimIndent())
+
+            // Starred state now lives only in starred_tracks; rebuild track_history without isStarred
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS `track_history_new` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `stationUuid` TEXT NOT NULL,
+                    `trackTitle` TEXT NOT NULL,
+                    `timestamp` INTEGER NOT NULL,
+                    `coverArtUrl` TEXT DEFAULT NULL,
+                    `rawTrackTitle` TEXT NOT NULL DEFAULT '',
+                    `artist` TEXT DEFAULT NULL,
+                    `endTimestamp` INTEGER NOT NULL DEFAULT 0,
+                    `durationMs` INTEGER NOT NULL DEFAULT 0
+                )
+            """.trimIndent())
+            database.execSQL("""
+                INSERT INTO `track_history_new` (
+                    `id`, `stationUuid`, `trackTitle`, `timestamp`, `coverArtUrl`,
+                    `rawTrackTitle`, `artist`, `endTimestamp`, `durationMs`
+                )
+                SELECT
+                    `id`, `stationUuid`, `trackTitle`, `timestamp`, `coverArtUrl`,
+                    `rawTrackTitle`, `artist`, `endTimestamp`, `durationMs`
+                FROM `track_history`
+            """.trimIndent())
+            database.execSQL("DROP TABLE `track_history`")
+            database.execSQL("ALTER TABLE `track_history_new` RENAME TO `track_history`")
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_3_4, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
 }

@@ -14,9 +14,14 @@ import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toBackupStation
+import com.armanmaurya.internetradio.data.backup.toBackupStarredTrack
+import com.armanmaurya.internetradio.data.backup.toBackupTrack
+import com.armanmaurya.internetradio.data.backup.toStarredTrackEntity
+import com.armanmaurya.internetradio.data.backup.toTrackHistoryEntity
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
+import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
 import com.google.gson.Gson
@@ -25,11 +30,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import com.armanmaurya.internetradio.domain.model.MalformedBackupException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -49,10 +51,10 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
+    private val trackHistoryRepository: TrackHistoryRepository,
     private val fileSystemFacade: com.armanmaurya.internetradio.core.system.FileSystemFacade,
     private val systemFacade: com.armanmaurya.internetradio.core.system.SystemFacade,
     private val widgetController: WidgetController,
-    private val autoBackupManager: com.armanmaurya.internetradio.domain.controller.AutoBackupManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -65,20 +67,6 @@ class SettingsViewModel @Inject constructor(
 
     private val _backupResult = Channel<String>(Channel.BUFFERED)
     val backupResult = _backupResult.receiveAsFlow()
-
-    private val _isSyncing = MutableStateFlow(false)
-    val isSyncing = _isSyncing.asStateFlow()
-
-    private val _showMalformedBackupBottomSheet = MutableStateFlow(false)
-    val showMalformedBackupBottomSheet = _showMalformedBackupBottomSheet.asStateFlow()
-
-    val localStationsCount: StateFlow<Int> = libraryRepository.getAllStationEntitiesFlow()
-        .map { it.size }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
 
     fun setAppTheme(theme: AppTheme) {
         viewModelScope.launch {
@@ -194,6 +182,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setIncludeTracksInBackup(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setIncludeTracksInBackup(enabled)
+        }
+    }
+
     fun setRecentLimit(limit: Int) {
         viewModelScope.launch {
             settingsRepository.setRecentLimit(limit)
@@ -268,10 +262,21 @@ class SettingsViewModel @Inject constructor(
                 val exportedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                     .format(Date())
 
+                val includeTracks = uiState.value.includeTracksInBackup
+                val backupStations = entities.map { station ->
+                    val tracks = if (includeTracks) {
+                        trackHistoryRepository.getAllTracksForStation(station.stationUuid).map { it.toBackupTrack() }
+                    } else null
+                    val starredTracks = if (includeTracks) {
+                        trackHistoryRepository.getAllStarredTracksForStation(station.stationUuid).map { it.toBackupStarredTrack() }
+                    } else null
+                    station.toBackupStation(tracks = tracks, starredTracks = starredTracks)
+                }
+
                 val backup = LibraryBackup(
                     exportedAt = exportedAt,
                     appVersion = versionName,
-                    stations = entities.map { it.toBackupStation() }
+                    stations = backupStations
                 )
                 val json = Gson().toJson(backup)
                 fileSystemFacade.openOutputStream(uri)?.use { stream ->
@@ -348,6 +353,20 @@ class SettingsViewModel @Inject constructor(
                                     totalSkipped++
                                 }
                             }
+                            if (!backupStation.tracks.isNullOrEmpty()) {
+                                trackHistoryRepository.importTracks(
+                                    entity.stationUuid,
+                                    backupStation.tracks.map { it.toTrackHistoryEntity(entity.stationUuid) },
+                                    strategy
+                                )
+                            }
+                            val starredTracks = backupStation.allStarredTracks()
+                            if (starredTracks.isNotEmpty()) {
+                                trackHistoryRepository.importStarredTracks(
+                                    entity.stationUuid,
+                                    starredTracks.map { it.toStarredTrackEntity(entity.stationUuid) }
+                                )
+                            }
                         } catch (e: Exception) {
                             Log.e(TAG, "Failed to process station '${entity.name}' (${entity.stationUuid})", e)
                         }
@@ -368,188 +387,6 @@ class SettingsViewModel @Inject constructor(
             val resultMessage = parts.joinToString(", ")
             Log.d(TAG, "Import complete: $resultMessage")
             _backupResult.send(resultMessage)
-        }
-    }
-
-    fun setAutoBackupEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setAutoBackupEnabled(enabled)
-            if (enabled && !uiState.value.autoBackupTreeUri.isNullOrBlank()) {
-                autoBackupManager.performBackup()
-            }
-        }
-    }
-
-    fun setAutoBackupFolder(context: Context, treeUri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val takeFlags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                context.contentResolver.takePersistableUriPermission(treeUri, takeFlags)
-
-                val folderPath = resolveFolderPath(context, treeUri)
-                settingsRepository.setAutoBackupFolder(treeUri.toString(), folderPath)
-                settingsRepository.setAutoBackupEnabled(true)
-                _backupResult.send(context.getString(R.string.settings_folder_selected, folderPath))
-
-                // Perform smart sync (auto-restores if local is empty, merges if both exist, creates if missing)
-                _isSyncing.value = true
-                try {
-                    val result = autoBackupManager.performSmartSync()
-                    result.onSuccess { message ->
-                        _backupResult.send(message)
-                    }.onFailure { e ->
-                        if (e is MalformedBackupException || e.cause is MalformedBackupException) {
-                            _showMalformedBackupBottomSheet.value = true
-                        }
-                        _backupResult.send(context.getString(R.string.settings_sync_status_failed, e.localizedMessage ?: context.getString(R.string.error_unknown)))
-                    }
-                } finally {
-                    _isSyncing.value = false
-                }
-            } catch (e: Exception) {
-                _isSyncing.value = false
-                Log.e(TAG, "Failed to persist SAF permission", e)
-                _backupResult.send(context.getString(R.string.settings_folder_error, e.localizedMessage ?: context.getString(R.string.error_unknown)))
-            }
-        }
-    }
-
-    fun syncNow(context: Context) {
-        if (_isSyncing.value) return
-        viewModelScope.launch(Dispatchers.IO) {
-            _isSyncing.value = true
-            try {
-                val result = autoBackupManager.performSmartSync()
-                result.onSuccess { message ->
-                    _backupResult.send(message)
-                }.onFailure { e ->
-                    if (e is MalformedBackupException || e.cause is MalformedBackupException) {
-                        _showMalformedBackupBottomSheet.value = true
-                    }
-                    _backupResult.send(context.getString(R.string.settings_sync_status_failed, e.localizedMessage ?: context.getString(R.string.error_unknown)))
-                }
-            } catch (e: Exception) {
-                if (e is MalformedBackupException || e.cause is MalformedBackupException) {
-                    _showMalformedBackupBottomSheet.value = true
-                }
-                _backupResult.send(context.getString(R.string.settings_sync_status_failed, e.localizedMessage ?: context.getString(R.string.error_unknown)))
-            } finally {
-                _isSyncing.value = false
-            }
-        }
-    }
-
-    fun dismissMalformedBackupBottomSheet() {
-        _showMalformedBackupBottomSheet.value = false
-    }
-
-    fun overwriteMalformedBackup(context: Context) {
-        _showMalformedBackupBottomSheet.value = false
-        if (_isSyncing.value) return
-        viewModelScope.launch(Dispatchers.IO) {
-            _isSyncing.value = true
-            try {
-                val result = autoBackupManager.performBackup()
-                result.onSuccess {
-                    _backupResult.send(context.getString(R.string.settings_malformed_backup_overwritten))
-                }.onFailure { e ->
-                    _backupResult.send(context.getString(R.string.settings_sync_status_failed, e.localizedMessage ?: context.getString(R.string.error_unknown)))
-                }
-            } finally {
-                _isSyncing.value = false
-            }
-        }
-    }
-
-    fun clearAutoBackupFolder(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            uiState.value.autoBackupTreeUri?.let { uriStr ->
-                try {
-                    val flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    context.contentResolver.releasePersistableUriPermission(Uri.parse(uriStr), flags)
-                } catch (e: Exception) {
-                    Log.w(TAG, "Failed to release persistable URI permission", e)
-                }
-            }
-            settingsRepository.setAutoBackupFolder(null, null)
-            settingsRepository.setAutoBackupEnabled(false)
-            _backupResult.send(context.getString(R.string.settings_folder_cleared))
-        }
-    }
-
-    private fun resolveFolderPath(context: Context, treeUri: Uri): String {
-        return try {
-            val authority = treeUri.authority
-            val docId = try {
-                android.provider.DocumentsContract.getTreeDocumentId(treeUri)
-            } catch (_: Exception) {
-                treeUri.lastPathSegment ?: ""
-            }
-
-            when (authority) {
-                "com.android.externalstorage.documents" -> {
-                    val split = docId.split(":", limit = 2)
-                    val storageType = split[0]
-                    val relativePath = if (split.size > 1) split[1].trim('/') else ""
-                    val storageName = if (storageType.equals("primary", ignoreCase = true)) {
-                        "Internal Storage"
-                    } else {
-                        "SD Card"
-                    }
-                    if (relativePath.isBlank()) storageName else "$storageName/$relativePath"
-                }
-                "com.google.android.apps.docs.storage" -> {
-                    val name = queryDisplayName(context, treeUri)
-                    if (!name.isNullOrBlank()) "Google Drive/$name" else "Google Drive"
-                }
-                "com.android.providers.downloads.documents" -> {
-                    val name = queryDisplayName(context, treeUri)
-                    if (!name.isNullOrBlank()) "Downloads/$name" else "Downloads"
-                }
-                else -> {
-                    val name = queryDisplayName(context, treeUri)
-                    val providerName = when {
-                        authority?.contains("nextcloud", ignoreCase = true) == true -> "Nextcloud"
-                        authority?.contains("owncloud", ignoreCase = true) == true -> "ownCloud"
-                        authority?.contains("onedrive", ignoreCase = true) == true -> "OneDrive"
-                        authority?.contains("dropbox", ignoreCase = true) == true -> "Dropbox"
-                        else -> null
-                    }
-                    when {
-                        providerName != null && !name.isNullOrBlank() -> "$providerName/$name"
-                        !name.isNullOrBlank() -> name
-                        docId.isNotBlank() -> docId
-                        else -> treeUri.lastPathSegment ?: "Folder"
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to resolve folder path for $treeUri", e)
-            treeUri.lastPathSegment ?: "Folder"
-        }
-    }
-
-    private fun queryDisplayName(context: Context, treeUri: Uri): String? {
-        return try {
-            val docId = android.provider.DocumentsContract.getTreeDocumentId(treeUri)
-            val docUri = android.provider.DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
-            val cursor = context.contentResolver.query(
-                docUri,
-                arrayOf(android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME),
-                null,
-                null,
-                null
-            )
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val index = it.getColumnIndex(android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                    if (index != -1) it.getString(index) else null
-                } else null
-            }
-        } catch (_: Exception) {
-            null
         }
     }
 }
