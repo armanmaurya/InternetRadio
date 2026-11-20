@@ -108,13 +108,7 @@
     <string name="settings_no_update_available">Nenhuma atualização disponível</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_backup_section">Backup e restauração</string>
-    <string name="settings_conflict_title">Quando houver conflito</string>
-    <string name="settings_conflict_skip">Ignorar existentes</string>
-    <string name="settings_conflict_skip_desc">Manter sua versão atual</string>
     <string name="settings_conflict_overwrite">Substituir existentes</string>
-    <string name="settings_conflict_overwrite_desc">Sempre usar a versão do backup</string>
-    <string name="settings_conflict_keep_newer">Manter a mais recente</string>
-    <string name="settings_conflict_keep_newer_desc">Manter a que foi adicionada mais recentemente</string>
     <string name="settings_export_title">Exportar estações</string>
     <string name="settings_export_subtitle">Salve suas estações em um arquivo</string>
     <string name="settings_exported_failed">Falha na exportação: não foi possível abrir o arquivo para gravação</string>

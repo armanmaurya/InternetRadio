@@ -70,13 +70,7 @@
     <string name="settings_no_update_available">Nessun aggiornamento disponibile</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_backup_section">Backup e ripristino</string>
-    <string name="settings_conflict_title">Quando avviene un conflitto</string>
-    <string name="settings_conflict_skip">Salta esistente</string>
-    <string name="settings_conflict_skip_desc">Conserva la versione attuale</string>
     <string name="settings_conflict_overwrite">Sovrascrivi esistente</string>
-    <string name="settings_conflict_overwrite_desc">Utilizza sempre la versione di backup</string>
-    <string name="settings_conflict_keep_newer">Conserva più recente</string>
-    <string name="settings_conflict_keep_newer_desc">Conserva quello aggiunto più di recente</string>
     <string name="settings_export_title">Esporta stazioni</string>
     <string name="settings_export_subtitle">Salva le tue stazioni in un file</string>
     <string name="settings_import_title">Importa stazioni</string>

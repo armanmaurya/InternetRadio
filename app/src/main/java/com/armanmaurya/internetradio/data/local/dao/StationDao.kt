@@ -58,6 +58,10 @@ interface StationDao {
     suspend fun updateStations(stations: List<StationEntity>)
 
 
+    /** The order index that puts a new station after every station already in the library. */
+    @Query("SELECT COALESCE(MAX(orderIndex), -1) + 1 FROM stations")
+    suspend fun nextOrderIndex(): Int
+
     @Query("DELETE FROM stations WHERE stationUuid = :stationUuid")
     suspend fun deleteStationById(stationUuid: String)
 

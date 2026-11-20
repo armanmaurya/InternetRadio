@@ -127,15 +127,41 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Backup &amp; Restore</string>
-    <string name="settings_conflict_title">When a conflict occurs</string>
-    <string name="settings_conflict_skip">Skip existing</string>
-    <string name="settings_conflict_skip_desc">Keep your current version</string>
+    <string name="export_title">Export stations</string>
+    <string name="export_section_library">Your library</string>
+    <plurals name="export_button">
+        <item quantity="one">Export %1$d station</item>
+        <item quantity="other">Export %1$d stations</item>
+    </plurals>
+    <string name="import_title">Import stations</string>
+    <string name="import_section_new">New</string>
+    <string name="import_section_existing">Already in your library</string>
+    <string name="import_select_all">Select all</string>
+    <string name="import_part_station">Station</string>
+    <string name="import_part_station_new">Add to your library</string>
+    <string name="import_part_station_existing">Replace station</string>
+    <string name="import_part_history">Track history</string>
+    <string name="import_part_starred">Starred tracks</string>
+    <plurals name="import_plays">
+        <item quantity="one">%1$d play</item>
+        <item quantity="other">%1$d plays</item>
+    </plurals>
+    <plurals name="import_starred">
+        <item quantity="one">%1$d starred</item>
+        <item quantity="other">%1$d starred</item>
+    </plurals>
+    <string name="import_not_selected">Not imported</string>
+    <string name="import_keep_all_plays">Keep all plays</string>
+    <string name="import_keep_all_plays_desc">Raises your history limit from %1$d to %2$d. Otherwise only the newest %1$d plays per station are kept.</string>
+    <plurals name="import_button">
+        <item quantity="one">Import %1$d station</item>
+        <item quantity="other">Import %1$d stations</item>
+    </plurals>
+    <string name="import_no_matches">No stations match your search</string>
+    <string name="import_cd_playing">Playing</string>
+    <string name="import_failed">Couldn\'t import. Nothing was changed.</string>
+    <string name="import_no_stations">No stations found in the selected file</string>
     <string name="settings_conflict_overwrite">Overwrite existing</string>
-    <string name="settings_conflict_overwrite_desc">Always use the backup version</string>
-    <string name="settings_conflict_keep_newer">Keep newer</string>
-    <string name="settings_conflict_keep_newer_desc">Keep whichever was added more recently</string>
-    <string name="settings_include_tracks_title">Include Track History</string>
-    <string name="settings_include_tracks_subtitle">Include played and starred tracks in station backups</string>
     <string name="settings_export_title">Export Stations</string>
     <string name="settings_export_subtitle">Save your stations to a file</string>
     <string name="settings_exported_failed">Export failed: could not open file for writing</string>

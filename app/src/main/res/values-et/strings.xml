@@ -22,13 +22,7 @@
     <string name="settings_general_section">Üldised seadistused</string>
     <string name="settings_language_title">Keel</string>
     <string name="settings_backup_section">Varundus ja taastamine</string>
-    <string name="settings_conflict_title">Andmekonflikti tekkimisel</string>
-    <string name="settings_conflict_skip">Jäta olemasolev vahele</string>
-    <string name="settings_conflict_skip_desc">Sellega säilitad senise versiooni</string>
     <string name="settings_conflict_overwrite">Kirjuta olemasolev üle</string>
-    <string name="settings_conflict_overwrite_desc">Sellega kasutad alati varukoopias leiduvat versiooni</string>
-    <string name="settings_conflict_keep_newer">Säilita uuem</string>
-    <string name="settings_conflict_keep_newer_desc">Sellega säilitad viimati lisatud versiooni</string>
     <string name="settings_export_title">Ekspordi raadiojaamad</string>
     <string name="settings_export_subtitle">Salvesta oma veebiraadiojaamad faili</string>
     <string name="settings_import_title">Impordi raadiojaamad</string>

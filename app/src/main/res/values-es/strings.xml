@@ -102,13 +102,7 @@
     <string name="settings_no_update_available">No hay actualizaciones disponibles</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_backup_section">Copia de seguridad y restauración</string>
-    <string name="settings_conflict_title">Cuando ocurra un conflicto</string>
-    <string name="settings_conflict_skip">Omitir existentes</string>
-    <string name="settings_conflict_skip_desc">Mantener tu versión actual</string>
     <string name="settings_conflict_overwrite">Sobrescribir existentes</string>
-    <string name="settings_conflict_overwrite_desc">Usar siempre la versión de la copia de seguridad</string>
-    <string name="settings_conflict_keep_newer">Mantener el más reciente</string>
-    <string name="settings_conflict_keep_newer_desc">Mantener el que se haya añadido más recientemente</string>
     <string name="settings_export_title">Exportar emisoras</string>
     <string name="settings_export_subtitle">Guardar tus emisoras en un archivo</string>
     <string name="settings_exported_failed">Error al exportar: no se pudo abrir el archivo para escribir</string>

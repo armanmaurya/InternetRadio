@@ -95,7 +95,11 @@ class LibraryRepositoryImpl @Inject constructor(
         if (stationDao.getStationById(station.stationUuid) != null) return
         val lastPlayedAt = recentStationDao.getStationById(station.stationUuid)?.lastPlayedAt
         stationDao.insertStation(
-            station.toEntity(addedAt = System.currentTimeMillis(), lastPlayedAt = lastPlayedAt)
+            station.toEntity(
+                addedAt = System.currentTimeMillis(),
+                orderIndex = stationDao.nextOrderIndex(),
+                lastPlayedAt = lastPlayedAt
+            )
         )
     }
 
@@ -134,7 +138,8 @@ class LibraryRepositoryImpl @Inject constructor(
             bitrate = bitrate,
             isCustom = true,
             isFavorite = true,
-            addedAt = System.currentTimeMillis()
+            addedAt = System.currentTimeMillis(),
+            orderIndex = stationDao.nextOrderIndex()
         )
         stationDao.insertStation(station)
     }
@@ -219,7 +224,8 @@ class LibraryRepositoryImpl @Inject constructor(
                     bitrate = bitrate,
                     isCustom = false,
                     isFavorite = true,
-                    addedAt = System.currentTimeMillis()
+                    addedAt = System.currentTimeMillis(),
+                    orderIndex = stationDao.nextOrderIndex()
                 )
                 stationDao.insertStation(newStation)
                 Result.success(newUuid)
@@ -292,6 +298,8 @@ class LibraryRepositoryImpl @Inject constructor(
     override suspend fun getEntityById(stationUuid: String): StationEntity? {
         return stationDao.getStationById(stationUuid)
     }
+
+    override suspend fun nextOrderIndex(): Int = stationDao.nextOrderIndex()
 
     override suspend fun insertEntity(entity: StationEntity) {
         stationDao.insertStation(entity)

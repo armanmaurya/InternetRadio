@@ -1,16 +1,17 @@
 default_platform(:android)
 
 platform :android do
-  desc "Upload the play AAB to production as a draft."
-  desc "'What's new' comes from metadata/android/<locale>/changelogs/<versionCode>.txt."
-  desc "Store listing text and graphics are not touched."
+  # Uploads the play AAB to production as a draft.
+  # - 'What's new' comes from metadata/android/<locale>/changelogs/<versionCode>.txt.
+  # - R8 proguard.map and native debug symbols are already embedded in the AAB.
+  # - Store listing text and graphics are not touched.
+  desc "Upload the play AAB to production as a draft"
   lane :play do
     upload_to_play_store(
       track: "production",
       release_status: "draft",
       aab: ENV.fetch("AAB_PATH"),
-      mapping: ENV.fetch("MAPPING_PATH"),
-      metadata_path: "fastlane/metadata/android",
+      metadata_path: File.expand_path("metadata/android", __dir__),
       skip_upload_apk: true,
       skip_upload_changelogs: false,
       skip_upload_metadata: true,

@@ -14,18 +14,24 @@ import kotlinx.coroutines.flow.flowOf
 internal class FakeLibraryRepository : LibraryRepository {
     val stationsFlow = MutableStateFlow<List<RadioStation>>(emptyList())
     val removedUuids = mutableListOf<String>()
+    /** Stations saved with [insertEntity], by uuid. */
+    val entities = mutableMapOf<String, StationEntity>()
     override fun getAllStations(): Flow<List<RadioStation>> = stationsFlow
     override fun getAllStationEntitiesFlow(): Flow<List<StationEntity>> = flowOf(emptyList())
-    override suspend fun getAllStationEntities(): List<StationEntity> = emptyList()
+    override suspend fun getAllStationEntities(): List<StationEntity> = entities.values.toList()
     override suspend fun getLibraryStationById(stationUuid: String): RadioStation? =
         stationsFlow.value.find { it.stationUuid == stationUuid }
-    override suspend fun getEntityById(stationUuid: String): StationEntity? = null
+    override suspend fun getEntityById(stationUuid: String): StationEntity? = entities[stationUuid]
     override fun isStationInLibrary(stationUuid: String): Flow<Boolean> = flowOf(false)
     override suspend fun isStationInLibraryDirect(stationUuid: String): Boolean = false
     override suspend fun addStationToLibrary(station: RadioStation) {}
-    override suspend fun insertEntity(entity: StationEntity) {}
+    override suspend fun insertEntity(entity: StationEntity) {
+        entities[entity.stationUuid] = entity
+    }
+    override suspend fun nextOrderIndex(): Int = (entities.values.maxOfOrNull { it.orderIndex } ?: -1) + 1
     override suspend fun removeStationFromLibrary(stationUuid: String) {
         removedUuids += stationUuid
+        entities.remove(stationUuid)
         stationsFlow.value = stationsFlow.value.filterNot { it.stationUuid == stationUuid }
     }
     override suspend fun updateStations(stations: List<StationEntity>) {}

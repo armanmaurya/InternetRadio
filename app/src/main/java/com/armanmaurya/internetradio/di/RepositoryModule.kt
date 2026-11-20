@@ -10,6 +10,7 @@ import com.armanmaurya.internetradio.data.repository.SettingsRepositoryImpl
 import com.armanmaurya.internetradio.data.repository.StationRepositoryImpl
 import com.armanmaurya.internetradio.data.repository.TrackHistoryRepositoryImpl
 import com.armanmaurya.internetradio.data.repository.UpdateRepositoryImpl
+import com.armanmaurya.internetradio.data.repository.RoomTransactionRunner
 import com.armanmaurya.internetradio.domain.repository.CoverArtRepository
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.LyricsRepository
@@ -20,6 +21,7 @@ import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.domain.repository.StationRepository
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.domain.repository.UpdateRepository
+import com.armanmaurya.internetradio.domain.repository.TransactionRunner
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -113,4 +115,7 @@ abstract class RepositoryModule {
     abstract fun bindUpdateRepository(
         impl: UpdateRepositoryImpl
     ): UpdateRepository
+
+    @Binds
+    abstract fun bindTransactionRunner(impl: RoomTransactionRunner): TransactionRunner
 }

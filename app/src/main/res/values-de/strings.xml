@@ -127,13 +127,7 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Sicherung &amp; Wiederherstellung</string>
-    <string name="settings_conflict_title">Wenn ein Konflikt auftritt</string>
-    <string name="settings_conflict_skip">Vorhandene überspringen</string>
-    <string name="settings_conflict_skip_desc">Die aktuelle Version beibehalten</string>
     <string name="settings_conflict_overwrite">Vorhandene überschreiben</string>
-    <string name="settings_conflict_overwrite_desc">Immer die Version der Sicherung verwenden</string>
-    <string name="settings_conflict_keep_newer">Neuere Version verwenden</string>
-    <string name="settings_conflict_keep_newer_desc">Die zuletzt hinzugefügte Version verwenden</string>
     <string name="settings_export_title">Bibliothek exportieren</string>
     <string name="settings_export_subtitle">Senderbibliothek in eine Datei sichern</string>
     <string name="settings_exported_failed">Export fehlgeschlagen: Die Datei zum Schreiben konnte nicht geöffnet werden</string>

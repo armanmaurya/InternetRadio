@@ -2,11 +2,10 @@ package com.armanmaurya.internetradio.data.repository
 
 import com.armanmaurya.internetradio.data.local.dao.TrackHistoryDao
 import com.armanmaurya.internetradio.data.local.dao.StarredTrackDao
+import com.armanmaurya.internetradio.data.local.dao.StationCount
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.data.local.entity.StarredTrackEntity
 import com.armanmaurya.internetradio.domain.model.AppPreferences
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
-import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -216,7 +215,7 @@ class TrackHistoryRepositoryTest {
             TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "Song 2", timestamp = 2000L)
         )
 
-        repository.importTracks("s1", toImport, ConflictStrategy.SKIP)
+        repository.importTracks("s1", toImport)
 
         assertEquals(2, fakeDao.tracks.size)
         assertEquals("Song 1", fakeDao.tracks.first { it.timestamp == 1000L }.trackTitle)
@@ -258,23 +257,21 @@ class TrackHistoryRepositoryTest {
     fun importTracks_doesNotStoreStarredState() = runBlocking {
         repository.importTracks(
             "s1",
-            listOf(TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "Song 1", timestamp = 1000L, isStarred = true)),
-            ConflictStrategy.SKIP
-        )
+            listOf(TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "Song 1", timestamp = 1000L, isStarred = true)))
 
         assertFalse(fakeDao.tracks.single().isStarred)
         assertTrue(fakeStarredDao.starred.isEmpty())
     }
 
     @Test
-    fun importTracks_enrichesMissingMetadata_whenStrategyIsSkip() = runBlocking {
+    fun importTracks_keepsExistingPlay_andFillsMissingMetadata() = runBlocking {
         fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s1", trackTitle = "Song 1", timestamp = 1000L, coverArtUrl = null, artist = null))
 
         val toImport = listOf(
             TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "Song 1", timestamp = 1000L, coverArtUrl = "http://art.jpg", artist = "Artist 1")
         )
 
-        repository.importTracks("s1", toImport, ConflictStrategy.SKIP)
+        repository.importTracks("s1", toImport)
 
         val updated = fakeDao.tracks.first()
         assertEquals("http://art.jpg", updated.coverArtUrl)
@@ -282,18 +279,38 @@ class TrackHistoryRepositoryTest {
     }
 
     @Test
-    fun importTracks_overwritesMetadata_whenStrategyIsOverwrite() = runBlocking {
-        fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s1", trackTitle = "Old Title", timestamp = 1000L, coverArtUrl = "old.jpg"))
+    fun importTracks_keepsOnlyNewestPlays_withinHistoryLimit() = runBlocking {
+        fakeSettingsRepository.prefsFlow.value = fakeSettingsRepository.prefsFlow.value.copy(trackHistoryLimit = 3)
+        fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s1", trackTitle = "Local", timestamp = 2500L))
 
-        val toImport = listOf(
-            TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "New Title", timestamp = 1000L, coverArtUrl = "new.jpg")
-        )
+        repository.importTracks(
+            "s1",
+            (1..4).map { TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "Song $it", timestamp = it * 1000L) })
 
-        repository.importTracks("s1", toImport, ConflictStrategy.OVERWRITE)
+        assertEquals(listOf(2500L, 3000L, 4000L), repository.getAllTracksForStation("s1").map { it.timestamp })
+    }
 
-        val updated = fakeDao.tracks.first()
-        assertEquals("New Title", updated.trackTitle)
-        assertEquals("new.jpg", updated.coverArtUrl)
+    @Test
+    fun importTracks_doesNotTrimOtherStations() = runBlocking {
+        fakeSettingsRepository.prefsFlow.value = fakeSettingsRepository.prefsFlow.value.copy(trackHistoryLimit = 1)
+        fakeDao.insert(TrackHistoryEntity(id = 1, stationUuid = "s2", trackTitle = "A", timestamp = 1L))
+        fakeDao.insert(TrackHistoryEntity(id = 2, stationUuid = "s2", trackTitle = "B", timestamp = 2L))
+
+        repository.importTracks("s1", listOf(TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "C", timestamp = 3L)))
+
+        assertEquals(2, repository.getAllTracksForStation("s2").size)
+    }
+
+    @Test
+    fun countPerStation_countsHistoryAndStarsSeparately() = runBlocking {
+        repository.importTracks("s1", listOf(
+            TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "A", timestamp = 1L),
+            TrackHistoryEntity(id = 0, stationUuid = "s1", trackTitle = "B", timestamp = 2L)
+        ))
+        repository.importStarredTracks("s2", listOf(StarredTrackEntity(stationUuid = "s2", trackTitle = "Fav")))
+
+        assertEquals(mapOf("s1" to 2), repository.countTracksPerStation())
+        assertEquals(mapOf("s2" to 1), repository.countStarredTracksPerStation())
     }
 
     // --- Test Doubles ---
@@ -301,6 +318,12 @@ class TrackHistoryRepositoryTest {
     private class FakeTrackHistoryDao : TrackHistoryDao {
         val tracks = mutableListOf<TrackHistoryEntity>()
         private var idCounter = 1L
+
+        override suspend fun getTimestampsForStation(stationUuid: String): List<Long> =
+            tracks.filter { it.stationUuid == stationUuid }.map { it.timestamp }
+
+        override suspend fun countPerStation(): List<StationCount> =
+            tracks.groupingBy { it.stationUuid }.eachCount().map { StationCount(it.key, it.value) }
 
         override suspend fun insert(trackHistory: TrackHistoryEntity): Long {
             val assignedId = if (trackHistory.id != 0L) trackHistory.id else idCounter++
@@ -380,6 +403,9 @@ class TrackHistoryRepositoryTest {
     private class FakeStarredTrackDao : StarredTrackDao {
         val starred = mutableListOf<StarredTrackEntity>()
         private var idCounter = 1L
+
+        override suspend fun countPerStation(): List<StationCount> =
+            starred.groupingBy { it.stationUuid }.eachCount().map { StationCount(it.key, it.value) }
 
         override suspend fun insert(starredTrack: StarredTrackEntity): Long {
             val assignedId = if (starredTrack.id != 0L) starredTrack.id else idCounter++

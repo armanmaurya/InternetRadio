@@ -65,13 +65,7 @@
     <!-- 6b. BACKUP & RESTORE                       -->
     <!-- ========================================== -->
     <string name="settings_backup_section">Yedekle ve Geri Yükle</string>
-    <string name="settings_conflict_title">Çakışma durumunda</string>
-    <string name="settings_conflict_skip">Mevcutu atla</string>
-    <string name="settings_conflict_skip_desc">Mevcut sürümünü koru</string>
     <string name="settings_conflict_overwrite">Mevcutu üzerine yaz</string>
-    <string name="settings_conflict_overwrite_desc">Her zaman yedek sürümünü kullan</string>
-    <string name="settings_conflict_keep_newer">Daha yenisini tut</string>
-    <string name="settings_conflict_keep_newer_desc">En son eklenen hangisiyse onu tut</string>
     <string name="settings_export_title">Kütüphaneyi Dışa Aktar</string>
     <string name="settings_export_subtitle">İstasyonlarını bir dosyaya kaydet</string>
     <string name="settings_import_title">Kütüphaneyi İçe Aktar</string>

@@ -47,7 +47,6 @@ internal class FakeSettingsRepository : SettingsRepository {
     override suspend fun setDefaultTab(tabIndex: Int) {}
     override suspend fun setLastUpdateCheckTime(timeInMillis: Long) {}
     override suspend fun setMaxRetryDuration(durationInMillis: Long) {}
-    override suspend fun setConflictStrategy(strategy: com.armanmaurya.internetradio.domain.model.ConflictStrategy) {}
     override suspend fun setLibrarySortOption(option: com.armanmaurya.internetradio.domain.model.LibrarySortOption) {}
     override suspend fun setStartOfWeek(startOfWeek: com.armanmaurya.internetradio.domain.model.StartOfWeek) {}
     override suspend fun setRecordingTimeFormat(format: com.armanmaurya.internetradio.domain.model.RecordingTimeFormat) {}
@@ -57,7 +56,4 @@ internal class FakeSettingsRepository : SettingsRepository {
     override suspend fun setKeepScreenOn(enabled: Boolean) {}
     override suspend fun setWidgetBackgroundAlpha(alpha: Float) {}
     override suspend fun setShowStationThumbnails(enabled: Boolean) {}
-    override suspend fun setIncludeTracksInBackup(enabled: Boolean) {
-        prefsFlow.value = prefsFlow.value.copy(includeTracksInBackup = enabled)
-    }
 }

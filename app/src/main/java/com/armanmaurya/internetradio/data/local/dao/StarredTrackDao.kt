@@ -41,6 +41,9 @@ interface StarredTrackDao {
     @Query("SELECT * FROM starred_tracks WHERE stationUuid = :stationUuid AND (LOWER(TRIM(trackTitle)) = LOWER(TRIM(:trackTitle)) OR (rawTrackTitle != '' AND LOWER(TRIM(rawTrackTitle)) = LOWER(TRIM(:rawTrackTitle)))) LIMIT 1")
     suspend fun findStarredTrack(stationUuid: String, trackTitle: String, rawTrackTitle: String = ""): StarredTrackEntity?
 
+    @Query("SELECT stationUuid, COUNT(*) AS count FROM starred_tracks GROUP BY stationUuid")
+    suspend fun countPerStation(): List<StationCount>
+
     @Update
     suspend fun update(starredTrack: StarredTrackEntity)
 }

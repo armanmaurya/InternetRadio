@@ -6,6 +6,17 @@ plugins {
 }
 
 android {
+    testOptions {
+        // Robolectric UI tests need the app's resources (strings, themes)
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            // Robolectric reaches into java.io internals that newer JDKs close off
+            it.jvmArgs(
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED"
+            )
+        }
+    }
     namespace = "com.armanmaurya.internetradio"
     compileSdk = 37
 
@@ -164,12 +175,15 @@ dependencies {
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.palette)
     implementation(libs.androidx.documentfile)
-
     "playImplementation"("com.google.android.play:app-update:2.1.0")
     "playImplementation"("com.google.android.play:app-update-ktx:2.1.0")
 
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

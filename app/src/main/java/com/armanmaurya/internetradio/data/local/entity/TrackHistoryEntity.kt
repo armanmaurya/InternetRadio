@@ -2,9 +2,14 @@ package com.armanmaurya.internetradio.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "track_history")
+@Entity(
+    tableName = "track_history",
+    // Every history read and the per-station trim go by station, newest first.
+    indices = [Index(value = ["stationUuid", "timestamp"])]
+)
 data class TrackHistoryEntity @Ignore constructor(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

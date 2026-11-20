@@ -148,11 +148,23 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Setup Ruby (fastlane)
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          bundler-cache: true
+
+      - name: Cache Fastlane gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-ruby3.3-gems-${{ hashFiles('Gemfile') }}
+          restore-keys: |
+            ${{ runner.os }}-ruby3.3-gems-
+
+      - name: Install Fastlane
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
 
       - name: Decode upload keystore and Play key
         env:
@@ -176,7 +188,6 @@ jobs:
         run: |
           set -euo pipefail
           AAB=$(realpath "$(ls app/build/outputs/bundle/playRelease/*.aab | head -n1)")
-          MAPPING=$(realpath app/build/outputs/mapping/playRelease/mapping.txt)
 
           CERTS=$(keytool -printcert -jarfile "$AAB")
           echo "$CERTS"
@@ -186,7 +197,6 @@ jobs:
           fi
 
           echo "AAB_PATH=$AAB" >> "$GITHUB_ENV"
-          echo "MAPPING_PATH=$MAPPING" >> "$GITHUB_ENV"
 
       - name: Upload to Play (production, draft)
         run: bundle exec fastlane android play

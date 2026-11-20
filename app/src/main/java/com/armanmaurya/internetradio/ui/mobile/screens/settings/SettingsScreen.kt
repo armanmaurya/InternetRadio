@@ -69,7 +69,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
-import androidx.compose.material.icons.automirrored.filled.CallMerge
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Favorite
@@ -92,6 +91,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -112,9 +113,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.AppPreferences
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.message
 import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.ExpandableItem
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.Item
@@ -132,9 +135,13 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    importViewModel: ImportViewModel = hiltViewModel(),
+    exportViewModel: ExportViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onCheckUpdatesClick: () -> Unit = {},
     onLanguageClick: () -> Unit = {},
+    onImportClick: () -> Unit = {},
+    onExportClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -153,25 +160,30 @@ fun SettingsScreen(
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
     var showRecentLimitDialog by remember { mutableStateOf(false) }
 
-    // Toast feedback for backup/restore operations
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        viewModel.backupResult.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
+
+    // How an import or export ended, shown once its screen has closed.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val importResult by importViewModel.result.collectAsState()
+    LaunchedEffect(importResult) {
+        val result = importResult ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(result.message(context))
+        importViewModel.resultShown()
+    }
+    val exportResult by exportViewModel.result.collectAsState()
+    LaunchedEffect(exportResult) {
+        val result = exportResult ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(result.message(context))
+        exportViewModel.resultShown()
     }
 
-    // Activity result launchers for file picker
-    val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        uri?.let { viewModel.exportLibrary(context, it) }
-    }
+    // File picker for import; export picks its file on its own screen
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNotEmpty()) {
-            viewModel.importLibraries(context, uris)
+            importViewModel.load(uris)
+            onImportClick()
         }
     }
 
@@ -186,7 +198,8 @@ fun SettingsScreen(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .padding(bottom = contentPadding.calculateBottomPadding()),
-        topBar = { SettingsTopBar(onBackClick = onBackClick, scrollBehavior = scrollBehavior) }
+        topBar = { SettingsTopBar(onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -262,15 +275,12 @@ fun SettingsScreen(
                 bottomShape = bottomShape
             )
             BackupSection(
-                uiState = uiState,
-                expandedItem = expandedItem,
-                onExpandedItemChange = { expandedItem = it },
-                onSetConflictStrategy = viewModel::setConflictStrategy,
-                onExport = { exportLauncher.launch("stations.json") },
+                onExport = {
+                    exportViewModel.load()
+                    onExportClick()
+                },
                 onImport = { importLauncher.launch(arrayOf("application/json")) },
-                onToggleIncludeTracks = viewModel::setIncludeTracksInBackup,
                 topShape = topShape,
-                middleShape = middleShape,
                 bottomShape = bottomShape
             )
             UpdateSection(
@@ -1313,67 +1323,18 @@ private fun DonateSection() {
 
 @Composable
 private fun BackupSection(
-    uiState: AppPreferences,
-    expandedItem: String?,
-    onExpandedItemChange: (String?) -> Unit,
-    onSetConflictStrategy: (ConflictStrategy) -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
-    onToggleIncludeTracks: (Boolean) -> Unit,
     topShape: RoundedCornerShape,
-    middleShape: RoundedCornerShape,
     bottomShape: RoundedCornerShape
 ) {
-    val conflictOptions = listOf(
-        ConflictStrategy.SKIP to stringResource(R.string.settings_conflict_skip),
-        ConflictStrategy.OVERWRITE to stringResource(R.string.settings_conflict_overwrite),
-        ConflictStrategy.KEEP_NEWER to stringResource(R.string.settings_conflict_keep_newer)
-    )
-    val currentLabel = conflictOptions.find { it.first == uiState.conflictStrategy }?.second
-        ?: stringResource(R.string.settings_conflict_skip)
-
     Section(title = stringResource(R.string.settings_backup_section)) {
-        ExpandableItem(
-            title = stringResource(R.string.settings_conflict_title),
-            subtitle = currentLabel,
-            isExpanded = expandedItem == "Conflict",
-            onToggle = { onExpandedItemChange(if (expandedItem == "Conflict") null else "Conflict") },
-            icon = Icons.AutoMirrored.Filled.CallMerge,
-            shape = topShape
-        ) {
-            conflictOptions.forEach { (strategy, label) ->
-                OptionItem(
-                    label = label,
-                    isSelected = uiState.conflictStrategy == strategy,
-                    onClick = { onSetConflictStrategy(strategy) },
-                    subtitle = when (strategy) {
-                        ConflictStrategy.SKIP -> stringResource(R.string.settings_conflict_skip_desc)
-                        ConflictStrategy.OVERWRITE -> stringResource(R.string.settings_conflict_overwrite_desc)
-                        ConflictStrategy.KEEP_NEWER -> stringResource(R.string.settings_conflict_keep_newer_desc)
-                    }
-                )
-            }
-        }
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-
-        ToggleItem(
-            title = stringResource(R.string.settings_include_tracks_title),
-            subtitle = stringResource(R.string.settings_include_tracks_subtitle),
-            isEnabled = uiState.includeTracksInBackup,
-            onToggle = onToggleIncludeTracks,
-            icon = Icons.Default.History,
-            shape = middleShape
-        )
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-
         Item(
             title = stringResource(R.string.settings_export_title),
             subtitle = stringResource(R.string.settings_export_subtitle),
             onClick = onExport,
             icon = Icons.Default.FileUpload,
-            shape = middleShape
+            shape = topShape
         )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))

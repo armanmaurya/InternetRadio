@@ -1,4 +1,5 @@
 [versions]
+robolectric = "4.17"
 agp = "9.2.1"
 coilCompose = "3.5.0"
 coilNetworkOkhttp = "3.5.0"
@@ -40,6 +41,7 @@ materialKolor = "5.0.1"
 documentfile = "1.0.1"
 
 [libraries]
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 androidx-car-app = { group = "androidx.car.app", name = "app", version.ref = "carApp" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }

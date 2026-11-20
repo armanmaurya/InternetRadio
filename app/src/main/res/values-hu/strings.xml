@@ -74,13 +74,7 @@
     <!-- 6b. BACKUP & RESTORE                       -->
     <!-- ========================================== -->
     <string name="settings_backup_section">Biztonsági mentés és visszaállítás</string>
-    <string name="settings_conflict_title">Ütközés esetén</string>
-    <string name="settings_conflict_skip">Meglévő kihagyása</string>
-    <string name="settings_conflict_skip_desc">A jelenlegi verzió megtartása</string>
     <string name="settings_conflict_overwrite">Meglévő felülírása</string>
-    <string name="settings_conflict_overwrite_desc">Mindig a biztonsági mentés verziójának használata</string>
-    <string name="settings_conflict_keep_newer">Újabb megtartása</string>
-    <string name="settings_conflict_keep_newer_desc">A később hozzáadott megtartása</string>
     <string name="settings_export_title">Állomások exportálása</string>
     <string name="settings_export_subtitle">Állomások mentése fájlba</string>
     <string name="settings_import_title">Állomások importálása</string>

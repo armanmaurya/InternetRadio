@@ -2,7 +2,6 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 
 import android.content.ContextWrapper
 import com.armanmaurya.internetradio.domain.model.AppPreferences
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.Country
 import com.armanmaurya.internetradio.domain.model.Language
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
@@ -250,7 +249,6 @@ class BrowseViewModelTest {
         override suspend fun setDefaultTab(tabIndex: Int) {}
         override suspend fun setLastUpdateCheckTime(timeInMillis: Long) {}
         override suspend fun setMaxRetryDuration(durationInMillis: Long) {}
-        override suspend fun setConflictStrategy(strategy: ConflictStrategy) {}
         override suspend fun setLibrarySortOption(option: LibrarySortOption) {}
         override suspend fun setStartOfWeek(startOfWeek: StartOfWeek) {}
         override suspend fun setRecordingTimeFormat(format: com.armanmaurya.internetradio.domain.model.RecordingTimeFormat) {}
@@ -260,6 +258,5 @@ class BrowseViewModelTest {
         override suspend fun setKeepScreenOn(enabled: Boolean) {}
         override suspend fun setWidgetBackgroundAlpha(alpha: Float) {}
         override suspend fun setShowStationThumbnails(enabled: Boolean) {}
-        override suspend fun setIncludeTracksInBackup(enabled: Boolean) {}
     }
 }

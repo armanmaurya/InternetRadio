@@ -1,7 +1,6 @@
 package com.armanmaurya.internetradio.data.backup
 
 import com.armanmaurya.internetradio.data.local.entity.StationEntity
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -23,62 +22,6 @@ class LibraryBackupTest {
         val backup2 = entity2.toBackupStation()
 
         assertNotEquals(backup1, backup2)
-    }
-
-    @Test
-    fun `conflict strategy handling logic applies correctly`() {
-        val existing = StationEntity(
-            stationUuid = "uuid-1",
-            name = "Old Name",
-            url = "https://old.com",
-            addedAt = 1000L
-        )
-
-        val incomingNewer = BackupStation(
-            stationUuid = "uuid-1",
-            name = "Newer Name",
-            url = "https://new.com",
-            addedAt = 2000L
-        ).toStationEntity()
-
-        val incomingOlder = BackupStation(
-            stationUuid = "uuid-1",
-            name = "Older Name",
-            url = "https://older.com",
-            addedAt = 500L
-        ).toStationEntity()
-
-        // 1. SKIP strategy
-        var shouldUpdate = when (ConflictStrategy.SKIP) {
-            ConflictStrategy.OVERWRITE -> true
-            ConflictStrategy.KEEP_NEWER -> (incomingNewer.addedAt ?: 0L) > (existing.addedAt ?: 0L)
-            ConflictStrategy.SKIP -> false
-        }
-        assertEquals(false, shouldUpdate)
-
-        // 2. OVERWRITE strategy
-        shouldUpdate = when (ConflictStrategy.OVERWRITE) {
-            ConflictStrategy.OVERWRITE -> true
-            ConflictStrategy.KEEP_NEWER -> (incomingOlder.addedAt ?: 0L) > (existing.addedAt ?: 0L)
-            ConflictStrategy.SKIP -> false
-        }
-        assertEquals(true, shouldUpdate)
-
-        // 3. KEEP_NEWER with newer entity
-        shouldUpdate = when (ConflictStrategy.KEEP_NEWER) {
-            ConflictStrategy.OVERWRITE -> true
-            ConflictStrategy.KEEP_NEWER -> (incomingNewer.addedAt ?: 0L) > (existing.addedAt ?: 0L)
-            ConflictStrategy.SKIP -> false
-        }
-        assertEquals(true, shouldUpdate)
-
-        // 4. KEEP_NEWER with older entity
-        shouldUpdate = when (ConflictStrategy.KEEP_NEWER) {
-            ConflictStrategy.OVERWRITE -> true
-            ConflictStrategy.KEEP_NEWER -> (incomingOlder.addedAt ?: 0L) > (existing.addedAt ?: 0L)
-            ConflictStrategy.SKIP -> false
-        }
-        assertEquals(false, shouldUpdate)
     }
 
     @Test

@@ -84,7 +84,10 @@ fun AppNavHost(
         composable(AppDestination.Settings.route) {
             SettingsScreen(
                 onAboutClick = { navController.navigate(AppDestination.About.route) },
-                onAppLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) }
+                onAppLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) },
+                onPlayStation = { station -> playerViewModel.play(listOf(station), 0, PlaybackSource.None) },
+                playingStationUuid = playerUiState.currentStation?.stationUuid,
+                isPlaybackActive = playerUiState.isPlaying
             )
         }
         composable(AppDestination.AppLanguage.route) {

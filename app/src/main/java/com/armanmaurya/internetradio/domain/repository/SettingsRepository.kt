@@ -1,7 +1,6 @@
 package com.armanmaurya.internetradio.domain.repository
 
 import com.armanmaurya.internetradio.domain.model.AppPreferences
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
@@ -46,7 +45,6 @@ interface SettingsRepository {
     suspend fun setDefaultTab(tabIndex: Int)
     suspend fun setLastUpdateCheckTime(timeInMillis: Long)
     suspend fun setMaxRetryDuration(durationInMillis: Long)
-    suspend fun setConflictStrategy(strategy: ConflictStrategy)
     suspend fun setLibrarySortOption(option: LibrarySortOption)
     suspend fun setStartOfWeek(startOfWeek: StartOfWeek)
     suspend fun setRecordingTimeFormat(format: RecordingTimeFormat)
@@ -56,6 +54,5 @@ interface SettingsRepository {
     suspend fun setKeepScreenOn(enabled: Boolean)
     suspend fun setWidgetBackgroundAlpha(alpha: Float)
     suspend fun setShowStationThumbnails(enabled: Boolean)
-    suspend fun setIncludeTracksInBackup(enabled: Boolean)
 }
 

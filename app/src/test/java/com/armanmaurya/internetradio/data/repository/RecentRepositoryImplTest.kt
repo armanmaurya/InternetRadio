@@ -179,6 +179,7 @@ class RecentRepositoryImplTest {
         override suspend fun deleteStationById(stationUuid: String) {
             stations.remove(stationUuid)
         }
+        override suspend fun nextOrderIndex(): Int = (stations.values.maxOfOrNull { it.orderIndex } ?: -1) + 1
         override suspend fun updateLastPlayed(stationUuid: String, timestamp: Long) {
             stations[stationUuid]?.let { stations[stationUuid] = it.copy(lastPlayedAt = timestamp) }
         }

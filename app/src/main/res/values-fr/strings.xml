@@ -73,13 +73,7 @@
     <string name="settings_support_app">Soutenir l\'application</string>
     <string name="settings_theme_system">Système par défaut</string>
     <string name="settings_backup_section">Sauvegarde et restauration</string>
-    <string name="settings_conflict_title">Lorsqu\'un conflit survient</string>
-    <string name="settings_conflict_skip">Ignorer l\'existant</string>
-    <string name="settings_conflict_skip_desc">Conservez votre version actuelle</string>
     <string name="settings_conflict_overwrite">Remplacer l\'existant</string>
-    <string name="settings_conflict_overwrite_desc">Utilisez toujours la version de sauvegarde</string>
-    <string name="settings_conflict_keep_newer">Rester plus récent</string>
-    <string name="settings_conflict_keep_newer_desc">Conservez celui qui a été ajouté le plus récemment</string>
     <string name="settings_export_title">Exporter les stations</string>
     <string name="settings_export_subtitle">Enregistrez vos stations dans un fichier</string>
     <string name="settings_exported_failed">Échec de l\'exportation : impossible d\'ouvrir le fichier en écriture</string>

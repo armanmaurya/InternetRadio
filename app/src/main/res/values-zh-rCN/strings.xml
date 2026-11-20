@@ -127,13 +127,7 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">备份与恢复</string>
-    <string name="settings_conflict_title">发生冲突时</string>
-    <string name="settings_conflict_skip">跳过已有项</string>
-    <string name="settings_conflict_skip_desc">保留您当前的版本</string>
     <string name="settings_conflict_overwrite">覆盖已有项</string>
-    <string name="settings_conflict_overwrite_desc">始终使用备份中的版本</string>
-    <string name="settings_conflict_keep_newer">保留较新的</string>
-    <string name="settings_conflict_keep_newer_desc">保留最近添加的那一个</string>
     <string name="settings_export_title">导出电台</string>
     <string name="settings_export_subtitle">将您的电台保存到文件</string>
     <string name="settings_exported_failed">导出失败：无法打开文件进行写入</string>

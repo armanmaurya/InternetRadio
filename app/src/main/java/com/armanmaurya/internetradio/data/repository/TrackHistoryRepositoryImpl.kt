@@ -18,7 +18,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 
 @Singleton
 class TrackHistoryRepositoryImpl @Inject constructor(
@@ -156,11 +155,7 @@ class TrackHistoryRepositoryImpl @Inject constructor(
         starredTrackDao.getStarredTracksForStationSync(stationUuid)
     }
 
-    override suspend fun importTracks(
-        stationUuid: String,
-        tracks: List<TrackHistoryEntity>,
-        strategy: ConflictStrategy
-    ) = withContext(Dispatchers.IO) {
+    override suspend fun importTracks(stationUuid: String, tracks: List<TrackHistoryEntity>) = withContext(Dispatchers.IO) {
         if (tracks.isEmpty()) return@withContext
 
         val existingByTimestamp = trackHistoryDao.getAllTracksForStationSync(stationUuid).associateBy { it.timestamp }
@@ -170,52 +165,25 @@ class TrackHistoryRepositoryImpl @Inject constructor(
             val existing = existingByTimestamp[imported.timestamp]
             if (existing == null) {
                 newTracksToInsert.add(imported.copy(id = 0, stationUuid = stationUuid))
-                continue
-            }
-            when (strategy) {
-                ConflictStrategy.OVERWRITE -> {
-                    trackHistoryDao.updateTrack(
-                        existing.copy(
-                            trackTitle = imported.trackTitle,
-                            rawTrackTitle = imported.rawTrackTitle.ifBlank { existing.rawTrackTitle },
-                            coverArtUrl = imported.coverArtUrl ?: existing.coverArtUrl,
-                            artist = imported.artist ?: existing.artist,
-                            endTimestamp = maxOf(existing.endTimestamp, imported.endTimestamp),
-                            durationMs = maxOf(existing.durationMs, imported.durationMs)
-                        )
+            } else if ((existing.coverArtUrl.isNullOrBlank() && !imported.coverArtUrl.isNullOrBlank()) ||
+                (existing.artist.isNullOrBlank() && !imported.artist.isNullOrBlank())) {
+                // A play that is already here stays as it is; only fill in what it is missing
+                trackHistoryDao.updateTrack(
+                    existing.copy(
+                        coverArtUrl = existing.coverArtUrl ?: imported.coverArtUrl,
+                        artist = existing.artist ?: imported.artist
                     )
-                }
-                ConflictStrategy.KEEP_NEWER -> {
-                    if (imported.endTimestamp > existing.endTimestamp || imported.durationMs > existing.durationMs) {
-                        trackHistoryDao.updateTrack(
-                            existing.copy(
-                                trackTitle = imported.trackTitle,
-                                rawTrackTitle = imported.rawTrackTitle.ifBlank { existing.rawTrackTitle },
-                                coverArtUrl = imported.coverArtUrl ?: existing.coverArtUrl,
-                                artist = imported.artist ?: existing.artist,
-                                endTimestamp = imported.endTimestamp,
-                                durationMs = imported.durationMs
-                            )
-                        )
-                    }
-                }
-                ConflictStrategy.SKIP -> {
-                    if ((existing.coverArtUrl.isNullOrBlank() && !imported.coverArtUrl.isNullOrBlank()) ||
-                        (existing.artist.isNullOrBlank() && !imported.artist.isNullOrBlank())) {
-                        trackHistoryDao.updateTrack(
-                            existing.copy(
-                                coverArtUrl = existing.coverArtUrl ?: imported.coverArtUrl,
-                                artist = existing.artist ?: imported.artist
-                            )
-                        )
-                    }
-                }
+                )
             }
         }
 
         if (newTracksToInsert.isNotEmpty()) {
             trackHistoryDao.insertAll(newTracksToInsert)
         }
+
+        // Keep only the newest plays within the user's history limit, as logTrack does
+        val limit = settingsRepository.appPreferencesFlow.first().trackHistoryLimit
+        trackHistoryDao.cleanupOldTracksForStation(stationUuid, keepCount = limit)
     }
 
     override suspend fun importStarredTracks(stationUuid: String, tracks: List<StarredTrackEntity>) = withContext(Dispatchers.IO) {
@@ -253,5 +221,17 @@ class TrackHistoryRepositoryImpl @Inject constructor(
                 if (track.isStarred == isStarred) track else track.copy(isStarred = isStarred)
             }
         }
+    }
+
+    override suspend fun getTrackTimestamps(stationUuid: String): List<Long> = withContext(Dispatchers.IO) {
+        trackHistoryDao.getTimestampsForStation(stationUuid)
+    }
+
+    override suspend fun countTracksPerStation(): Map<String, Int> = withContext(Dispatchers.IO) {
+        trackHistoryDao.countPerStation().associate { it.stationUuid to it.count }
+    }
+
+    override suspend fun countStarredTracksPerStation(): Map<String, Int> = withContext(Dispatchers.IO) {
+        starredTrackDao.countPerStation().associate { it.stationUuid to it.count }
     }
 }

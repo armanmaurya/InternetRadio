@@ -22,8 +22,20 @@ interface TrackHistoryRepository {
     /** Every history row for [stationUuid], oldest first. Starred tracks are not included. */
     suspend fun getAllTracksForStation(stationUuid: String): List<TrackHistoryEntity>
     suspend fun getAllStarredTracksForStation(stationUuid: String): List<StarredTrackEntity>
-    /** Adds backup history rows, matching existing rows by timestamp and resolving clashes with [strategy]. */
-    suspend fun importTracks(stationUuid: String, tracks: List<TrackHistoryEntity>, strategy: com.armanmaurya.internetradio.domain.model.ConflictStrategy)
+    /**
+     * Adds backup history rows. A play already here (same timestamp) is kept, only filling in missing
+     * artwork or artist. Then trims the station to the user's history limit, keeping the newest plays.
+     */
+    suspend fun importTracks(stationUuid: String, tracks: List<TrackHistoryEntity>)
     /** Adds backup stars to the local ones; a track already starred is kept, filling in missing artwork or artist. */
     suspend fun importStarredTracks(stationUuid: String, tracks: List<StarredTrackEntity>)
+
+    /** When each of a station's plays started; plays are matched by this, so it is enough to merge counts. */
+    suspend fun getTrackTimestamps(stationUuid: String): List<Long>
+
+    /** How many plays each station has in its history, by station uuid; stations with none are left out. */
+    suspend fun countTracksPerStation(): Map<String, Int>
+
+    /** How many starred tracks each station has, by station uuid; stations with none are left out. */
+    suspend fun countStarredTracksPerStation(): Map<String, Int>
 }

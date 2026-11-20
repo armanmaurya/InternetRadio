@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.SyncProblem
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,13 +59,16 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.RadioButton
 import androidx.tv.material3.Text
 import com.armanmaurya.internetradio.R
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
+import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.message
 import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 
 /** Sub-pages opened from the main settings list, Google TV style (drill in, Back returns). */
 private enum class SettingsPage {
-    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, MAX_RETRY, VOLUME_BOOST_WARNING, CONFLICT
+    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, MAX_RETRY, VOLUME_BOOST_WARNING, IMPORT, EXPORT
 }
 
 private val TrackHistoryPresets = listOf(25, 50, 100, 200, 500, 1000)
@@ -80,31 +82,47 @@ private val SettingsColumnMaxWidth = 720.dp
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onAboutClick: () -> Unit,
-    onAppLanguageClick: () -> Unit
+    onAppLanguageClick: () -> Unit,
+    onPlayStation: (RadioStation) -> Unit = {},
+    playingStationUuid: String? = null,
+    isPlaybackActive: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val importViewModel: ImportViewModel = hiltViewModel()
+    val exportViewModel: ExportViewModel = hiltViewModel()
     val context = LocalContext.current
+
+    // How an import ended, shown once its page has closed.
+    val importResult by importViewModel.result.collectAsState()
+    LaunchedEffect(importResult) {
+        val result = importResult ?: return@LaunchedEffect
+        Toast.makeText(context, result.message(context), Toast.LENGTH_LONG).show()
+        importViewModel.resultShown()
+    }
+    val exportResult by exportViewModel.result.collectAsState()
+    LaunchedEffect(exportResult) {
+        val result = exportResult ?: return@LaunchedEffect
+        Toast.makeText(context, result.message(context), Toast.LENGTH_LONG).show()
+        exportViewModel.resultShown()
+    }
 
     var openPage by rememberSaveable { mutableStateOf<SettingsPage?>(null) }
     // Row to put focus back on after closing a sub-page.
     var returnFocusTo by remember { mutableStateOf<SettingsPage?>(null) }
     val mainListState = rememberLazyListState()
 
-    LaunchedEffect(Unit) {
-        viewModel.backupResult.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
-    }
-
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
-        uri?.let { viewModel.exportLibrary(context, it) }
+        uri?.let(exportViewModel::export)
     }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
-        if (uris.isNotEmpty()) viewModel.importLibraries(context, uris)
+        if (uris.isNotEmpty()) {
+            importViewModel.load(uris)
+            openPage = SettingsPage.IMPORT
+        }
     }
 
     // Many TV builds ship without a document picker, so launching it can throw.
@@ -124,7 +142,11 @@ fun SettingsScreen(
         openPage = null
     }
 
-    BackHandler(enabled = openPage != null) { closePage() }
+    BackHandler(enabled = openPage != null) {
+        if (openPage == SettingsPage.IMPORT) importViewModel.cancel()
+        if (openPage == SettingsPage.EXPORT) exportViewModel.cancel()
+        closePage()
+    }
 
     when (val page = openPage) {
         null -> SettingsMainList(
@@ -140,8 +162,10 @@ fun SettingsScreen(
                 else viewModel.setEnableVolumeBoost(false)
             },
             onAppLanguageClick = onAppLanguageClick,
-            onSetIncludeTracks = viewModel::setIncludeTracksInBackup,
-            onExport = { launchPicker(exportUnavailable) { exportLauncher.launch("stations.json") } },
+            onExport = {
+                exportViewModel.load()
+                openPage = SettingsPage.EXPORT
+            },
             onImport = { launchPicker(importUnavailable) { importLauncher.launch(arrayOf("application/json")) } },
             onAboutClick = onAboutClick
         )
@@ -234,17 +258,21 @@ fun SettingsScreen(
             onDismiss = ::closePage
         )
 
-        SettingsPage.CONFLICT -> SettingsOptionsPage(
-            title = stringResource(R.string.settings_conflict_title),
-            options = conflictOptions().map { (strategy, label, description) ->
-                SettingsOption(
-                    label = label,
-                    description = description,
-                    selected = uiState.conflictStrategy == strategy,
-                    onSelect = { viewModel.setConflictStrategy(strategy) }
-                )
-            },
-            onDone = ::closePage
+        SettingsPage.EXPORT -> TvExportPage(
+            viewModel = exportViewModel,
+            onPickFile = { launchPicker(exportUnavailable) { exportLauncher.launch("stations.json") } },
+            onClose = ::closePage,
+            onPlayStation = onPlayStation,
+            playingStationUuid = playingStationUuid,
+            isPlaybackActive = isPlaybackActive
+        )
+
+        SettingsPage.IMPORT -> TvImportPage(
+            viewModel = importViewModel,
+            onClose = ::closePage,
+            onPlayStation = onPlayStation,
+            playingStationUuid = playingStationUuid,
+            isPlaybackActive = isPlaybackActive
         )
     }
 }
@@ -261,7 +289,6 @@ private fun SettingsMainList(
     onSetPauseOnVolumeZero: (Boolean) -> Unit,
     onSetVolumeBoost: (Boolean) -> Unit,
     onAppLanguageClick: () -> Unit,
-    onSetIncludeTracks: (Boolean) -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
     onAboutClick: () -> Unit
@@ -277,8 +304,6 @@ private fun SettingsMainList(
     }
 
     val tabLabels = defaultTabLabels()
-    val conflictLabel = conflictOptions().firstOrNull { it.first == prefs.conflictStrategy }?.second
-        ?: stringResource(R.string.settings_conflict_skip)
     val retryLabel = retryOptions().firstOrNull { it.first == prefs.maxRetryDuration }?.second
         ?: stringResource(R.string.settings_retry_5_min)
 
@@ -386,21 +411,12 @@ private fun SettingsMainList(
 
             item { SettingsSectionHeader(stringResource(R.string.settings_backup_section)) }
             item {
-                SettingsToggleRow(
-                    title = stringResource(R.string.settings_include_tracks_title),
-                    description = stringResource(R.string.settings_include_tracks_subtitle),
-                    icon = Icons.Default.History,
-                    checked = prefs.includeTracksInBackup,
-                    onCheckedChange = onSetIncludeTracks
-                )
-            }
-            item {
                 SettingsRow(
                     title = stringResource(R.string.settings_export_title),
                     value = stringResource(R.string.settings_export_subtitle),
                     icon = Icons.Default.FileUpload,
                     onClick = onExport,
-                    showChevron = false
+                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.EXPORT))
                 )
             }
             item {
@@ -409,16 +425,8 @@ private fun SettingsMainList(
                     value = stringResource(R.string.settings_import_subtitle),
                     icon = Icons.Default.FileDownload,
                     onClick = onImport,
-                    showChevron = false
-                )
-            }
-            item {
-                SettingsRow(
-                    title = stringResource(R.string.settings_conflict_title),
-                    value = conflictLabel,
-                    icon = Icons.Default.SyncProblem,
-                    onClick = { onOpenPage(SettingsPage.CONFLICT) },
-                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.CONFLICT))
+                    showChevron = false,
+                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.IMPORT))
                 )
             }
 
@@ -491,7 +499,7 @@ private fun SettingsOptionsPage(
 // ── Building blocks ──────────────────────────────────────────────────────────
 
 @Composable
-private fun SettingsColumn(title: String, content: @Composable () -> Unit) {
+internal fun SettingsColumn(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -508,7 +516,7 @@ private fun SettingsColumn(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SettingsSectionHeader(title: String) {
+internal fun SettingsSectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
@@ -560,26 +568,7 @@ private fun defaultTabLabels(): List<String> = listOf(
 )
 
 @Composable
-private fun conflictOptions(): List<Triple<ConflictStrategy, String, String>> = listOf(
-    Triple(
-        ConflictStrategy.SKIP,
-        stringResource(R.string.settings_conflict_skip),
-        stringResource(R.string.settings_conflict_skip_desc)
-    ),
-    Triple(
-        ConflictStrategy.OVERWRITE,
-        stringResource(R.string.settings_conflict_overwrite),
-        stringResource(R.string.settings_conflict_overwrite_desc)
-    ),
-    Triple(
-        ConflictStrategy.KEEP_NEWER,
-        stringResource(R.string.settings_conflict_keep_newer),
-        stringResource(R.string.settings_conflict_keep_newer_desc)
-    )
-)
-
-@Composable
-private fun SettingsToggleRow(
+internal fun SettingsToggleRow(
     title: String,
     icon: ImageVector,
     checked: Boolean,

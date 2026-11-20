@@ -26,4 +26,7 @@ interface LibraryRepository {
     fun getAllStationEntitiesFlow(): Flow<List<StationEntity>>
     suspend fun getEntityById(stationUuid: String): StationEntity?
     suspend fun insertEntity(entity: StationEntity)
+
+    /** The order index that puts a new station after every station already in the library. */
+    suspend fun nextOrderIndex(): Int
 }

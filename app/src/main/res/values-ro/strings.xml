@@ -58,13 +58,7 @@
     <string name="settings_no_update_available">Nu sunt disponibile actualizări</string>
     <string name="settings_theme_system">Sistem</string>
     <string name="settings_backup_section">Copie de rezervă și restaurare</string>
-    <string name="settings_conflict_title">Când apare un conflict</string>
-    <string name="settings_conflict_skip">Omite existent</string>
-    <string name="settings_conflict_skip_desc">Păstrează versiunea actuală</string>
     <string name="settings_conflict_overwrite">Suprascrie existent</string>
-    <string name="settings_conflict_overwrite_desc">Utilizează întotdeauna versiunea de rezervă</string>
-    <string name="settings_conflict_keep_newer">Păstrează mai nou</string>
-    <string name="settings_conflict_keep_newer_desc">Păstrează ceea ce a fost adăugat mai recent</string>
     <string name="settings_export_title">Exportă posturile</string>
     <string name="settings_export_subtitle">Salvează posturile într-un fișier</string>
     <string name="settings_import_title">Importă posturi</string>

@@ -70,13 +70,7 @@
     <string name="settings_no_update_available">Обновления не найдены</string>
     <string name="settings_theme_system">Как в системе</string>
     <string name="settings_backup_section">Резервная копия и восстановление</string>
-    <string name="settings_conflict_title">При возникновении конфликта</string>
-    <string name="settings_conflict_skip">Пропустить существующий</string>
-    <string name="settings_conflict_skip_desc">Сохранить текущую версию</string>
     <string name="settings_conflict_overwrite">Перезаписать существующий</string>
-    <string name="settings_conflict_overwrite_desc">Исползовать версию резервной копии</string>
-    <string name="settings_conflict_keep_newer">Сохранить более новое</string>
-    <string name="settings_conflict_keep_newer_desc">Сохранить тот вариант, который был добавлен позже</string>
     <string name="settings_export_title">Экспорт радиостанций</string>
     <string name="settings_export_subtitle">Сохранить радиостанции в файл</string>
     <string name="settings_import_title">Импорт радиостанций</string>

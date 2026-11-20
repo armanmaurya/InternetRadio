@@ -121,13 +121,7 @@
     <!-- 5b. BACKUP & RESTORE                       -->
     <!-- ========================================== -->
     <string name="settings_backup_section">बैकअप और रिस्टोर</string>
-    <string name="settings_conflict_title">टकराव होने पर</string>
-    <string name="settings_conflict_skip">मौजूदा को छोड़ें</string>
-    <string name="settings_conflict_skip_desc">अपना वर्तमान संस्करण रखें</string>
     <string name="settings_conflict_overwrite">मौजूदा को बदलें</string>
-    <string name="settings_conflict_overwrite_desc">हमेशा बैकअप संस्करण का उपयोग करें</string>
-    <string name="settings_conflict_keep_newer">नया रखें</string>
-    <string name="settings_conflict_keep_newer_desc">जो हाल ही में जोड़ा गया हो उसे रखें</string>
     <string name="settings_export_title">स्टेशन निर्यात करें</string>
     <string name="settings_export_subtitle">अपने स्टेशन फ़ाइल में सहेजें</string>
     <string name="settings_exported_failed">निर्यात विफल: लिखने के लिए फ़ाइल नहीं खोली जा सकी</string>

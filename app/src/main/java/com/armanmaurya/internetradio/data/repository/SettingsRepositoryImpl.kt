@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.preferencesDataStore
 import com.armanmaurya.internetradio.domain.model.AppPreferences
-import com.armanmaurya.internetradio.domain.model.ConflictStrategy
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
@@ -72,7 +71,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val DISABLE_UPDATE_CHECK = booleanPreferencesKey("disable_update_check")
         val LAST_UPDATE_CHECK_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_update_check_time")
         val MAX_RETRY_DURATION = androidx.datastore.preferences.core.longPreferencesKey("max_retry_duration")
-        val CONFLICT_STRATEGY = stringPreferencesKey("conflict_strategy")
         val STOP_ON_AUDIO_BECOMING_NOISY = booleanPreferencesKey("stop_on_audio_becoming_noisy")
         val LIBRARY_SORT_OPTION = stringPreferencesKey("library_sort_option")
         val START_OF_WEEK = stringPreferencesKey("start_of_week")
@@ -85,7 +83,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val WIDGET_BACKGROUND_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("widget_background_alpha")
         val SHOW_STATION_THUMBNAILS = booleanPreferencesKey("show_station_thumbnails")
-        val INCLUDE_TRACKS_IN_BACKUP = booleanPreferencesKey("include_tracks_in_backup")
     }
 
     override val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -150,8 +147,6 @@ class SettingsRepositoryImpl @Inject constructor(
             val disableUpdateCheck = preferences[PreferencesKeys.DISABLE_UPDATE_CHECK] ?: false
             val lastUpdateCheckTime = preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] ?: 0L
             val maxRetryDuration = preferences[PreferencesKeys.MAX_RETRY_DURATION] ?: 300_000L
-            val conflictStrategyName = preferences[PreferencesKeys.CONFLICT_STRATEGY]
-            val conflictStrategy = ConflictStrategy.entries.find { it.name == conflictStrategyName } ?: ConflictStrategy.SKIP
             val librarySortOptionName = preferences[PreferencesKeys.LIBRARY_SORT_OPTION]
             val librarySortOption = LibrarySortOption.entries.find { it.name == librarySortOptionName } ?: LibrarySortOption.RECENTLY_ADDED
             val startOfWeekName = preferences[PreferencesKeys.START_OF_WEEK]
@@ -163,7 +158,6 @@ class SettingsRepositoryImpl @Inject constructor(
             val alarmVolumeTransitionSeconds = preferences[PreferencesKeys.ALARM_VOLUME_TRANSITION_SECONDS] ?: 15
             val widgetBackgroundAlpha = preferences[PreferencesKeys.WIDGET_BACKGROUND_ALPHA] ?: 1.0f
             val showStationThumbnails = preferences[PreferencesKeys.SHOW_STATION_THUMBNAILS] ?: true
-            val includeTracksInBackup = preferences[PreferencesKeys.INCLUDE_TRACKS_IN_BACKUP] ?: true
 
             AppPreferences(
                 themeMode = themeMode, 
@@ -201,7 +195,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 disableUpdateCheck = disableUpdateCheck,
                 lastUpdateCheckTime = lastUpdateCheckTime,
                 maxRetryDuration = maxRetryDuration,
-                conflictStrategy = conflictStrategy,
                 librarySortOption = librarySortOption,
                 startOfWeek = startOfWeek,
                 recordingTimeFormat = recordingTimeFormat,
@@ -209,8 +202,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 isAlarmVolumeTransitionEnabled = isAlarmVolumeTransitionEnabled,
                 alarmVolumeTransitionSeconds = alarmVolumeTransitionSeconds,
                 widgetBackgroundAlpha = widgetBackgroundAlpha,
-                showStationThumbnails = showStationThumbnails,
-                includeTracksInBackup = includeTracksInBackup
+                showStationThumbnails = showStationThumbnails
             )
         }
 
@@ -406,12 +398,6 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setConflictStrategy(strategy: ConflictStrategy) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.CONFLICT_STRATEGY] = strategy.name
-        }
-    }
-
     override suspend fun setLibrarySortOption(option: LibrarySortOption) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LIBRARY_SORT_OPTION] = option.name
@@ -463,12 +449,6 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setShowStationThumbnails(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_STATION_THUMBNAILS] = enabled
-        }
-    }
-
-    override suspend fun setIncludeTracksInBackup(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.INCLUDE_TRACKS_IN_BACKUP] = enabled
         }
     }
 }

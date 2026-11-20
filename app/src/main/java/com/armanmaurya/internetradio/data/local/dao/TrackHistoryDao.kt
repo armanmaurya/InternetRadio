@@ -40,6 +40,12 @@ interface TrackHistoryDao {
     @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp ASC")
     suspend fun getAllTracksForStationSync(stationUuid: String): List<TrackHistoryEntity>
 
+    @Query("SELECT timestamp FROM track_history WHERE stationUuid = :stationUuid")
+    suspend fun getTimestampsForStation(stationUuid: String): List<Long>
+
+    @Query("SELECT stationUuid, COUNT(*) AS count FROM track_history GROUP BY stationUuid")
+    suspend fun countPerStation(): List<StationCount>
+
     @Update
     suspend fun updateTrack(trackHistory: TrackHistoryEntity)
 }

@@ -218,6 +218,9 @@ object DatabaseMigrations {
             """.trimIndent())
             database.execSQL("DROP TABLE `track_history`")
             database.execSQL("ALTER TABLE `track_history_new` RENAME TO `track_history`")
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_track_history_stationUuid_timestamp` ON `track_history` (`stationUuid`, `timestamp`)"
+            )
         }
     }
 

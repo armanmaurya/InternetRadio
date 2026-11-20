@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "bc6d3d3cf8e3cb4a14b4f0c756317ec4",
+    "identityHash": "1a2ae8af0b708e05d5df82ba77deaa3a",
     "entities": [
       {
         "tableName": "stations",
@@ -302,7 +302,19 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_track_history_stationUuid_timestamp",
+            "unique": false,
+            "columnNames": [
+              "stationUuid",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_track_history_stationUuid_timestamp` ON `${TABLE_NAME}` (`stationUuid`, `timestamp`)"
+          }
+        ]
       },
       {
         "tableName": "schedules",
@@ -491,7 +503,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bc6d3d3cf8e3cb4a14b4f0c756317ec4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1a2ae8af0b708e05d5df82ba77deaa3a')"
     ]
   }
 }

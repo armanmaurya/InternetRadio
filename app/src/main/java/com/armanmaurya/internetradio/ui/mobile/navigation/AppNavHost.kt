@@ -15,15 +15,20 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.AppLanguageScreen
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.ExportScreen
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.ImportScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.SettingsScreen
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.ui.mobile.screens.edit.EditStationScreen
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import com.armanmaurya.internetradio.R
 
 @Composable
 fun AppNavHost(
@@ -77,6 +82,36 @@ fun AppNavHost(
                 onBackClick = { navController.popBackStack() },
                 onCheckUpdatesClick = onCheckUpdates,
                 onLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) },
+                onImportClick = { navController.navigate(AppDestination.ImportStations.route) },
+                onExportClick = { navController.navigate(AppDestination.ExportStations.route) },
+                contentPadding = contentPadding
+            )
+        }
+        composable(AppDestination.ImportStations.route) {
+            // Settings loads the picked files into its ImportViewModel before opening this page.
+            val settingsEntry = remember(it) { navController.getBackStackEntry(AppDestination.Settings.route) }
+            val importViewModel: ImportViewModel = hiltViewModel(settingsEntry)
+            val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+            ImportScreen(
+                viewModel = importViewModel,
+                onClose = { navController.popBackStack() },
+                onPlayStation = { station -> playerViewModel.play(listOf(station), 0, PlaybackSource.None) },
+                playingStationUuid = playerUiState.currentStation?.stationUuid,
+                isPlaybackActive = playerUiState.isPlaying,
+                contentPadding = contentPadding
+            )
+        }
+        composable(AppDestination.ExportStations.route) {
+            // Settings loads the library into its ExportViewModel before opening this page.
+            val settingsEntry = remember(it) { navController.getBackStackEntry(AppDestination.Settings.route) }
+            val exportViewModel: ExportViewModel = hiltViewModel(settingsEntry)
+            val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+            ExportScreen(
+                viewModel = exportViewModel,
+                onClose = { navController.popBackStack() },
+                onPlayStation = { station -> playerViewModel.play(listOf(station), 0, PlaybackSource.None) },
+                playingStationUuid = playerUiState.currentStation?.stationUuid,
+                isPlaybackActive = playerUiState.isPlaying,
                 contentPadding = contentPadding
             )
         }
