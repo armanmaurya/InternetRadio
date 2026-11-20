@@ -127,14 +127,48 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">Sicherung &amp; Wiederherstellung</string>
+    <string name="export_title">Sender exportieren</string>
+    <string name="export_section_library">Deine Bibliothek</string>
+    <plurals name="export_button">
+        <!-- <item quantity="one">Export %1$d station</item> -->
+        <item quantity="other">%1$d Sender exportieren</item>
+    </plurals>
+    <string name="import_title">Sender importieren</string>
+    <string name="import_section_new">Neu</string>
+    <string name="import_section_existing">Bereits in deiner Bibliothek</string>
+    <string name="import_select_all">Alle auswählen</string>
+    <string name="import_part_station">Sender</string>
+    <string name="import_part_station_new">Zur Bibliothek hinzufügen</string>
+    <string name="import_part_station_existing">Sender überschreiben</string>
+    <string name="import_part_history">Titelverlauf</string>
+    <string name="import_part_starred">Favorisierte Titel</string>
+    <plurals name="import_plays">
+        <item quantity="one">%1$d Titelverlauf</item>
+        <item quantity="other">%1$d Titelverläufe</item>
+    </plurals>
+    <plurals name="import_starred">
+        <!-- <item quantity="one">%1$d starred</item> -->
+        <item quantity="other">%1$d favorisiert</item>
+    </plurals>
+    <string name="import_not_selected">Nicht importiert</string>
+    <string name="import_keep_all_plays">Alle Wiedergaben behalten</string>
+    <string name="import_keep_all_plays_desc">Erhöht das Limit des Titelverlaufs von %1$d auf %2$d. Ansonsten werden nur die %1$d neusten Wiedergaben pro Sender gespeichert.</string>
+    <plurals name="import_button">
+        <!-- <item quantity="one">Import %1$d station</item> -->
+        <item quantity="other">%1$d Sender importieren</item>
+    </plurals>
+    <string name="import_no_matches">Keine Sender entsprechen der Suche</string>
+    <string name="import_cd_playing">Wird abgespielt</string>
+    <string name="import_failed">Kein Import möglich. Nichts wurde verändert.</string>
+    <string name="import_no_stations">Keine Sender in der ausgewählten Datei gefunden</string>
     <string name="settings_conflict_overwrite">Vorhandene überschreiben</string>
     <string name="settings_export_title">Bibliothek exportieren</string>
     <string name="settings_export_subtitle">Senderbibliothek in eine Datei sichern</string>
     <string name="settings_exported_failed">Export fehlgeschlagen: Die Datei zum Schreiben konnte nicht geöffnet werden</string>
     <string name="settings_exported_failed_exception">Export fehlgeschlagen: %1$s</string>
     <plurals name="settings_exported_success">
+        <!-- <item quantity="one">Exported %1$d station successfully</item> -->
         <item quantity="other">Erfolgreich %1$d Sender exportiert</item>
-        <!-- <item quantity="other">Exported %1$d stations successfully</item> -->
     </plurals>
     <string name="settings_gradual_volume">Schrittweise Zeitplanlautstärke</string>
     <string name="settings_gradual_volume_disabled">Aus</string>
