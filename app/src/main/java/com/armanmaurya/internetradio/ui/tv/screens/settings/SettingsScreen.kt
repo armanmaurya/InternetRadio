@@ -68,7 +68,7 @@ import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 
 /** Sub-pages opened from the main settings list, Google TV style (drill in, Back returns). */
 private enum class SettingsPage {
-    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, MAX_RETRY, VOLUME_BOOST_WARNING, IMPORT, EXPORT
+    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, MAX_RETRY, VOLUME_BOOST_WARNING, IMPORT, EXPORT, IMPORT_SOURCE
 }
 
 private val TrackHistoryPresets = listOf(25, 50, 100, 200, 500, 1000)
@@ -166,7 +166,7 @@ fun SettingsScreen(
                 exportViewModel.load()
                 openPage = SettingsPage.EXPORT
             },
-            onImport = { launchPicker(importUnavailable) { importLauncher.launch(arrayOf("application/json")) } },
+            onImport = { openPage = SettingsPage.IMPORT_SOURCE },
             onAboutClick = onAboutClick
         )
 
@@ -273,6 +273,42 @@ fun SettingsScreen(
             onPlayStation = onPlayStation,
             playingStationUuid = playingStationUuid,
             isPlaybackActive = isPlaybackActive
+        )
+
+        SettingsPage.IMPORT_SOURCE -> SettingsOptionsPage(
+            title = stringResource(R.string.settings_import_title),
+            options = listOf(
+                SettingsOption(
+                    label = "${stringResource(R.string.import_source_internetradio)} (${stringResource(R.string.import_source_internetradio_ext)})",
+                    selected = false,
+                    onSelect = {
+                        closePage()
+                        launchPicker(importUnavailable) {
+                            importLauncher.launch(arrayOf("application/json"))
+                        }
+                    }
+                ),
+                SettingsOption(
+                    label = "${stringResource(R.string.import_source_radiodroid)} (${stringResource(R.string.import_source_radiodroid_ext)})",
+                    selected = false,
+                    onSelect = {
+                        closePage()
+                        launchPicker(importUnavailable) {
+                            importLauncher.launch(
+                                arrayOf(
+                                    "audio/x-mpegurl",
+                                    "audio/mpegurl",
+                                    "application/x-mpegurl",
+                                    "text/plain",
+                                    "application/octet-stream",
+                                    "*/*"
+                                )
+                            )
+                        }
+                    }
+                )
+            ),
+            onDone = ::closePage
         )
     }
 }
@@ -425,8 +461,8 @@ private fun SettingsMainList(
                     value = stringResource(R.string.settings_import_subtitle),
                     icon = Icons.Default.FileDownload,
                     onClick = onImport,
-                    showChevron = false,
-                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.IMPORT))
+                    showChevron = true,
+                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.IMPORT_SOURCE))
                 )
             }
 

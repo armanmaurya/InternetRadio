@@ -129,10 +129,11 @@ fun StationListCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .padding(8.dp)
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .then(
-                            if (isCurrentlyPlaying) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                            if (isCurrentlyPlaying) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
                             else Modifier
                         )
                 ) {
@@ -258,7 +259,7 @@ fun StationListCard(
                     }
                 }
             
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Column(
                     modifier = Modifier.weight(1f),

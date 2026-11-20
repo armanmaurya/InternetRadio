@@ -1,0 +1,10 @@
+#EXTM3U
+#RADIOBROWSERUUID:9625e3cd-0601-11e8-ae97-52543be04c81
+#EXTINF:-1,Radio Paradise (320k)
+http://stream.radioparadise.com/aac-320
+#RADIOBROWSERUUID:9637967a-0601-11e8-ae97-52543be04c81
+#EXTINF:-1,Technikum GOLD
+http://technikumhitclassics.macjingle.at:8204/;stream/1
+#RADIOBROWSERUUID:9614b318-0601-11e8-ae97-52543be04c81
+#EXTINF:-1,Zwischen-Welten
+http://radio.zwischen-welten.info:8000/listen/

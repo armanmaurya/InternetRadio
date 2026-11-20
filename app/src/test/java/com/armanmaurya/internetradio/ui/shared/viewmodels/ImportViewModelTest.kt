@@ -330,4 +330,164 @@ class ImportViewModelTest {
         assertEquals(ImportEvent.Failed, result)
         assertEquals(2, settings.prefsFlow.value.trackHistoryLimit)
     }
+
+    @Test
+    fun m3uStations_importedCorrectlyIntoLibrary() = runBlocking {
+        val m3uStation = BackupStation(
+            stationUuid = "m3u-uuid-1",
+            name = "M3U Station",
+            url = "http://m3u.stream/live",
+            urlResolved = "http://m3u.stream/live",
+            isCustom = false
+        )
+        viewModel.showReview(listOf(m3uStation))
+
+        assertEquals(1, review.newStations.size)
+        assertEquals("M3U Station", review.newStations[0].name)
+
+        val result = runImport()
+        assertTrue(result is ImportEvent.Finished)
+        assertEquals(1, (result as ImportEvent.Finished).added)
+        assertTrue(library.entities.containsKey("m3u-uuid-1"))
+        assertEquals("http://m3u.stream/live", library.entities["m3u-uuid-1"]?.url)
+    }
+
+    @Test
+    fun updateMode_smartMergesTagsAndKeepsMissingMetadata() = runBlocking {
+        library.entities["s1"] = StationEntity(
+            stationUuid = "s1",
+            name = "Original Name",
+            url = "http://original.url",
+            favicon = "http://favicon.png",
+            tags = listOf("jazz", "relax"),
+            countryCode = "US",
+            codec = "MP3",
+            bitrate = 128
+        )
+
+        val incoming = BackupStation(
+            stationUuid = "s1",
+            name = "Updated Name",
+            url = "http://new.url",
+            favicon = null,
+            tags = listOf("smooth", "relax"),
+            countryCode = null,
+            codec = null,
+            bitrate = null
+        )
+
+        viewModel.showReview(listOf(incoming))
+        viewModel.setStationUpdateMode("s1", StationUpdateMode.UPDATE)
+
+        val result = runImport()
+        assertTrue(result is ImportEvent.Finished)
+        val saved = library.entities["s1"]!!
+
+        assertEquals("Updated Name", saved.name)
+        assertEquals("http://new.url", saved.url)
+        assertEquals("http://favicon.png", saved.favicon)
+        assertEquals(listOf("jazz", "relax", "smooth"), saved.tags)
+        assertEquals("US", saved.countryCode)
+        assertEquals("MP3", saved.codec)
+        assertEquals(128, saved.bitrate)
+    }
+
+    @Test
+    fun replaceMode_strictlyOverwritesMetadata() = runBlocking {
+        library.entities["s1"] = StationEntity(
+            stationUuid = "s1",
+            name = "Original Name",
+            url = "http://original.url",
+            favicon = "http://favicon.png",
+            tags = listOf("jazz"),
+            countryCode = "US"
+        )
+
+        val incoming = BackupStation(
+            stationUuid = "s1",
+            name = "Overwritten Name",
+            url = "http://new.url",
+            favicon = null,
+            tags = emptyList(),
+            countryCode = null
+        )
+
+        viewModel.showReview(listOf(incoming))
+        viewModel.setStationUpdateMode("s1", StationUpdateMode.REPLACE)
+
+        val result = runImport()
+        assertTrue(result is ImportEvent.Finished)
+        val saved = library.entities["s1"]!!
+
+        assertEquals("Overwritten Name", saved.name)
+        assertEquals("http://new.url", saved.url)
+        assertEquals("", saved.favicon)
+        assertEquals(emptyList<String>(), saved.tags)
+    }
+
+    @Test
+    fun updateMode_fieldToggleOverridesRespected() = runBlocking {
+        library.entities["s1"] = StationEntity(
+            stationUuid = "s1",
+            name = "Original Name",
+            url = "http://original.url"
+        )
+
+        val incoming = BackupStation(
+            stationUuid = "s1",
+            name = "Updated Name",
+            url = "http://new.url"
+        )
+
+        viewModel.showReview(listOf(incoming))
+        viewModel.setStationUpdateMode("s1", StationUpdateMode.UPDATE)
+        viewModel.toggleStationField("s1", StationDiffField.NAME)
+
+        runImport()
+        val saved = library.entities["s1"]!!
+
+        assertEquals("Original Name", saved.name)
+        assertEquals("http://new.url", saved.url)
+    }
+
+    @Test
+    fun updateMode_secondaryFieldToggleOverridesRespected() = runBlocking {
+        library.entities["s1"] = StationEntity(
+            stationUuid = "s1",
+            name = "Original Name",
+            url = "http://original.url",
+            homepage = "http://old-homepage.org",
+            countryCode = "US",
+            languageCodes = listOf("en"),
+            codec = "MP3",
+            bitrate = 128
+        )
+
+        val incoming = BackupStation(
+            stationUuid = "s1",
+            name = "Original Name",
+            url = "http://original.url",
+            homepage = "http://new-homepage.org",
+            countryCode = "GB",
+            languageCodes = listOf("fr"),
+            codec = "AAC",
+            bitrate = 256
+        )
+
+        viewModel.showReview(listOf(incoming))
+        viewModel.setStationUpdateMode("s1", StationUpdateMode.UPDATE)
+        // Untick homepage, country, and audio updates
+        viewModel.toggleStationField("s1", StationDiffField.HOMEPAGE)
+        viewModel.toggleStationField("s1", StationDiffField.COUNTRY)
+        viewModel.toggleStationField("s1", StationDiffField.AUDIO)
+
+        runImport()
+        val saved = library.entities["s1"]!!
+
+        assertEquals("http://old-homepage.org", saved.homepage)
+        assertEquals("US", saved.countryCode)
+        assertEquals(listOf("en", "fr"), saved.languageCodes) // language was kept ticked, so merged
+        assertEquals("MP3", saved.codec)
+        assertEquals(128, saved.bitrate)
+    }
 }

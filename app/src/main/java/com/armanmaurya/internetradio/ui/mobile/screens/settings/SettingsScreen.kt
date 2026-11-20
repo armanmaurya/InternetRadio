@@ -125,6 +125,7 @@ import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.Optio
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.PalettePickerItem
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.CustomColorPickerBottomSheet
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.ImportSourceBottomSheet
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.Section
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.ToggleItem
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
@@ -279,7 +280,21 @@ fun SettingsScreen(
                     exportViewModel.load()
                     onExportClick()
                 },
-                onImport = { importLauncher.launch(arrayOf("application/json")) },
+                onSelectInternetRadio = {
+                    importLauncher.launch(arrayOf("application/json"))
+                },
+                onSelectRadioDroid = {
+                    importLauncher.launch(
+                        arrayOf(
+                            "audio/x-mpegurl",
+                            "audio/mpegurl",
+                            "application/x-mpegurl",
+                            "text/plain",
+                            "application/octet-stream",
+                            "*/*"
+                        )
+                    )
+                },
                 topShape = topShape,
                 bottomShape = bottomShape
             )
@@ -1324,10 +1339,21 @@ private fun DonateSection() {
 @Composable
 private fun BackupSection(
     onExport: () -> Unit,
-    onImport: () -> Unit,
+    onSelectInternetRadio: () -> Unit,
+    onSelectRadioDroid: () -> Unit,
     topShape: RoundedCornerShape,
     bottomShape: RoundedCornerShape
 ) {
+    var showImportSourceSheet by remember { mutableStateOf(false) }
+
+    if (showImportSourceSheet) {
+        ImportSourceBottomSheet(
+            onDismissRequest = { showImportSourceSheet = false },
+            onSelectInternetRadio = onSelectInternetRadio,
+            onSelectRadioDroid = onSelectRadioDroid
+        )
+    }
+
     Section(title = stringResource(R.string.settings_backup_section)) {
         Item(
             title = stringResource(R.string.settings_export_title),
@@ -1342,7 +1368,7 @@ private fun BackupSection(
         Item(
             title = stringResource(R.string.settings_import_title),
             subtitle = stringResource(R.string.settings_import_subtitle),
-            onClick = onImport,
+            onClick = { showImportSourceSheet = true },
             icon = Icons.Default.FileDownload,
             shape = bottomShape
         )

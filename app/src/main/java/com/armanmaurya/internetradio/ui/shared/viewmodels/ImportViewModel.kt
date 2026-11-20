@@ -13,6 +13,7 @@ import com.armanmaurya.internetradio.data.backup.BackupTrack
 import com.armanmaurya.internetradio.data.backup.LibraryBackup
 import com.armanmaurya.internetradio.data.backup.toStarredTrackEntity
 import com.armanmaurya.internetradio.data.backup.toTrackHistoryEntity
+import com.armanmaurya.internetradio.data.backup.parser.CompositeStationFileParser
 import com.armanmaurya.internetradio.data.local.entity.toDomain
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
@@ -37,6 +38,70 @@ private const val TAG = "ImportViewModel"
 
 /** The parts of a backed-up station that can be imported separately. */
 enum class ImportPart { STATION, HISTORY, STARRED }
+
+/** Whether an existing station in the library should be smart-merged or strictly replaced. */
+enum class StationUpdateMode { UPDATE, REPLACE }
+
+/** The fields that can be toggled individually when updating or replacing an existing station. */
+enum class StationDiffField {
+    NAME,
+    URL,
+    TAGS,
+    FAVICON,
+    HOMEPAGE,
+    COUNTRY,
+    LANGUAGE,
+    AUDIO
+}
+
+/** Differences between an existing library station and the incoming file version. */
+data class StationFieldDiff(
+    val nameDiffers: Boolean = false,
+    val oldName: String = "",
+    val newName: String = "",
+    val updateName: Boolean = true,
+
+    val urlDiffers: Boolean = false,
+    val oldUrl: String = "",
+    val newUrl: String = "",
+    val updateUrl: Boolean = true,
+
+    val tagsDiffer: Boolean = false,
+    val oldTags: List<String> = emptyList(),
+    val newTags: List<String> = emptyList(),
+    val updateTags: Boolean = true,
+
+    val faviconDiffers: Boolean = false,
+    val oldFavicon: String = "",
+    val newFavicon: String = "",
+    val updateFavicon: Boolean = true,
+
+    val homepageDiffers: Boolean = false,
+    val oldHomepage: String = "",
+    val newHomepage: String = "",
+    val updateHomepage: Boolean = true,
+
+    val countryDiffers: Boolean = false,
+    val oldCountryCode: String = "",
+    val newCountryCode: String = "",
+    val updateCountry: Boolean = true,
+
+    val languageDiffers: Boolean = false,
+    val oldLanguageCodes: List<String> = emptyList(),
+    val newLanguageCodes: List<String> = emptyList(),
+    val updateLanguage: Boolean = true,
+
+    val audioDiffers: Boolean = false,
+    val oldCodec: String = "",
+    val newCodec: String = "",
+    val oldBitrate: Int = 0,
+    val newBitrate: Int = 0,
+    val updateAudio: Boolean = true
+) {
+    val hasAnyDiff: Boolean
+        get() = nameDiffers || urlDiffers || tagsDiffer || faviconDiffers ||
+                homepageDiffers || countryDiffers || languageDiffers || audioDiffers
+}
 
 /** Import and export lists with more stations than this get a search field, on phone and TV. */
 const val STATION_SEARCH_THRESHOLD = 20
@@ -79,7 +144,10 @@ data class ImportStationItem(
     override val starredCount: Int,
     /** Plays this station would have after merging the file's history with the local one. */
     val playsAfterImport: Int,
-    override val selected: Set<ImportPart>
+    override val selected: Set<ImportPart>,
+    val updateMode: StationUpdateMode = StationUpdateMode.UPDATE,
+    val fieldDiff: StationFieldDiff = StationFieldDiff(),
+    val isDetailsExpanded: Boolean = false
 ) : StationParts {
     /** Parts the file actually has for this station. */
     override val availableParts: List<ImportPart> = availableParts(playCount, starredCount)
@@ -176,7 +244,8 @@ class ImportViewModel @Inject constructor(
     private val trackHistoryRepository: TrackHistoryRepository,
     private val settingsRepository: SettingsRepository,
     private val transactionRunner: TransactionRunner,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val stationFileParser: CompositeStationFileParser = CompositeStationFileParser()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
@@ -206,16 +275,14 @@ class ImportViewModel @Inject constructor(
             var failedFiles = 0
             val stations = mutableListOf<BackupStation>()
             for (uri in uris) {
-                val backup = try {
-                    // Parse straight from the stream so a large history export isn't held twice.
-                    context.contentResolver.openInputStream(uri)
-                        ?.bufferedReader()
-                        ?.use { Gson().fromJson(it, LibraryBackup::class.java) }
+                val fileStations = try {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        stationFileParser.parse(stream)
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Could not read import file $uri", e)
                     null
                 }
-                val fileStations = backup?.stations
                 if (fileStations == null) {
                     failedFiles++
                 } else {
@@ -252,6 +319,48 @@ class ImportViewModel @Inject constructor(
             // Leaving out a new station leaves out its history and stars too.
             part == ImportPart.STATION && !item.isInLibrary -> item.copy(selected = emptySet())
             else -> item.copy(selected = item.selected - part)
+        }
+    }
+
+    /** Selects or deselects Update vs Replace for an existing station. */
+    fun setStationUpdateMode(stationUuid: String, mode: StationUpdateMode) = updateStations { item ->
+        if (item.stationUuid != stationUuid) item
+        else {
+            val isCurrentlyInMode = ImportPart.STATION in item.selected && item.updateMode == mode
+            if (isCurrentlyInMode) {
+                // Tapping the currently selected option deselects it
+                item.copy(selected = item.selected - ImportPart.STATION)
+            } else {
+                item.copy(
+                    selected = item.selected + ImportPart.STATION,
+                    updateMode = mode
+                )
+            }
+        }
+    }
+
+    /** Toggles the expanded state of the field diff checklist for an existing station. */
+    fun toggleStationDetails(stationUuid: String) = updateStations { item ->
+        if (item.stationUuid != stationUuid) item
+        else item.copy(isDetailsExpanded = !item.isDetailsExpanded)
+    }
+
+    /** Toggles whether a specific field should be updated for an existing station. */
+    fun toggleStationField(stationUuid: String, field: StationDiffField) = updateStations { item ->
+        if (item.stationUuid != stationUuid) item
+        else {
+            val diff = item.fieldDiff
+            val newDiff = when (field) {
+                StationDiffField.NAME -> diff.copy(updateName = !diff.updateName)
+                StationDiffField.URL -> diff.copy(updateUrl = !diff.updateUrl)
+                StationDiffField.TAGS -> diff.copy(updateTags = !diff.updateTags)
+                StationDiffField.FAVICON -> diff.copy(updateFavicon = !diff.updateFavicon)
+                StationDiffField.HOMEPAGE -> diff.copy(updateHomepage = !diff.updateHomepage)
+                StationDiffField.COUNTRY -> diff.copy(updateCountry = !diff.updateCountry)
+                StationDiffField.LANGUAGE -> diff.copy(updateLanguage = !diff.updateLanguage)
+                StationDiffField.AUDIO -> diff.copy(updateAudio = !diff.updateAudio)
+            }
+            item.copy(fieldDiff = newDiff)
         }
     }
 
@@ -313,19 +422,44 @@ class ImportViewModel @Inject constructor(
                         val existing = libraryRepository.getEntityById(uuid)
                         if (ImportPart.STATION in item.selected) {
                             val fromFile = source.station.toStationEntity()
-                            libraryRepository.insertEntity(
-                                if (existing != null) {
-                                    // Replacing changes the station's details, not where it sits
-                                    // in the user's order or when they added and last played it.
+                            val entityToSave = if (existing != null) {
+                                val diff = item.fieldDiff
+                                if (item.updateMode == StationUpdateMode.UPDATE) {
+                                    // Smart Merge with field overrides:
+                                    existing.copy(
+                                        name = if (diff.updateName && fromFile.name.isNotBlank()) fromFile.name else existing.name,
+                                        url = if (diff.updateUrl && fromFile.url.isNotBlank()) fromFile.url else existing.url,
+                                        urlResolved = if (diff.updateUrl && fromFile.urlResolved.isNotBlank()) fromFile.urlResolved else existing.urlResolved,
+                                        favicon = if (diff.updateFavicon && fromFile.favicon.isNotBlank()) fromFile.favicon else existing.favicon,
+                                        tags = if (diff.updateTags) (existing.tags + fromFile.tags).map { it.lowercase() }.distinct() else existing.tags,
+                                        homepage = if (diff.updateHomepage && fromFile.homepage.isNotBlank()) fromFile.homepage else existing.homepage,
+                                        countryCode = if (diff.updateCountry && fromFile.countryCode.isNotBlank()) fromFile.countryCode else existing.countryCode,
+                                        languageCodes = if (diff.updateLanguage) (existing.languageCodes + fromFile.languageCodes).distinct() else existing.languageCodes,
+                                        codec = if (diff.updateAudio && fromFile.codec.isNotBlank() && fromFile.codec != "unknown") fromFile.codec else existing.codec,
+                                        bitrate = if (diff.updateAudio && fromFile.bitrate > 0) fromFile.bitrate else existing.bitrate,
+                                        isCustom = existing.isCustom
+                                    )
+                                } else {
+                                    // Strict Replace (overwrites from file, honoring diff overrides if any):
                                     fromFile.copy(
                                         orderIndex = existing.orderIndex,
                                         addedAt = existing.addedAt,
-                                        lastPlayedAt = existing.lastPlayedAt
+                                        lastPlayedAt = existing.lastPlayedAt,
+                                        name = if (diff.nameDiffers && !diff.updateName) existing.name else fromFile.name,
+                                        url = if (diff.urlDiffers && !diff.updateUrl) existing.url else fromFile.url,
+                                        tags = if (diff.tagsDiffer && !diff.updateTags) existing.tags else fromFile.tags,
+                                        favicon = if (diff.faviconDiffers && !diff.updateFavicon) existing.favicon else fromFile.favicon,
+                                        homepage = if (diff.homepageDiffers && !diff.updateHomepage) existing.homepage else fromFile.homepage,
+                                        countryCode = if (diff.countryDiffers && !diff.updateCountry) existing.countryCode else fromFile.countryCode,
+                                        languageCodes = if (diff.languageDiffers && !diff.updateLanguage) existing.languageCodes else fromFile.languageCodes,
+                                        codec = if (diff.audioDiffers && !diff.updateAudio) existing.codec else fromFile.codec,
+                                        bitrate = if (diff.audioDiffers && !diff.updateAudio) existing.bitrate else fromFile.bitrate
                                     )
-                                } else {
-                                    fromFile.copy(orderIndex = nextOrder++)
                                 }
-                            )
+                            } else {
+                                fromFile.copy(orderIndex = nextOrder++)
+                            }
+                            libraryRepository.insertEntity(entityToSave)
                         }
                         if (ImportPart.HISTORY in item.selected) {
                             trackHistoryRepository.importTracks(uuid, source.tracks.map { it.toTrackHistoryEntity(uuid) })
@@ -375,18 +509,77 @@ class ImportViewModel @Inject constructor(
         val historyLimit = settingsRepository.appPreferencesFlow.first().trackHistoryLimit
         val items = byUuid.values.map { source ->
             val uuid = source.station.stationUuid
-            val isInLibrary = libraryRepository.getEntityById(uuid) != null
+            val existing = libraryRepository.getEntityById(uuid)
+            val isInLibrary = existing != null
             val playsAfterImport = if (source.tracks.isEmpty()) 0 else {
                 val local = trackHistoryRepository.getTrackTimestamps(uuid)
                 (local + source.tracks.map { it.timestamp }).toSet().size
             }
+            val fromEntity = source.station.toStationEntity()
+            val fieldDiff = if (existing != null) {
+                val nameDiffers = fromEntity.name.isNotBlank() && fromEntity.name != existing.name
+                val urlDiffers = fromEntity.url.isNotBlank() && fromEntity.url != existing.url
+                val newTags = fromEntity.tags.filter { it.isNotBlank() && it !in existing.tags }
+                val tagsDiffer = fromEntity.tags != existing.tags
+                val faviconDiffers = fromEntity.favicon.isNotBlank() && fromEntity.favicon != existing.favicon
+                val homepageDiffers = fromEntity.homepage.isNotBlank() && fromEntity.homepage != existing.homepage
+                val countryDiffers = fromEntity.countryCode.isNotBlank() && fromEntity.countryCode != existing.countryCode
+                val languageDiffers = fromEntity.languageCodes.isNotEmpty() && fromEntity.languageCodes != existing.languageCodes
+                val newCodec = if (fromEntity.codec.isNotBlank() && fromEntity.codec != "unknown") fromEntity.codec else ""
+                val audioDiffers = (newCodec.isNotBlank() && newCodec != existing.codec) || (fromEntity.bitrate > 0 && fromEntity.bitrate != existing.bitrate)
+                StationFieldDiff(
+                    nameDiffers = nameDiffers,
+                    oldName = existing.name,
+                    newName = fromEntity.name,
+                    updateName = true,
+
+                    urlDiffers = urlDiffers,
+                    oldUrl = existing.url,
+                    newUrl = fromEntity.url,
+                    updateUrl = true,
+
+                    tagsDiffer = tagsDiffer,
+                    oldTags = existing.tags,
+                    newTags = if (fromEntity.tags.isNotEmpty()) fromEntity.tags else emptyList(),
+                    updateTags = true,
+
+                    faviconDiffers = faviconDiffers,
+                    oldFavicon = existing.favicon,
+                    newFavicon = fromEntity.favicon,
+                    updateFavicon = true,
+
+                    homepageDiffers = homepageDiffers,
+                    oldHomepage = existing.homepage,
+                    newHomepage = fromEntity.homepage,
+                    updateHomepage = true,
+
+                    countryDiffers = countryDiffers,
+                    oldCountryCode = existing.countryCode,
+                    newCountryCode = fromEntity.countryCode,
+                    updateCountry = true,
+
+                    languageDiffers = languageDiffers,
+                    oldLanguageCodes = existing.languageCodes,
+                    newLanguageCodes = fromEntity.languageCodes,
+                    updateLanguage = true,
+
+                    audioDiffers = audioDiffers,
+                    oldCodec = existing.codec,
+                    newCodec = fromEntity.codec,
+                    oldBitrate = existing.bitrate,
+                    newBitrate = fromEntity.bitrate,
+                    updateAudio = true
+                )
+            } else StationFieldDiff()
+
             val item = ImportStationItem(
-                station = source.station.toStationEntity().toDomain(),
+                station = fromEntity.toDomain(),
                 isInLibrary = isInLibrary,
                 playCount = source.tracks.size,
                 starredCount = source.starred.size,
                 playsAfterImport = playsAfterImport,
-                selected = emptySet()
+                selected = emptySet(),
+                fieldDiff = fieldDiff
             )
             // New stations come in whole. For ones already in the library, history and stars are
             // merged by default, but the user's own station details are kept.
