@@ -476,4 +476,42 @@
     <string name="settings_tv_screensaver">Economizor de ecran</string>
     <string name="library_cd_lock_reordering">Blocare reordonare</string>
     <string name="library_cd_unlock_reordering">Deblocare reordonare</string>
+    <string name="export_title">Exportă stațiile</string>
+    <string name="export_section_library">Biblioteca ta</string>
+    <plurals name="export_button">
+        <item quantity="one">Exportă %1$d stație</item>
+        <item quantity="few">Exportă %1$d stații</item>
+        <item quantity="other">Exportă %1$d de stații</item>
+    </plurals>
+    <string name="import_title">Importă stații</string>
+    <string name="import_section_new">Nou</string>
+    <string name="import_section_existing">Se află deja în biblioteca ta</string>
+    <string name="import_select_all">Selectează tot</string>
+    <string name="import_part_station">Stație</string>
+    <string name="import_part_station_new">Adaugă în biblioteca ta</string>
+    <string name="import_part_station_existing">Schimbă stația</string>
+    <string name="import_part_history">Istoric</string>
+    <string name="import_part_starred">Piese marcate cu steluță</string>
+    <plurals name="import_plays">
+        <item quantity="one">%1$d se redă</item>
+        <item quantity="few">%1$d se redau</item>
+        <item quantity="other">%1$d se redau</item>
+    </plurals>
+    <plurals name="import_starred">
+        <item quantity="one">%1$d marcat cu steluță</item>
+        <item quantity="few">%1$d marcate cu steluță</item>
+        <item quantity="other">%1$d marcate cu steluță</item>
+    </plurals>
+    <string name="import_not_selected">Nu a fost importat</string>
+    <string name="import_keep_all_plays">Păstrează toate ce se redau</string>
+    <string name="import_keep_all_plays_desc">Îți mărește limita istoricului de la %1$d la %2$d. În caz contrar, se păstrează doar cele mai recente %1$d redări pentru fiecare post.</string>
+    <plurals name="import_button">
+        <item quantity="one">Importă %1$d stație</item>
+        <item quantity="few">Importă %1$d stații</item>
+        <item quantity="other">Importă %1$d de stații</item>
+    </plurals>
+    <string name="import_no_matches">Nu există stații care să corespundă criteriilor tale de căutare</string>
+    <string name="import_cd_playing">Se redă</string>
+    <string name="import_failed">Nu s-a putut importa. Nu s-a modificat nimic.</string>
+    <string name="import_no_stations">Nu s-au găsit stații în fișierul selectat</string>
 </resources>
