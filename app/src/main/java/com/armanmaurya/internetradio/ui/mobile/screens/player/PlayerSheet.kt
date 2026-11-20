@@ -1453,8 +1453,7 @@ fun PlayerSheetContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        // Gap between the mini-player row and the tabs while the panel is open.
-                        .padding(top = lerp(0.dp, 12.dp, historyProgress), bottom = 8.dp)
+                        .padding(bottom = 8.dp)
                         .draggable(
                             orientation = Orientation.Vertical,
                             state = rememberDraggableState { delta ->
@@ -1478,50 +1477,112 @@ fun PlayerSheetContent(
                 ) {
                     val isHistoryExpanded = historyProgress > 0.5f
 
-                    val scrollState = rememberScrollState()
-                    val tabTitles = listOf(
-                        stringResource(R.string.player_tab_tracks),
-                        stringResource(R.string.home_tab_recordings),
-                        stringResource(R.string.player_tab_lyrics),
-                        stringResource(R.string.player_tab_about)
+                    val tab1TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab1Text"
                     )
 
-                    // Expressive connected button group. The open tab fills and becomes a full pill;
-                    // nothing is selected while the panel is closed. Scrolls if labels don't fit.
-                    Row(
-                        modifier = Modifier
-                            .horizontalScroll(scrollState)
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            androidx.compose.material3.ButtonGroupDefaults.ConnectedSpaceBetween
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+                    val tab2TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab2Text"
+                    )
+
+                    val tab3TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab3Text"
+                    )
+
+                    val tab4TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab4Text"
+                    )
+
+                    val scrollState = rememberScrollState()
+                    val density = androidx.compose.ui.platform.LocalDensity.current
+                    val tabWidths = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
+                    val tabOffsets = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        tabTitles.forEachIndexed { index, title ->
-                            androidx.compose.material3.ToggleButton(
-                                checked = isHistoryExpanded && bottomPagerState.currentPage == index,
-                                onCheckedChange = {
-                                    if (bottomPagerState.currentPage != index) {
-                                        coroutineScope.launch {
-                                            launch { bottomPagerState.animateScrollToPage(index) }
-                                            if (!isHistoryExpanded) {
-                                                launch { historyProgressAnim.animateTo(1f) }
+                        Box(
+                            modifier = Modifier.horizontalScroll(scrollState)
+                        ) {
+                            if (isHistoryExpanded) {
+                                val currentOffset = tabOffsets.getOrElse(bottomPagerState.currentPage) { 0.dp }
+                                val currentWidth = tabWidths.getOrElse(bottomPagerState.currentPage) { 0.dp }
+
+                                val animOffset by androidx.compose.animation.core.animateDpAsState(currentOffset, label = "offset")
+                                val animWidth by androidx.compose.animation.core.animateDpAsState(currentWidth, label = "width")
+
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterStart)
+                                        .offset(x = animOffset)
+                                        .width(animWidth)
+                                        .height(36.dp)
+                                        .padding(horizontal = 4.dp)
+                                        .zIndex(-1f)
+                                        .background(
+                                            // The sheet sits on surfaceContainerLow; when a scheme (e.g. Monochrome
+                                            // dark) makes that identical to surface, lift the indicator so it stays visible.
+                                            if (MaterialTheme.colorScheme.surface == MaterialTheme.colorScheme.surfaceContainerLow) {
+                                                MaterialTheme.colorScheme.surfaceContainerHighest
+                                            } else {
+                                                MaterialTheme.colorScheme.surface
+                                            },
+                                            RoundedCornerShape(10.dp)
+                                        )
+                                )
+                            }
+
+                            val tabs = listOf(
+                                stringResource(R.string.player_tab_tracks) to tab1TextColor,
+                                stringResource(R.string.home_tab_recordings) to tab2TextColor,
+                                stringResource(R.string.player_tab_lyrics) to tab3TextColor,
+                                stringResource(R.string.player_tab_about) to tab4TextColor
+                            )
+
+                            Row {
+                                tabs.forEachIndexed { index, (title, color) ->
+                                    Box(
+                                        modifier = Modifier
+                                            .semantics { role = androidx.compose.ui.semantics.Role.Tab }
+                                            .onGloballyPositioned { coords ->
+                                                val width = with(density) { coords.size.width.toDp() }
+                                                val offset = with(density) { coords.positionInParent().x.toDp() }
+                                                if (tabWidths[index] != width) tabWidths[index] = width
+                                                if (tabOffsets[index] != offset) tabOffsets[index] = offset
                                             }
-                                        }
-                                    } else {
-                                        coroutineScope.launch {
-                                            historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
-                                        }
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                onClick = {
+                                                    if (bottomPagerState.currentPage != index) {
+                                                        coroutineScope.launch {
+                                                            launch { bottomPagerState.animateScrollToPage(index) }
+                                                            if (!isHistoryExpanded) {
+                                                                launch { historyProgressAnim.animateTo(1f) }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        coroutineScope.launch {
+                                                            historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            fontWeight = FontWeight.Bold,
+                                            color = color
+                                        )
                                     }
-                                },
-                                shapes = when (index) {
-                                    0 -> androidx.compose.material3.ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                    tabTitles.lastIndex -> androidx.compose.material3.ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                    else -> androidx.compose.material3.ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                },
-                                modifier = Modifier.semantics { role = androidx.compose.ui.semantics.Role.Tab }
-                            ) {
-                                Text(text = title, maxLines = 1)
+                                }
                             }
                         }
                     }
