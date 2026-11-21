@@ -74,7 +74,7 @@
     <string name="settings_export_title">Esporta stazioni</string>
     <string name="settings_export_subtitle">Salva le tue stazioni in un file</string>
     <string name="settings_import_title">Importa stazioni</string>
-    <string name="settings_import_subtitle">Ripristina le stazioni da un file di backup</string>
+    <string name="settings_import_subtitle">Da file o app compatibile</string>
     <string name="about_title">Informazioni</string>
     <string name="about_us">Su di noi</string>
     <string name="about_app_description">Scopri e ascolta stazioni radio da tutto il mondo</string>
@@ -511,4 +511,36 @@
     <string name="import_diff_clears_languages">Cancella lingue</string>
     <string name="import_diff_clears_icon">Cancella icona</string>
     <string name="import_diff_update_icon">Aggiorna icona da file</string>
+    <string name="cd_close">Chiudi</string>
+    <string name="import_diff_replace_icon">Sostituisci con icona del file</string>
+    <string name="import_part_history">Cronologia traccia</string>
+    <plurals name="import_plays">
+        <item quantity="one">%1$d riproduzione</item>
+        <item quantity="many">%1$d riproduzioni</item>
+        <item quantity="other">%1$d riproduzioni</item>
+    </plurals>
+    <string name="import_not_selected">Non importato</string>
+    <string name="import_keep_all_plays">Mantieni tutte le riproduzioni</string>
+    <string name="import_keep_all_plays_desc">Aumenta il limite della cronologia da %1$d a %2$d. Altrimenti, vengono conservate solo le %1$d riproduzioni più recenti per stazione.</string>
+    <plurals name="import_button">
+        <item quantity="one">Importa %1$d stazione</item>
+        <item quantity="many">Importa %1$d stazioni</item>
+        <item quantity="other">Importa %1$d stazioni</item>
+    </plurals>
+    <string name="import_no_matches">Nessuna stazione corrisponde alla ricerca</string>
+    <string name="import_cd_playing">In riproduzione</string>
+    <string name="import_failed">Impossibile importare. Nessuna modifica.</string>
+    <string name="import_no_stations">Nessuna stazione trovata nel file selezionato</string>
+    <string name="import_source_internetradio">InternetRadio</string>
+    <string name="import_source_internetradio_ext">.json</string>
+    <string name="import_source_radiodroid">RadioDroid</string>
+    <string name="import_source_radiodroid_ext">.m3u, .m3u8</string>
+    <string name="lyrics_downloaded_success">Testi salvati correttamente</string>
+    <string name="lyrics_download_failed">Impossibile salvare i testi</string>
+    <string name="lyrics_download">Scarica testi</string>
+    <string name="lyrics_word">Parola</string>
+    <string name="lyrics_line">Riga</string>
+    <string name="lyrics_word_synced">Parola</string>
+    <string name="lyrics_line_synced">Riga</string>
+    <string name="lyrics_providers_title">Fornitori testi</string>
 </resources>
