@@ -102,15 +102,24 @@ fun SharedTransitionScope.SleepTimerDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (activeTimerEndTime != null) {
-                    var remaining by remember { mutableLongStateOf(activeTimerEndTime - System.currentTimeMillis()) }
+                    var remaining by remember(activeTimerEndTime) {
+                        mutableLongStateOf((activeTimerEndTime - System.currentTimeMillis()).coerceAtLeast(0L))
+                    }
                     LaunchedEffect(activeTimerEndTime) {
                         while (true) {
-                            remaining = activeTimerEndTime - System.currentTimeMillis()
+                            val diff = activeTimerEndTime - System.currentTimeMillis()
+                            if (diff <= 0L) {
+                                remaining = 0L
+                                onCancelTimer()
+                                break
+                            }
+                            remaining = diff
                             delay(1000)
                         }
                     }
                     
-                    val mins = (remaining / 60000).toInt() + 1
+                    val safeRemaining = remaining.coerceAtLeast(0L)
+                    val mins = ((safeRemaining + 59999L) / 60000L).toInt().coerceAtLeast(0)
                     Text(
                         text = pluralStringResource(
                             R.plurals.player_timer_ends_in_msg,

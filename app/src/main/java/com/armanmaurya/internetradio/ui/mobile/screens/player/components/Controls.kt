@@ -116,7 +116,7 @@ fun SharedTransitionScope.Controls(
                                 )
                                 .fillMaxSize()
                         ) {
-                            if (sleepTimerEndTime != null) {
+                            if (sleepTimerEndTime != null && remainingTime > 0L) {
                                 Box(contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator(
                                         progress = { sleepTimerProgress },
@@ -125,7 +125,7 @@ fun SharedTransitionScope.Controls(
                                         trackColor = LocalContentColor.current.copy(alpha = 0.2f),
                                         strokeWidth = 2.dp
                                     )
-                                    val mins = (remainingTime / 60000).toInt() + 1
+                                    val mins = ((remainingTime.coerceAtLeast(0L) + 59999L) / 60000L).toInt().coerceAtLeast(0)
                                     Text(
                                         text = mins.toString(),
                                         style = MaterialTheme.typography.labelSmall,

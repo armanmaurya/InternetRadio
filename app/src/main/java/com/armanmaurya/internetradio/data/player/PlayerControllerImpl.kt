@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.data.player
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import com.armanmaurya.internetradio.service.playback.engine.AudioAmplitudeManager
 import javax.inject.Inject
@@ -568,9 +570,18 @@ class PlayerControllerImpl @Inject constructor(
 
     override fun stop() {
         android.util.Log.w("BlankSheetDebug", "stop() called", Throwable())
-        val player = controller ?: return
-        player.stop()
-        player.clearMediaItems()
+        controller?.let { player ->
+            player.stop()
+            player.clearMediaItems()
+        }
+        try {
+            val stopIntent = Intent(context, PlaybackService::class.java).apply {
+                action = "com.armanmaurya.internetradio.ACTION_STOP_PLAYBACK"
+            }
+            context.startService(stopIntent)
+        } catch (e: Exception) {
+            android.util.Log.e("PlayerController", "Failed to send ACTION_STOP_PLAYBACK to PlaybackService", e)
+        }
         setVolume(1f)
         cancelSleepTimer()
         _playbackSession.update {
@@ -586,14 +597,19 @@ class PlayerControllerImpl @Inject constructor(
     private var timerJob: Job? = null
 
     override fun setSleepTimer(durationMillis: Long) {
-        timerJob?.cancel()
+        cancelSleepTimer()
         val endTime = System.currentTimeMillis() + durationMillis
         _playbackSession.update { it.copy(sleepTimerEndTime = endTime, sleepTimerTotalDuration = durationMillis) }
-        
+
         timerJob = scope.launch {
-            delay(durationMillis)
-            stop()
-            _playbackSession.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
+            while (isActive) {
+                val remaining = endTime - System.currentTimeMillis()
+                if (remaining <= 0L) {
+                    stop()
+                    break
+                }
+                delay(remaining.coerceAtMost(1000L))
+            }
         }
     }
 

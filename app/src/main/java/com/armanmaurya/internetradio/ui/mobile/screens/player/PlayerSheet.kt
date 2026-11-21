@@ -458,9 +458,14 @@ fun PlayerSheetContent(
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(playbackState.sleepTimerEndTime) {
-        if (playbackState.sleepTimerEndTime != null) {
+        val endTime = playbackState.sleepTimerEndTime
+        if (endTime != null) {
             while (true) {
                 currentTime = System.currentTimeMillis()
+                if (currentTime >= endTime) {
+                    onCancelSleepTimer()
+                    break
+                }
                 delay(1000)
             }
         }
@@ -485,7 +490,7 @@ fun PlayerSheetContent(
     val volumeLevel = if (connectedCastDevice != null) volume else playbackState.volume
     val appPreferences = LocalAppPreferences.current
 
-    val remainingTime = playbackState.sleepTimerEndTime?.let { it - currentTime } ?: 0L
+    val remainingTime = playbackState.sleepTimerEndTime?.let { (it - currentTime).coerceAtLeast(0L) } ?: 0L
     val sleepTimerProgress = if (playbackState.sleepTimerTotalDuration > 0) {
         (remainingTime.toFloat() / playbackState.sleepTimerTotalDuration).coerceIn(0f, 1f)
     } else 0f

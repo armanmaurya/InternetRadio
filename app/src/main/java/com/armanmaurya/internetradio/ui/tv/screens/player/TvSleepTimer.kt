@@ -42,10 +42,17 @@ fun rememberSleepTimerMinutesLeft(endTime: Long?): Int? {
     LaunchedEffect(endTime) {
         while (endTime != null) {
             now = System.currentTimeMillis()
-            delay(15_000)
+            if (now >= endTime) {
+                break
+            }
+            delay(1000)
         }
     }
-    return endTime?.let { ((it - now).coerceAtLeast(0L) / 60_000L).toInt() + 1 }
+    return endTime?.let {
+        val diff = it - now
+        if (diff <= 0L) null
+        else ((diff + 59999L) / 60000L).toInt().coerceAtLeast(1)
+    }
 }
 
 /** Sleep timer picker: preset durations, plus "Turn Off Timer" while one is running. */
@@ -90,7 +97,7 @@ fun TvSleepTimerDialog(
                     )
                 }
 
-                if (endTime != null) {
+                if (endTime != null && minutesLeft != null) {
                     ListItem(
                         selected = false,
                         onClick = {
@@ -119,7 +126,7 @@ fun TvSleepTimerDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(
-                                if (endTime == null && index == 0) Modifier.focusRequester(firstItemFocus)
+                                if ((endTime == null || minutesLeft == null) && index == 0) Modifier.focusRequester(firstItemFocus)
                                 else Modifier
                             )
                     )
