@@ -87,6 +87,7 @@ fun TvLyricsPanel(
     onSyncOffsetChange: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val success = lyricsUiState as? LyricsUiState.Success
     Column(modifier = modifier) {
         Box(
             modifier = Modifier
@@ -95,9 +96,9 @@ fun TvLyricsPanel(
                 .fadingEdges(),
             contentAlignment = Alignment.CenterStart
         ) {
-            val success = lyricsUiState as? LyricsUiState.Success
             val synced = success?.syncedLyrics?.takeIf { it.isNotEmpty() && trackStartTime != null }
             val plain = success?.plainLyrics?.takeIf { it.isNotBlank() }
+                ?: success?.syncedLyrics?.joinToString("\n") { it.text }?.takeIf { it.isNotBlank() }
             when {
                 lyricsUiState is LyricsUiState.Loading ->
                     androidx.compose.material3.CircularProgressIndicator(
@@ -134,8 +135,14 @@ fun TvLyricsPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                val providerName = success?.lyrics?.providerInfo?.displayName ?: stringResource(R.string.lyrics_provider_lrclib)
+                val isWordSync = success?.lyrics?.hasWordSync == true ||
+                    success?.syncedLyrics?.any { !it.words.isNullOrEmpty() } == true
+                val syncTypeStr = if (hasSynced) {
+                    if (isWordSync) " • " + stringResource(R.string.lyrics_word_synced) else " • " + stringResource(R.string.lyrics_line_synced)
+                } else ""
                 Text(
-                    text = stringResource(R.string.lyrics_powered_by) + stringResource(R.string.lyrics_provider_lrclib),
+                    text = stringResource(R.string.lyrics_powered_by) + providerName + syncTypeStr,
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.5f)
                 )

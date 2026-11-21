@@ -11,6 +11,7 @@ import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.armanmaurya.internetradio.core.media.player.TrackParser
+import com.armanmaurya.internetradio.core.metadata.TrackMetadataEngine
 import com.armanmaurya.internetradio.core.utils.TrackSanitizer
 import com.armanmaurya.internetradio.domain.repository.CoverArtRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
@@ -220,7 +221,8 @@ class TrackObserver @Inject constructor(
         // changes while listening; the first one after tuning in (or resuming) started earlier.
         val isFirstTrackSinceTuneIn = lastTrack == null
         lastTrack = rawTrack
-        val track = TrackSanitizer.sanitize(rawTrack)
+        val parsed = TrackMetadataEngine.parse(rawTrack)
+        val track = parsed.formatted
         if (track.isBlank()) return
 
         val currentPlayer = attachedPlayer ?: return
@@ -236,10 +238,16 @@ class TrackObserver @Inject constructor(
         baseExtras.putString("raw_track_name", rawTrack)
         baseExtras.putString("is_fetching_artwork", "true")
         baseExtras.putLong(EXTRA_TRACK_START_TIME, trackStartTime)
+        if (parsed.title.isNotBlank()) {
+            baseExtras.putString("clean_track_name", parsed.title)
+        }
+        if (!parsed.artist.isNullOrBlank()) {
+            baseExtras.putString("clean_artist_name", parsed.artist)
+        }
 
         val baseMetadata = currentMediaItem.mediaMetadata.buildUpon()
-            .setTitle(track)
-            .setArtist(null)
+            .setTitle(if (!parsed.artist.isNullOrBlank()) parsed.title else track)
+            .setArtist(parsed.artist)
             .setArtworkUri(fallbackArtUri)
             .setExtras(baseExtras)
             .build()
@@ -275,8 +283,8 @@ class TrackObserver @Inject constructor(
                 // lastTrack is cleared on pause, so check the history track to see if this song is still current
                 if (historyTrack?.rawTitle != rawTrack) return@launch
 
-                val trackName = trackMetadata?.trackName?.takeIf { it.isNotBlank() } ?: track
-                val artistName = trackMetadata?.artistName?.takeIf { it.isNotBlank() }
+                val trackName = trackMetadata?.trackName?.takeIf { it.isNotBlank() } ?: parsed.title
+                val artistName = trackMetadata?.artistName?.takeIf { it.isNotBlank() } ?: parsed.artist
                 val coverArtUrl = trackMetadata?.coverArtUrl?.takeIf { it.isNotBlank() }
 
                 if (trackId != null) {

@@ -14,6 +14,7 @@ import com.armanmaurya.internetradio.domain.model.RecordingSession
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
 import com.armanmaurya.internetradio.domain.repository.RecentRepository
 import com.armanmaurya.internetradio.domain.repository.TrackHistoryRepository
+import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.domain.model.PlaybackSource
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.RecordingController
@@ -97,48 +98,97 @@ class PlayerViewModel @Inject constructor(
         data object Error : LyricsUiState
         data class Success(
             val plainLyrics: String?,
-            val syncedLyrics: List<LrcLine>?
+            val syncedLyrics: List<LrcLine>?,
+            val lyrics: Lyrics? = null,
+            val allCandidates: List<Lyrics> = emptyList(),
+            val activeProviderId: String? = lyrics?.providerInfo?.id
         ) : LyricsUiState {
-            constructor(lyrics: Lyrics) : this(lyrics.plainLyrics, lyrics.syncedLyrics)
+            constructor(lyrics: Lyrics, allCandidates: List<Lyrics> = emptyList()) : this(
+                lyrics.plainLyrics?.takeIf { it.isNotBlank() } ?: lyrics.toPlainContent().takeIf { it.isNotBlank() },
+                lyrics.syncedLyrics,
+                lyrics,
+                allCandidates,
+                lyrics.providerInfo.id
+            )
         }
     }
+
+    data class CustomLyricsQuery(val trackTitle: String, val artistName: String?)
+
+    private val customLyricsQuery = kotlinx.coroutines.flow.MutableStateFlow<CustomLyricsQuery?>(null)
+    private val selectedLyricsProviderId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+
+    private data class TrackInfo(
+        val track: String?,
+        val cleanTrack: String?,
+        val cleanArtist: String?
+    )
 
     private data class LyricsRequestData(
         val track: String?,
         val cleanTrack: String?,
         val cleanArtist: String?,
-        val isFetching: Boolean
+        val isFetching: Boolean,
+        val customQuery: CustomLyricsQuery?,
+        val selectedProviderId: String?
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val lyricsUiState: StateFlow<LyricsUiState> = combine(
-        playbackSession.map { it.currentTrack }.distinctUntilChanged(),
-        playbackSession.map { it.cleanTrackName }.distinctUntilChanged(),
-        playbackSession.map { it.cleanArtistName }.distinctUntilChanged(),
-        playerController.isFetchingArtwork
-    ) { track, cleanTrack, cleanArtist, isFetching ->
-        LyricsRequestData(track, cleanTrack, cleanArtist, isFetching)
+        playbackSession.map {
+            TrackInfo(it.currentTrack, it.cleanTrackName, it.cleanArtistName)
+        }.distinctUntilChanged(),
+        playerController.isFetchingArtwork,
+        customLyricsQuery,
+        selectedLyricsProviderId
+    ) { trackInfo, isFetching, customQuery, selectedProviderId ->
+        LyricsRequestData(trackInfo.track, trackInfo.cleanTrack, trackInfo.cleanArtist, isFetching, customQuery, selectedProviderId)
     }
         .flatMapLatest { data ->
             flow {
-                if (data.track.isNullOrBlank()) {
+                val effectiveTrack = data.customQuery?.trackTitle ?: data.cleanTrack ?: data.track
+                val effectiveArtist = if (data.customQuery != null) data.customQuery.artistName else data.cleanArtist
+
+                if (effectiveTrack.isNullOrBlank()) {
                     emit(LyricsUiState.NotAvailable)
-                } else if (data.isFetching) {
+                } else if (data.isFetching && data.customQuery == null) {
                     emit(LyricsUiState.Loading)
                 } else {
                     emit(LyricsUiState.Loading)
-                    val lyrics = try {
-                        if (data.cleanTrack != null) {
-                            lyricsRepository.getLyricsForTrack(data.cleanTrack, data.cleanArtist)
-                        } else {
-                            lyricsRepository.getLyricsForTrack(data.track, null)
-                        }
+                    val searchResult = try {
+                        lyricsRepository.getLyricsSearchResult(effectiveTrack, effectiveArtist)
                     } catch (_: com.armanmaurya.internetradio.domain.repository.LyricsFetchException) {
                         emit(LyricsUiState.Error)
                         return@flow
+                    } catch (_: Exception) {
+                        emit(LyricsUiState.Error)
+                        return@flow
                     }
-                    if (lyrics != null) {
-                        emit(LyricsUiState.Success(lyrics))
+
+                    val candidates = searchResult.allCandidates
+                    val chosenLyrics = if (data.selectedProviderId != null) {
+                        val matching = candidates.firstOrNull { it.providerInfo.id.equals(data.selectedProviderId, ignoreCase = true) }
+                        matching ?: try {
+                            lyricsRepository.getLyricsFromProvider(data.selectedProviderId, effectiveTrack, effectiveArtist)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    } else {
+                        searchResult.selectedLyrics
+                    }
+
+                    if (chosenLyrics != null) {
+                        val stationUuid = playbackSession.value.currentStation?.stationUuid
+                        val currentTitle = effectiveTrack
+                        if (stationUuid != null && currentTitle != null && chosenLyrics.locator != null) {
+                            trackHistoryRepository.updateLyricsLocatorByTitle(stationUuid, currentTitle, chosenLyrics.locator)
+                        }
+                        val allCandidates = if (candidates.none { it.providerInfo.id.equals(chosenLyrics.providerInfo.id, ignoreCase = true) }) {
+                            candidates + chosenLyrics
+                        } else {
+                            candidates
+                        }
+                        emit(LyricsUiState.Success(chosenLyrics, allCandidates))
                     } else {
                         emit(LyricsUiState.NotAvailable)
                     }
@@ -152,6 +202,40 @@ class PlayerViewModel @Inject constructor(
         )
 
     val lyricsState: StateFlow<LyricsUiState> get() = lyricsUiState
+
+    suspend fun getLyricsForHistoryTrack(track: TrackHistoryEntity): Lyrics? {
+        val locator = track.lyricsLocator
+        if (!locator.isNullOrBlank()) {
+            val byLocator = lyricsRepository.getLyricsByLocator(locator)
+            if (byLocator != null) return byLocator
+        }
+        return lyricsRepository.getLyricsForTrack(track.trackTitle, track.artist)
+    }
+
+    fun searchLyrics(trackTitle: String, artistName: String?) {
+        val trimmedTitle = trackTitle.trim()
+        val trimmedArtist = artistName?.trim()?.takeIf { it.isNotBlank() }
+        if (trimmedTitle.isNotBlank()) {
+            customLyricsQuery.value = CustomLyricsQuery(trimmedTitle, trimmedArtist)
+        }
+    }
+
+    fun selectLyricsProvider(providerId: String?) {
+        selectedLyricsProviderId.value = if (providerId.isNullOrBlank() || providerId.equals("auto", ignoreCase = true)) {
+            null
+        } else {
+            providerId
+        }
+    }
+
+    fun resetLyricsQuery() {
+        customLyricsQuery.value = null
+        selectedLyricsProviderId.value = null
+    }
+
+    fun getAllLyricsProviders(): List<com.armanmaurya.internetradio.domain.lyrics.LyricsProviderInfo> {
+        return lyricsRepository.getAllProviders()
+    }
 
     val activeSessions = getActiveRecordingsUseCase()
 
@@ -306,7 +390,9 @@ class PlayerViewModel @Inject constructor(
         val retry: Int?,
         val lyrics: LyricsUiState,
         val historyUi: HistoryUiState,
-        val recordings: List<RecordingFile>?
+        val recordings: List<RecordingFile>?,
+        val selectedProviderId: String?,
+        val customQuery: CustomLyricsQuery?
     )
 
     private val basePlayerFlow = combine(
@@ -335,13 +421,34 @@ class PlayerViewModel @Inject constructor(
         RecordingState(isRec, duration, sessions)
     }
 
+    private data class LyricsOptionsState(
+        val lyrics: LyricsUiState,
+        val selectedProviderId: String?,
+        val customQuery: CustomLyricsQuery?
+    )
+
+    private val lyricsAndOptionsFlow = combine(
+        lyricsUiState,
+        selectedLyricsProviderId,
+        customLyricsQuery
+    ) { lyrics, providerId, customQuery ->
+        LyricsOptionsState(lyrics, providerId, customQuery)
+    }
+
     private val extraUiFlow = combine(
         retryCountdown,
-        lyricsUiState,
+        lyricsAndOptionsFlow,
         historyUiFlow,
         stationRecordings
-    ) { retry, lyrics, historyUi, recordings ->
-        ExtraUiState(retry, lyrics, historyUi, recordings)
+    ) { retry, lyricsOptions, historyUi, recordings ->
+        ExtraUiState(
+            retry = retry,
+            lyrics = lyricsOptions.lyrics,
+            historyUi = historyUi,
+            recordings = recordings,
+            selectedProviderId = lyricsOptions.selectedProviderId,
+            customQuery = lyricsOptions.customQuery
+        )
     }
 
     val uiState: StateFlow<PlayerUiState> = combine(
@@ -404,7 +511,10 @@ class PlayerViewModel @Inject constructor(
             stationRecordings = extra.recordings,
             sessionActiveDurationMs = session.sessionActiveDurationMs,
             sessionResumeTimeMs = session.sessionResumeTimeMs,
-            playbackSource = session.playbackSource
+            playbackSource = session.playbackSource,
+            selectedLyricsProviderId = extra.selectedProviderId,
+            customLyricsQueryTitle = extra.customQuery?.trackTitle,
+            customLyricsQueryArtist = extra.customQuery?.artistName
         )
     }.stateIn(
         scope = viewModelScope,
@@ -413,6 +523,14 @@ class PlayerViewModel @Inject constructor(
     )
 
     init {
+        playbackSession
+            .map { it.currentTrack }
+            .distinctUntilChanged()
+            .onEach {
+                customLyricsQuery.value = null
+                selectedLyricsProviderId.value = null
+            }
+            .launchIn(viewModelScope)
         kotlinx.coroutines.flow.combine(
             playbackSession.map { it.currentStation }.distinctUntilChanged { old, new -> old?.stationUuid == new?.stationUuid },
             connectedCastDevice

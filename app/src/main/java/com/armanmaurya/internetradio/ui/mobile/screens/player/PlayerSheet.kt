@@ -3,6 +3,9 @@ package com.armanmaurya.internetradio.ui.mobile.screens.player
 
 import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.armanmaurya.internetradio.core.utils.LyricsExporter
 import com.armanmaurya.internetradio.ui.mobile.screens.player.components.SleepTimerDialog
 
 import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.history.HistoryTab
@@ -273,6 +276,17 @@ fun PlayerBottomSheet(
         }
     }
 
+    val sheetContext = androidx.compose.ui.platform.LocalContext.current
+    var pendingHistoryPayload by remember { mutableStateOf<LyricsExporter.ExportPayload?>(null) }
+    val historyExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        if (uri != null && pendingHistoryPayload != null) {
+            LyricsExporter.writeToUri(sheetContext, uri, pendingHistoryPayload!!.content)
+        }
+        pendingHistoryPayload = null
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -334,6 +348,9 @@ fun PlayerBottomSheet(
                 },
                 onToggleRecording = playerViewModel::toggleRecording,
                 onSyncOffsetChange = playerViewModel::setLyricsSyncOffset,
+                onSearchLyrics = playerViewModel::searchLyrics,
+                onSelectLyricsProvider = playerViewModel::selectLyricsProvider,
+                onResetLyricsQuery = playerViewModel::resetLyricsQuery,
                 discoveredCastDevices = discoveredCastDevices,
                 onVolumeChange = playerViewModel::setVolume,
                 onConnectCastDevice = playerViewModel::connectToCastDevice,
@@ -346,6 +363,18 @@ fun PlayerBottomSheet(
                     val trackTitle = uiState.cleanTrackName ?: uiState.currentTrack
                     if (!trackTitle.isNullOrBlank()) {
                         playerViewModel.toggleTrackStarred(trackTitle, !uiState.isCurrentTrackStarred)
+                    }
+                },
+                onDownloadHistoryLyrics = { track ->
+                    scope.launch {
+                        val lyrics = playerViewModel.getLyricsForHistoryTrack(track)
+                        if (lyrics != null) {
+                            val payload = LyricsExporter.prepareExport(lyrics, defaultTitle = track.trackTitle, defaultArtist = track.artist)
+                            pendingHistoryPayload = payload
+                            historyExportLauncher.launch(payload.defaultFileName)
+                        } else {
+                            android.widget.Toast.makeText(sheetContext, sheetContext.getString(R.string.player_lyrics_not_available), android.widget.Toast.LENGTH_SHORT).show()
+                        }
                     }
                 },
                 onDialogOpenChange = onDialogOpenChange
@@ -372,6 +401,9 @@ fun PlayerSheetContent(
     onEditStation: (RadioStation) -> Unit,
     onToggleRecording: () -> Unit,
     onSyncOffsetChange: (Long) -> Unit,
+    onSearchLyrics: ((String, String?) -> Unit)? = null,
+    onSelectLyricsProvider: ((String?) -> Unit)? = null,
+    onResetLyricsQuery: (() -> Unit)? = null,
     discoveredCastDevices: List<CastDevice> = emptyList(),
     onVolumeChange: (Float) -> Unit = {},
     onConnectCastDevice: (CastDevice) -> Unit = {},
@@ -381,6 +413,7 @@ fun PlayerSheetContent(
     onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
     onLoadMoreHistory: () -> Unit = {},
     onToggleCurrentTrackStarred: () -> Unit = {},
+    onDownloadHistoryLyrics: ((TrackHistoryEntity) -> Unit)? = null,
     onDialogOpenChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -1608,7 +1641,8 @@ fun PlayerSheetContent(
                                 listState = historyListState,
                                 nestedScrollConnection = nestedScrollConnection,
                                 onToggleStar = onToggleTrackStarred,
-                                onLoadMore = onLoadMoreHistory
+                                onLoadMore = onLoadMoreHistory,
+                                onDownloadLyrics = onDownloadHistoryLyrics
                             )
                         } else if (page == 1) {
                             RecordingsTab(
@@ -1630,7 +1664,15 @@ fun PlayerSheetContent(
                                     syncOffsetMs = playbackState.lyricsSyncOffsetMs,
                                     isPlaying = playbackState.isPlaying,
                                     getCurrentPosition = getCurrentPosition,
-                                    onSyncOffsetChange = onSyncOffsetChange
+                                    onSyncOffsetChange = onSyncOffsetChange,
+                                    currentTrack = playbackState.cleanTrackName ?: playbackState.currentTrack,
+                                    currentArtist = playbackState.cleanArtistName,
+                                    customQueryTitle = playbackState.customLyricsQueryTitle,
+                                    customQueryArtist = playbackState.customLyricsQueryArtist,
+                                    selectedProviderId = playbackState.selectedLyricsProviderId,
+                                    onSearchLyrics = onSearchLyrics,
+                                    onSelectProvider = onSelectLyricsProvider,
+                                    onResetQuery = onResetLyricsQuery
                                 )
                             }
                         } else if (page == 3) {

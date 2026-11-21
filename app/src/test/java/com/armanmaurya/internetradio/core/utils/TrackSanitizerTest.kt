@@ -97,4 +97,27 @@ class TrackSanitizerTest {
         val searchClean = TrackSanitizer.sanitizeTrackInfo(raw)
         assertEquals("Coldplay My Universe", searchClean)
     }
+
+    @Test
+    fun testVirginRadioTildeDelimitedMetadata() {
+        val raw = "SIMPLE MINDS~SOMEONE SOMEWHERE IN SUMMERTIME~NEW GOLD DREAM (81–82–83–84)~1982~~260~2026-11-21T18:07:46~2026-11-21T18:07:46~Virgin Radio"
+        val cleaned = TrackSanitizer.sanitize(raw)
+        assertEquals("SIMPLE MINDS - SOMEONE SOMEWHERE IN SUMMERTIME", cleaned)
+    }
+
+    @Test
+    fun testVirginRadioParsedTrackFields() {
+        val raw = "SIMPLE MINDS~SOMEONE SOMEWHERE IN SUMMERTIME~NEW GOLD DREAM (81–82–83–84)~1982~~260~2026-11-21T18:07:46~2026-11-21T18:07:46~Virgin Radio"
+        val parsed = com.armanmaurya.internetradio.core.metadata.TrackMetadataEngine.parse(raw)
+        assertEquals("SIMPLE MINDS", parsed.artist)
+        assertEquals("SOMEONE SOMEWHERE IN SUMMERTIME", parsed.title)
+        assertEquals("NEW GOLD DREAM (81–82–83–84)", parsed.album)
+    }
+
+    @Test
+    fun testTwoSegmentTildeMetadata() {
+        val raw = "Queen~Bohemian Rhapsody"
+        val cleaned = TrackSanitizer.sanitize(raw)
+        assertEquals("Queen - Bohemian Rhapsody", cleaned)
+    }
 }

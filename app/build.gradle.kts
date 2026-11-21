@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -9,7 +11,20 @@ android {
     testOptions {
         // Robolectric UI tests need the app's resources (strings, themes)
         unitTests.isIncludeAndroidResources = true
+        unitTests.isReturnDefaultValues = true
         unitTests.all {
+            val tmpHome = file("${project.layout.buildDirectory.asFile.get().absolutePath}/tmp-user-home")
+            tmpHome.mkdirs()
+            val m2Link = file("${tmpHome.absolutePath}/.m2")
+            if (!m2Link.exists()) {
+                val realM2 = file("${System.getProperty("user.home")}/.m2")
+                if (realM2.exists()) {
+                    try {
+                        Files.createSymbolicLink(m2Link.toPath(), realM2.toPath())
+                    } catch (_: Exception) {}
+                }
+            }
+            it.systemProperty("user.home", tmpHome.absolutePath)
             // Robolectric reaches into java.io internals that newer JDKs close off
             it.jvmArgs(
                 "--add-opens=java.base/java.io=ALL-UNNAMED",

@@ -22,6 +22,7 @@
     <string name="cd_back">Back</string>
     <string name="cd_preview">Preview</string>
     <string name="cd_close_search">Close search</string>
+    <string name="cd_close">Close</string>
     <string name="cd_search">Search</string>
     <string name="cd_clear_search">Clear search</string>
     <string name="cd_delete">Delete</string>
@@ -560,6 +561,28 @@
     <string name="shortcut_not_supported">Launcher does not support pinned shortcuts</string>
     <string name="lyrics_powered_by">Powered by </string>
     <string name="lyrics_provider_lrclib" translatable="false">LRCLIB</string>
+    <string name="lyrics_downloaded_success">Lyrics saved successfully</string>
+    <string name="lyrics_download_failed">Failed to save lyrics</string>
+    <string name="lyrics_download">Download Lyrics</string>
+    <string name="lyrics_word">Word</string>
+    <string name="lyrics_line">Line</string>
+    <string name="lyrics_word_synced">Word</string>
+    <string name="lyrics_line_synced">Line</string>
+    <string name="lyrics_plain">Plain</string>
+    <string name="lyrics_providers_title">Lyrics Providers</string>
+    <string name="lyrics_providers_subtitle">Configure lyrics sources and fallback priority</string>
+    <string name="lyrics_providers_description">Drag to reorder provider search priority. The player searches for lyrics starting from the top and falls back down the list.</string>
+    <string name="cd_reorder_lyrics_provider">Reorder provider</string>
+    <string name="lyrics_options_title">Providers</string>
+    <string name="lyrics_track_title">Track Title</string>
+    <string name="lyrics_artist_name">Artist (optional)</string>
+    <string name="lyrics_search_action">Search</string>
+    <string name="lyrics_reset_action">Reset to Track</string>
+    <string name="lyrics_provider_auto">Auto (Recommended)</string>
+    <string name="lyrics_provider_auto_subtitle">Automatically picks highest quality</string>
+    <string name="lyrics_provider_not_found">No lyrics found</string>
+    <string name="lyrics_search_query_button">Search or Edit Query</string>
+    <string name="lyrics_cd_options">Lyrics options and search</string>
 
     <string name="review_message_foss">Are you enjoying Internet Radio? If so, please consider supporting the project by leaving a star on GitHub. Your support means a lot!</string>
     <string name="review_message_play">Are you enjoying Internet Radio? If so, please consider taking a moment to rate the app. Your support means a lot!</string>

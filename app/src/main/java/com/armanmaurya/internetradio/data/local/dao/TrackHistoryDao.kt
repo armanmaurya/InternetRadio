@@ -31,6 +31,12 @@ interface TrackHistoryDao {
     @Query("UPDATE track_history SET trackTitle = :newTrackTitle, coverArtUrl = :coverArtUrl WHERE id = :id")
     suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?)
 
+    @Query("UPDATE track_history SET lyricsLocator = :lyricsLocator WHERE id = :id")
+    suspend fun updateLyricsLocator(id: Long, lyricsLocator: String?)
+
+    @Query("UPDATE track_history SET lyricsLocator = :lyricsLocator WHERE stationUuid = :stationUuid AND trackTitle = :trackTitle")
+    suspend fun updateLyricsLocatorByTitle(stationUuid: String, trackTitle: String, lyricsLocator: String?)
+
     @Query("UPDATE track_history SET endTimestamp = :endTimestamp, durationMs = durationMs + :addedDurationMs WHERE id = :id")
     suspend fun recordTrackListeningProgress(id: Long, endTimestamp: Long, addedDurationMs: Long)
 

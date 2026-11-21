@@ -25,9 +25,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
@@ -36,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,7 +71,8 @@ fun TrackHistoryItem(
     modifier: Modifier = Modifier,
     showClockTime: Boolean = false,
     onToggleStar: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onDownloadLyrics: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val time = if (showClockTime) {
@@ -92,6 +96,7 @@ fun TrackHistoryItem(
         onToggleStar = onToggleStar,
         isActive = false,
         onClick = onClick,
+        onDownloadLyrics = onDownloadLyrics,
         modifier = modifier
     )
 }
@@ -129,6 +134,7 @@ fun TrackHistoryItem(
     onToggleStar: (() -> Unit)? = null,
     isActive: Boolean = false,
     onClick: (() -> Unit)? = null,
+    onDownloadLyrics: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -170,15 +176,13 @@ fun TrackHistoryItem(
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(
-                if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                if (isActive) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerHighest
             )
-            .then(
-                if (isActive) Modifier.border(
-                    1.5.dp,
-                    MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(12.dp)
-                ) else Modifier
+            .border(
+                width = if (isActive) 1.5.dp else 1.dp,
+                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(12.dp)
             )
     ) {
         ListItem(
@@ -266,7 +270,9 @@ fun TrackHistoryItem(
                         .clip(RoundedCornerShape(8.dp)),
                     error = {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -336,7 +342,7 @@ fun TrackHistoryItem(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                        .padding(start = 16.dp, end = 16.dp, bottom = if (onDownloadLyrics != null) 8.dp else 12.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -405,6 +411,30 @@ fun TrackHistoryItem(
                             contentDescription = stringResource(R.string.player_cd_search_google),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                if (onDownloadLyrics != null) {
+                    OutlinedButton(
+                        onClick = {
+                            onDownloadLyrics()
+                            isExpanded = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.lyrics_download),
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
                 }

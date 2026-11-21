@@ -62,7 +62,8 @@ fun HistoryTab(
     listState: LazyListState,
     nestedScrollConnection: NestedScrollConnection,
     onToggleStar: (TrackHistoryEntity) -> Unit = {},
-    onLoadMore: () -> Unit = {}
+    onLoadMore: () -> Unit = {},
+    onDownloadLyrics: ((TrackHistoryEntity) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -180,7 +181,8 @@ fun HistoryTab(
                             savedTracks.forEach { track ->
                                 TrackHistoryItem(
                                     track = track,
-                                    onToggleStar = { onToggleStar(track) }
+                                    onToggleStar = { onToggleStar(track) },
+                                    onDownloadLyrics = onDownloadLyrics?.let { { it(track) } }
                                 )
                             }
                         }
@@ -227,7 +229,8 @@ fun HistoryTab(
                         TimelineTrackRow(
                             track = track,
                             isLastInSession = isLast,
-                            onToggleStar = { onToggleStar(track) }
+                            onToggleStar = { onToggleStar(track) },
+                            onDownloadLyrics = onDownloadLyrics?.let { { it(track) } }
                         )
                     }
                 }

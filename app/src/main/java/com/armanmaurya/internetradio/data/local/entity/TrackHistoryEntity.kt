@@ -26,6 +26,8 @@ data class TrackHistoryEntity @Ignore constructor(
     val endTimestamp: Long = 0,
     @androidx.room.ColumnInfo(defaultValue = "0")
     val durationMs: Long = 0,
+    @androidx.room.ColumnInfo(defaultValue = "NULL")
+    val lyricsLocator: String? = null,
     /**
      * Not stored in track_history. Filled in when history is read, from whether a matching row
      * exists in starred_tracks (see TrackHistoryRepository.getTrackHistory).
@@ -43,6 +45,7 @@ data class TrackHistoryEntity @Ignore constructor(
         rawTrackTitle: String,
         artist: String?,
         endTimestamp: Long,
-        durationMs: Long
-    ) : this(id, stationUuid, trackTitle, timestamp, coverArtUrl, rawTrackTitle, artist, endTimestamp, durationMs, false)
+        durationMs: Long,
+        lyricsLocator: String?
+    ) : this(id, stationUuid, trackTitle, timestamp, coverArtUrl, rawTrackTitle, artist, endTimestamp, durationMs, lyricsLocator, false)
 }

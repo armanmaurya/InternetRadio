@@ -34,6 +34,9 @@ interface StarredTrackDao {
     @Query("UPDATE starred_tracks SET coverArtUrl = :coverArtUrl WHERE stationUuid = :stationUuid AND trackTitle = :trackTitle")
     suspend fun updateCoverArt(stationUuid: String, trackTitle: String, coverArtUrl: String)
 
+    @Query("UPDATE starred_tracks SET lyricsLocator = :lyricsLocator WHERE stationUuid = :stationUuid AND trackTitle = :trackTitle")
+    suspend fun updateLyricsLocator(stationUuid: String, trackTitle: String, lyricsLocator: String?)
+
     /**
      * The starred row for this track, matched on the clean title or, when given, the raw stream
      * title (trimmed, case-insensitive). Leave [rawTrackTitle] blank to match on title only.

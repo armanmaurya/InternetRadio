@@ -88,6 +88,19 @@ class TrackHistoryRepositoryImpl @Inject constructor(
         trackHistoryDao.updateTrackMetadata(id, newTrackTitle, coverArtUrl)
     }
 
+    override suspend fun updateLyricsLocator(id: Long, lyricsLocator: String?) = withContext(Dispatchers.IO) {
+        trackHistoryDao.updateLyricsLocator(id, lyricsLocator)
+        val track = trackHistoryDao.getTrackById(id)
+        if (track != null) {
+            starredTrackDao.updateLyricsLocator(track.stationUuid, track.trackTitle, lyricsLocator)
+        }
+    }
+
+    override suspend fun updateLyricsLocatorByTitle(stationUuid: String, trackTitle: String, lyricsLocator: String?) = withContext(Dispatchers.IO) {
+        trackHistoryDao.updateLyricsLocatorByTitle(stationUuid, trackTitle, lyricsLocator)
+        starredTrackDao.updateLyricsLocator(stationUuid, trackTitle, lyricsLocator)
+    }
+
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     override fun getTrackHistory(stationUuid: String, limit: Int): Flow<List<TrackHistoryEntity>> {
         return settingsRepository.appPreferencesFlow

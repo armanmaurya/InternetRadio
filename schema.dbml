@@ -63,6 +63,7 @@ Table track_history {
   timestamp integer [not null, note: 'Epoch ms when track started']
   endTimestamp integer [not null, default: 0, note: 'Epoch ms when track ended']
   durationMs integer [not null, default: 0, note: 'Listening duration in ms']
+  lyricsLocator text [note: 'Opaque lyrics provider locator pointer, e.g. lrclib:2392']
 
   indexes {
     (stationUuid, timestamp)
@@ -77,6 +78,7 @@ Table starred_tracks {
   artist text [note: 'Parsed artist']
   coverArtUrl text [note: 'Artwork URL']
   starredAt integer [not null, note: 'Epoch ms when starred']
+  lyricsLocator text [note: 'Opaque lyrics provider locator pointer, e.g. lrclib:2392']
 
   indexes {
     (stationUuid, trackTitle) [unique]

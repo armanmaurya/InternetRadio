@@ -169,7 +169,8 @@ object DatabaseMigrations {
                     `rawTrackTitle` TEXT NOT NULL DEFAULT '',
                     `artist` TEXT DEFAULT NULL,
                     `coverArtUrl` TEXT DEFAULT NULL,
-                    `starredAt` INTEGER NOT NULL DEFAULT 0
+                    `starredAt` INTEGER NOT NULL DEFAULT 0,
+                    `lyricsLocator` TEXT DEFAULT NULL
                 )
             """.trimIndent())
             database.execSQL("""
@@ -203,7 +204,8 @@ object DatabaseMigrations {
                     `rawTrackTitle` TEXT NOT NULL DEFAULT '',
                     `artist` TEXT DEFAULT NULL,
                     `endTimestamp` INTEGER NOT NULL DEFAULT 0,
-                    `durationMs` INTEGER NOT NULL DEFAULT 0
+                    `durationMs` INTEGER NOT NULL DEFAULT 0,
+                    `lyricsLocator` TEXT DEFAULT NULL
                 )
             """.trimIndent())
             database.execSQL("""

@@ -49,6 +49,8 @@ internal class RecordingTrackHistoryRepository : TrackHistoryRepository {
 
     override suspend fun logTrack(stationUuid: String, trackTitle: String, rawTrackTitle: String): Long? = null
     override suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?) {}
+    override suspend fun updateLyricsLocator(id: Long, lyricsLocator: String?) {}
+    override suspend fun updateLyricsLocatorByTitle(stationUuid: String, trackTitle: String, lyricsLocator: String?) {}
     override fun getTrackHistory(stationUuid: String, limit: Int): Flow<List<TrackHistoryEntity>> = flowOf(emptyList())
     override suspend fun updateCoverArt(stationUuid: String, trackTitle: String, coverArtUrl: String) {}
     override fun getStarredTracks(stationUuid: String): Flow<List<TrackHistoryEntity>> = flowOf(emptyList())

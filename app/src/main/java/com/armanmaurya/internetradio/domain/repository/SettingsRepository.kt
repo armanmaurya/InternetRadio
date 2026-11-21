@@ -54,5 +54,7 @@ interface SettingsRepository {
     suspend fun setKeepScreenOn(enabled: Boolean)
     suspend fun setWidgetBackgroundAlpha(alpha: Float)
     suspend fun setShowStationThumbnails(enabled: Boolean)
+    suspend fun setLyricsProviderOrder(order: List<String>)
+    suspend fun setLyricsProviderEnabled(providerId: String, enabled: Boolean)
 }
 

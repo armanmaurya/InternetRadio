@@ -1,10 +1,12 @@
 package com.armanmaurya.internetradio.domain.model
 
+import com.armanmaurya.internetradio.domain.lyrics.LyricsProviderInfo
+
 /** A timed word (or segment) inside a lyric line. [text] includes its trailing space, if any. */
 data class LrcWord(val startMs: Long, val endMs: Long?, val text: String)
 
 /**
- * A synced lyric line. [words] is present only for word-synced lyrics (LRCLIB Lyricsfile);
+ * A synced lyric line. [words] is present only for word-synced lyrics (LRCLIB Lyricsfile, etc.);
  * joining their texts gives [text].
  */
 data class LrcLine(
@@ -16,9 +18,49 @@ data class LrcLine(
 
 data class Lyrics(
     val plainLyrics: String?,
-    val syncedLyrics: List<LrcLine>?
+    val syncedLyrics: List<LrcLine>?,
+    val rawLrc: String? = null,
+    val providerInfo: LyricsProviderInfo = LyricsProviderInfo("lrclib", "LRCLIB", "https://lrclib.net"),
+    val locatorToken: String? = null,
+    val trackTitle: String? = null,
+    val artistName: String? = null,
+    val isInstrumental: Boolean = false
 ) {
     val hasWordSync: Boolean get() = syncedLyrics?.any { !it.words.isNullOrEmpty() } == true
+
+    /**
+     * Opaque locator string for persistence: "<providerId>:<locatorToken>".
+     * E.g. "lrclib:2392" or "betterlyrics:a=Queen&s=Radio+Ga+Ga"
+     */
+    val locator: String? get() = locatorToken?.let { "${providerInfo.id}:$it" }
+
+    /**
+     * Formats lyrics into standard .lrc file format with metadata tags.
+     */
+    fun toLrcContent(): String {
+        if (!rawLrc.isNullOrBlank()) return rawLrc
+        val lines = syncedLyrics ?: return plainLyrics.orEmpty()
+        val sb = StringBuilder()
+        trackTitle?.let { sb.append("[ti:$it]\n") }
+        artistName?.let { sb.append("[ar:$it]\n") }
+        sb.append("[by:InternetRadio]\n")
+        for (line in lines) {
+            val totalSec = line.timestampMs / 1000
+            val min = totalSec / 60
+            val sec = totalSec % 60
+            val cs = (line.timestampMs % 1000) / 10
+            sb.append(String.format(java.util.Locale.US, "[%02d:%02d.%02d]%s\n", min, sec, cs, line.text))
+        }
+        return sb.toString()
+    }
+
+    /**
+     * Formats plain lyrics text without timestamps.
+     */
+    fun toPlainContent(): String {
+        if (!plainLyrics.isNullOrBlank()) return plainLyrics
+        return syncedLyrics?.joinToString("\n") { it.text }.orEmpty()
+    }
 }
 
 /** Display time for the last line when nothing says when it ends. */

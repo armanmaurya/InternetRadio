@@ -17,6 +17,7 @@ import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.AppLanguageScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.ExportScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.ImportScreen
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.LyricsProvidersScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.SettingsScreen
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
@@ -82,8 +83,22 @@ fun AppNavHost(
                 onBackClick = { navController.popBackStack() },
                 onCheckUpdatesClick = onCheckUpdates,
                 onLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) },
+                onLyricsProvidersClick = { navController.navigate(AppDestination.LyricsProviders.route) },
                 onImportClick = { navController.navigate(AppDestination.ImportStations.route) },
                 onExportClick = { navController.navigate(AppDestination.ExportStations.route) },
+                contentPadding = contentPadding
+            )
+        }
+        composable(AppDestination.LyricsProviders.route) {
+            val settingsEntry = remember(it) { navController.getBackStackEntry(AppDestination.Settings.route) }
+            val settingsViewModel: SettingsViewModel = hiltViewModel(settingsEntry)
+            val preferences by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            LyricsProvidersScreen(
+                providerOrder = preferences.lyricsProviderOrder,
+                enabledProviders = preferences.enabledLyricsProviders,
+                onOrderChanged = { settingsViewModel.setLyricsProviderOrder(it) },
+                onProviderToggled = { id, enabled -> settingsViewModel.setLyricsProviderEnabled(id, enabled) },
+                onBackClick = { navController.popBackStack() },
                 contentPadding = contentPadding
             )
         }

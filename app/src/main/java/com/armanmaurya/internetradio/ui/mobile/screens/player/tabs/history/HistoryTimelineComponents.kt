@@ -142,7 +142,8 @@ fun TimelineTrackRow(
     isLastInSession: Boolean,
     modifier: Modifier = Modifier,
     onToggleStar: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onDownloadLyrics: (() -> Unit)? = null
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLow
     val railColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
@@ -184,6 +185,7 @@ fun TimelineTrackRow(
             showClockTime = true,
             onToggleStar = onToggleStar,
             onClick = onClick,
+            onDownloadLyrics = onDownloadLyrics,
             modifier = Modifier.fillMaxWidth()
         )
     }

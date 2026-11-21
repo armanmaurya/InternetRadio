@@ -45,5 +45,8 @@ data class PlayerUiState(
     val savedTracks: List<TrackHistoryEntity> = emptyList(),
     val isCurrentTrackStarred: Boolean = false,
     val stationRecordings: List<RecordingFile>? = null,
-    val activeSessions: Map<String, RecordingSession> = emptyMap()
+    val activeSessions: Map<String, RecordingSession> = emptyMap(),
+    val selectedLyricsProviderId: String? = null,
+    val customLyricsQueryTitle: String? = null,
+    val customLyricsQueryArtist: String? = null
 )

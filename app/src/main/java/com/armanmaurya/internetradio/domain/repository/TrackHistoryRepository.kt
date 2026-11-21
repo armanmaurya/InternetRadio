@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 interface TrackHistoryRepository {
     suspend fun logTrack(stationUuid: String, trackTitle: String, rawTrackTitle: String = trackTitle): Long?
     suspend fun updateTrackMetadata(id: Long, newTrackTitle: String, coverArtUrl: String?)
+    suspend fun updateLyricsLocator(id: Long, lyricsLocator: String?)
+    suspend fun updateLyricsLocatorByTitle(stationUuid: String, trackTitle: String, lyricsLocator: String?)
     /**
      * Newest-first history for [stationUuid], at most [limit] rows (and never more than the
      * user's track history limit setting). Callers grow [limit] to load more as the user scrolls.

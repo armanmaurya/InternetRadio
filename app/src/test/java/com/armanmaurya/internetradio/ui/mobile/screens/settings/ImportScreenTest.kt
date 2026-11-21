@@ -94,7 +94,7 @@ class ImportScreenTest {
         library.entities["old"] = StationEntity(stationUuid = "old", name = "Mine", url = "https://mine")
         show(station("old", "Oldie", plays = 2))
 
-        compose.onNodeWithText(context.getString(R.string.import_part_station_existing)).assertIsNotSelected()
+        compose.onNodeWithText(context.getString(R.string.import_mode_replace)).assertIsNotSelected()
         compose.onNodeWithText(context.resources.getQuantityString(R.plurals.import_plays, 2, 2)).assertIsEnabled()
     }
 

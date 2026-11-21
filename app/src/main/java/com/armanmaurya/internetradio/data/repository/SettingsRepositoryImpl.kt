@@ -83,6 +83,8 @@ class SettingsRepositoryImpl @Inject constructor(
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val WIDGET_BACKGROUND_ALPHA = androidx.datastore.preferences.core.floatPreferencesKey("widget_background_alpha")
         val SHOW_STATION_THUMBNAILS = booleanPreferencesKey("show_station_thumbnails")
+        val LYRICS_PROVIDER_ORDER = stringPreferencesKey("lyrics_provider_order")
+        val ENABLED_LYRICS_PROVIDERS = androidx.datastore.preferences.core.stringSetPreferencesKey("enabled_lyrics_providers")
     }
 
     override val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -202,7 +204,12 @@ class SettingsRepositoryImpl @Inject constructor(
                 isAlarmVolumeTransitionEnabled = isAlarmVolumeTransitionEnabled,
                 alarmVolumeTransitionSeconds = alarmVolumeTransitionSeconds,
                 widgetBackgroundAlpha = widgetBackgroundAlpha,
-                showStationThumbnails = showStationThumbnails
+                showStationThumbnails = showStationThumbnails,
+                lyricsProviderOrder = preferences[PreferencesKeys.LYRICS_PROVIDER_ORDER]
+                    ?.split(",")?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
+                    ?: listOf("betterlyrics", "unison", "lyricsplus", "kugou", "lrclib"),
+                enabledLyricsProviders = preferences[PreferencesKeys.ENABLED_LYRICS_PROVIDERS]
+                    ?: setOf("betterlyrics", "unison", "lyricsplus", "kugou", "lrclib")
             )
         }
 
@@ -449,6 +456,21 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setShowStationThumbnails(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SHOW_STATION_THUMBNAILS] = enabled
+        }
+    }
+
+    override suspend fun setLyricsProviderOrder(order: List<String>) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LYRICS_PROVIDER_ORDER] = order.joinToString(",")
+        }
+    }
+
+    override suspend fun setLyricsProviderEnabled(providerId: String, enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.ENABLED_LYRICS_PROVIDERS]
+                ?: setOf("betterlyrics", "unison", "lyricsplus", "kugou", "lrclib")
+            val updated = if (enabled) current + providerId else current - providerId
+            preferences[PreferencesKeys.ENABLED_LYRICS_PROVIDERS] = updated
         }
     }
 }

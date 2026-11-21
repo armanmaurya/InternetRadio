@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "1a2ae8af0b708e05d5df82ba77deaa3a",
+    "identityHash": "764d86afbf14eca93232f478946ac360",
     "entities": [
       {
         "tableName": "stations",
@@ -237,7 +237,7 @@
       },
       {
         "tableName": "track_history",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stationUuid` TEXT NOT NULL, `trackTitle` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `coverArtUrl` TEXT DEFAULT NULL, `rawTrackTitle` TEXT NOT NULL DEFAULT '', `artist` TEXT DEFAULT NULL, `endTimestamp` INTEGER NOT NULL DEFAULT 0, `durationMs` INTEGER NOT NULL DEFAULT 0)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stationUuid` TEXT NOT NULL, `trackTitle` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `coverArtUrl` TEXT DEFAULT NULL, `rawTrackTitle` TEXT NOT NULL DEFAULT '', `artist` TEXT DEFAULT NULL, `endTimestamp` INTEGER NOT NULL DEFAULT 0, `durationMs` INTEGER NOT NULL DEFAULT 0, `lyricsLocator` TEXT DEFAULT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -295,6 +295,12 @@
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lyricsLocator",
+            "columnName": "lyricsLocator",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
           }
         ],
         "primaryKey": {
@@ -424,7 +430,7 @@
       },
       {
         "tableName": "starred_tracks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stationUuid` TEXT NOT NULL, `trackTitle` TEXT NOT NULL, `rawTrackTitle` TEXT NOT NULL DEFAULT '', `artist` TEXT DEFAULT NULL, `coverArtUrl` TEXT DEFAULT NULL, `starredAt` INTEGER NOT NULL DEFAULT 0)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stationUuid` TEXT NOT NULL, `trackTitle` TEXT NOT NULL, `rawTrackTitle` TEXT NOT NULL DEFAULT '', `artist` TEXT DEFAULT NULL, `coverArtUrl` TEXT DEFAULT NULL, `starredAt` INTEGER NOT NULL DEFAULT 0, `lyricsLocator` TEXT DEFAULT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -469,6 +475,12 @@
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lyricsLocator",
+            "columnName": "lyricsLocator",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
           }
         ],
         "primaryKey": {
@@ -503,7 +515,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1a2ae8af0b708e05d5df82ba77deaa3a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '764d86afbf14eca93232f478946ac360')"
     ]
   }
 }

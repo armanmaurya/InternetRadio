@@ -48,5 +48,7 @@ data class AppPreferences(
     val isAlarmVolumeTransitionEnabled: Boolean = false,
     val alarmVolumeTransitionSeconds: Int = 15,
     val widgetBackgroundAlpha: Float = 1.0f,
-    val showStationThumbnails: Boolean = true
+    val showStationThumbnails: Boolean = true,
+    val lyricsProviderOrder: List<String> = listOf("betterlyrics", "unison", "lyricsplus", "kugou", "lrclib"),
+    val enabledLyricsProviders: Set<String> = setOf("betterlyrics", "unison", "lyricsplus", "kugou", "lrclib")
 )

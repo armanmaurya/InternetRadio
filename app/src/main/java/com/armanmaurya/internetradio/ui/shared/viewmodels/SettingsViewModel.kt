@@ -210,4 +210,16 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.setHasRatedApp(rated)
         }
     }
+
+    fun setLyricsProviderOrder(order: List<String>) {
+        viewModelScope.launch {
+            settingsRepository.setLyricsProviderOrder(order)
+        }
+    }
+
+    fun setLyricsProviderEnabled(providerId: String, enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setLyricsProviderEnabled(providerId, enabled)
+        }
+    }
 }

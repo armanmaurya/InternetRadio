@@ -65,6 +65,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Headphones
@@ -141,6 +142,7 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onCheckUpdatesClick: () -> Unit = {},
     onLanguageClick: () -> Unit = {},
+    onLyricsProvidersClick: () -> Unit = {},
     onImportClick: () -> Unit = {},
     onExportClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -253,6 +255,7 @@ fun SettingsScreen(
                 onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
                 onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 onSetMaxRetryDuration = viewModel::setMaxRetryDuration,
+                onLyricsProvidersClick = onLyricsProvidersClick,
                 topShape = topShape,
                 middleShape = middleShape,
                 bottomShape = bottomShape,
@@ -721,6 +724,7 @@ private fun PlayerSection(
     onToggleHistoryLimitDialog: () -> Unit,
     onSetHistoryLimit: (Int) -> Unit,
     onSetMaxRetryDuration: (Long) -> Unit,
+    onLyricsProvidersClick: () -> Unit,
     topShape: RoundedCornerShape,
     middleShape: RoundedCornerShape,
     bottomShape: RoundedCornerShape,
@@ -842,6 +846,16 @@ private fun PlayerSection(
             subtitle = androidx.compose.ui.res.pluralStringResource(R.plurals.tracks_count, uiState.trackHistoryLimit, uiState.trackHistoryLimit),
             onClick = onToggleHistoryLimitDialog,
             icon = Icons.Default.History,
+            shape = middleShape
+        )
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+
+        Item(
+            title = stringResource(R.string.lyrics_providers_title),
+            subtitle = stringResource(R.string.lyrics_providers_subtitle),
+            onClick = onLyricsProvidersClick,
+            icon = Icons.Default.Lyrics,
             shape = bottomShape
         )
 

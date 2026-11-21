@@ -15,4 +15,9 @@ interface LrcLibApi {
         @Query("track_name") trackName: String,
         @Query("artist_name") artistName: String? = null
     ): List<LrcLibResponse>
+
+    @GET("api/get/{id}")
+    suspend fun getLyricsById(
+        @retrofit2.http.Path("id") id: Long
+    ): LrcLibResponse
 }

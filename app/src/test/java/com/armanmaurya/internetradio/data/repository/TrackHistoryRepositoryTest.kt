@@ -398,6 +398,20 @@ class TrackHistoryRepositoryTest {
                 tracks[index] = trackHistory.copy(isStarred = false)
             }
         }
+
+        override suspend fun updateLyricsLocator(id: Long, lyricsLocator: String?) {
+            val index = tracks.indexOfFirst { it.id == id }
+            if (index != -1) {
+                tracks[index] = tracks[index].copy(lyricsLocator = lyricsLocator)
+            }
+        }
+
+        override suspend fun updateLyricsLocatorByTitle(stationUuid: String, trackTitle: String, lyricsLocator: String?) {
+            val index = tracks.indexOfFirst { it.stationUuid == stationUuid && it.trackTitle == trackTitle }
+            if (index != -1) {
+                tracks[index] = tracks[index].copy(lyricsLocator = lyricsLocator)
+            }
+        }
     }
 
     private class FakeStarredTrackDao : StarredTrackDao {
@@ -468,6 +482,15 @@ class TrackHistoryRepositoryTest {
             }
             if (index != -1) {
                 starred[index] = starred[index].copy(coverArtUrl = coverArtUrl)
+            }
+        }
+
+        override suspend fun updateLyricsLocator(stationUuid: String, trackTitle: String, lyricsLocator: String?) {
+            val index = starred.indexOfFirst {
+                it.stationUuid == stationUuid && it.trackTitle.trim().equals(trackTitle.trim(), ignoreCase = true)
+            }
+            if (index != -1) {
+                starred[index] = starred[index].copy(lyricsLocator = lyricsLocator)
             }
         }
 

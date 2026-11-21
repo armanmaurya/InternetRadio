@@ -24,7 +24,9 @@ data class StarredTrackEntity(
     @ColumnInfo(defaultValue = "NULL")
     val coverArtUrl: String? = null,
     @ColumnInfo(defaultValue = "0")
-    val starredAt: Long = System.currentTimeMillis()
+    val starredAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "NULL")
+    val lyricsLocator: String? = null
 )
 
 fun StarredTrackEntity.toTrackHistoryEntity(): TrackHistoryEntity {
@@ -38,6 +40,7 @@ fun StarredTrackEntity.toTrackHistoryEntity(): TrackHistoryEntity {
         isStarred = true,
         artist = artist,
         endTimestamp = starredAt,
-        durationMs = 0L
+        durationMs = 0L,
+        lyricsLocator = lyricsLocator
     )
 }
