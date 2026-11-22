@@ -557,4 +557,27 @@
     <string name="import_source_internetradio_ext">.json</string>
     <string name="import_source_radiodroid">RadioDroid</string>
     <string name="import_source_radiodroid_ext">.m3u, .m3u8</string>
+    <string name="cd_close">Zamknij</string>
+    <string name="lyrics_downloaded_success">Pomyślnie zapisano tekst utworu</string>
+    <string name="lyrics_download_failed">Nie udało się zapisać tekstu utworu</string>
+    <string name="lyrics_download">Pobierz tekst utworu</string>
+    <string name="lyrics_word">Słowo</string>
+    <string name="lyrics_line">Linia</string>
+    <string name="lyrics_word_synced">Słowo</string>
+    <string name="lyrics_line_synced">Linia</string>
+    <string name="lyrics_plain">Zwykły</string>
+    <string name="lyrics_providers_title">Dostawcy tekstów</string>
+    <string name="lyrics_providers_subtitle">Skonfiguruj źródła tekstów oraz ich kolejność</string>
+    <string name="lyrics_providers_description">Przeciągnij, aby zmienić kolejność wyszukiwania dostawców. Odtwarzacz szuka tekstów od góry i w razie potrzeby przechodzi niżej na liście.</string>
+    <string name="cd_reorder_lyrics_provider">Przesuń dostawcę</string>
+    <string name="lyrics_options_title">Dostawcy</string>
+    <string name="lyrics_track_title">Tytuł utworu</string>
+    <string name="lyrics_artist_name">Wykonawca (opcjonalnie)</string>
+    <string name="lyrics_search_action">Szukaj</string>
+    <string name="lyrics_reset_action">Przywróć dane utworu</string>
+    <string name="lyrics_provider_auto">Automatycznie (zalecane)</string>
+    <string name="lyrics_provider_auto_subtitle">Automatycznie wybiera najwyższą jakość</string>
+    <string name="lyrics_provider_not_found">Nie znaleziono tekstu utworu</string>
+    <string name="lyrics_search_query_button">Szukaj lub edytuj zapytanie</string>
+    <string name="lyrics_cd_options">Opcje i wyszukiwanie tekstu utworu</string>
 </resources>
