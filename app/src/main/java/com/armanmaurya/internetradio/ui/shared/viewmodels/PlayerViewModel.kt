@@ -524,7 +524,7 @@ class PlayerViewModel @Inject constructor(
 
     init {
         playbackSession
-            .map { it.currentTrack }
+            .map { Triple(it.currentStation?.stationUuid, it.currentTrack, it.cleanTrackName) }
             .distinctUntilChanged()
             .onEach {
                 customLyricsQuery.value = null

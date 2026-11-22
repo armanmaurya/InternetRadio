@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.drawscope.clipPath
 import com.armanmaurya.internetradio.domain.model.LrcLine
@@ -86,6 +87,14 @@ import com.armanmaurya.internetradio.domain.lyrics.LyricsProviderInfo
 import com.armanmaurya.internetradio.domain.model.Lyrics
 import kotlinx.coroutines.launch
 
+private sealed interface LyricsDisplayState {
+    data object Loading : LyricsDisplayState
+    data object Error : LyricsDisplayState
+    data object NotAvailable : LyricsDisplayState
+    data class Synced(val lines: List<LrcLine>, val lyrics: Lyrics?, val isWordSynced: Boolean) : LyricsDisplayState
+    data class Plain(val plain: String, val lyrics: Lyrics?) : LyricsDisplayState
+}
+
 @Composable
 fun LyricsTab(
     listState: LazyListState,
@@ -108,6 +117,21 @@ fun LyricsTab(
 ) {
     var isSyncEnabled by rememberSaveable { mutableStateOf(true) }
     var showLyricsOptionsSheet by rememberSaveable { mutableStateOf(false) }
+    var lastKnownCandidates by remember { mutableStateOf<List<Lyrics>>(emptyList()) }
+    var lastKnownLyrics by remember { mutableStateOf<Lyrics?>(null) }
+
+    LaunchedEffect(currentTrack) {
+        lastKnownCandidates = emptyList()
+        lastKnownLyrics = null
+    }
+
+    LaunchedEffect(lyricsUiState) {
+        if (lyricsUiState is LyricsUiState.Success) {
+            lastKnownCandidates = lyricsUiState.allCandidates
+            lastKnownLyrics = lyricsUiState.lyrics
+        }
+    }
+
     val context = LocalContext.current
     var pendingExportPayload by remember { mutableStateOf<LyricsExporter.ExportPayload?>(null) }
     val downloadLauncher = rememberLauncherForActivityResult(
@@ -143,113 +167,40 @@ fun LyricsTab(
                 },
             contentAlignment = Alignment.Center
         ) {
-            when (lyricsUiState) {
-                is LyricsUiState.Loading -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        item {
-                            LoadingIndicator(color = MaterialTheme.colorScheme.primary)
+            val displayState = remember(lyricsUiState, trackStartTime, isSyncEnabled) {
+                when (lyricsUiState) {
+                    is LyricsUiState.Loading -> LyricsDisplayState.Loading
+                    is LyricsUiState.Error -> LyricsDisplayState.Error
+                    is LyricsUiState.NotAvailable -> LyricsDisplayState.NotAvailable
+                    is LyricsUiState.Success -> {
+                        val synced = lyricsUiState.syncedLyrics
+                        val plain = lyricsUiState.plainLyrics?.takeIf { it.isNotBlank() }
+                            ?: synced?.joinToString("\n") { it.text }?.takeIf { it.isNotBlank() }
+                        val isWordSynced = lyricsUiState.lyrics?.hasWordSync == true ||
+                            synced?.any { !it.words.isNullOrEmpty() } == true
+
+                        if (synced != null && trackStartTime != null && isSyncEnabled) {
+                            LyricsDisplayState.Synced(synced, lyricsUiState.lyrics, isWordSynced)
+                        } else if (!plain.isNullOrEmpty()) {
+                            LyricsDisplayState.Plain(plain, lyricsUiState.lyrics)
+                        } else {
+                            LyricsDisplayState.NotAvailable
                         }
                     }
                 }
-                is LyricsUiState.Error -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        item {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.padding(24.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.error_something_went_wrong),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                FilledTonalButton(
-                                    onClick = { showLyricsOptionsSheet = true }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = stringResource(R.string.lyrics_search_query_button))
-                                }
-                            }
-                        }
-                    }
-                }
-                is LyricsUiState.NotAvailable -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        item {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.padding(24.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.player_lyrics_not_available),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                FilledTonalButton(
-                                    onClick = { showLyricsOptionsSheet = true }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = stringResource(R.string.lyrics_search_query_button))
-                                }
-                            }
-                        }
-                    }
-                }
-                is LyricsUiState.Success -> {
-                    val synced = lyricsUiState.syncedLyrics
-                    val plain = lyricsUiState.plainLyrics?.takeIf { it.isNotBlank() }
-                        ?: synced?.joinToString("\n") { it.text }?.takeIf { it.isNotBlank() }
-                    val canSync = !synced.isNullOrEmpty() && trackStartTime != null
-                    val actuallySync = canSync && isSyncEnabled
-                    val isWordSynced = lyricsUiState.lyrics?.hasWordSync == true ||
-                        synced?.any { !it.words.isNullOrEmpty() } == true
-                    
-                    if (actuallySync && synced != null && trackStartTime != null) {
-                        SyncedLyricsView(
-                            lines = synced,
-                            listState = listState,
-                            trackStartTime = trackStartTime,
-                            syncOffsetMs = syncOffsetMs,
-                            getCurrentPosition = getCurrentPosition,
-                            providerInfo = lyricsUiState.lyrics?.providerInfo,
-                            hasWordSync = isWordSynced,
-                            onOpenOptions = { showLyricsOptionsSheet = true }
-                        )
-                    } else if (!plain.isNullOrEmpty()) {
-                        PlainLyricsView(
-                            lyrics = plain,
-                            listState = listState,
-                            providerInfo = lyricsUiState.lyrics?.providerInfo,
-                            onOpenOptions = { showLyricsOptionsSheet = true }
-                        )
-                    } else {
+            }
+
+            AnimatedContent(
+                targetState = displayState,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(350)) + slideInVertically(animationSpec = tween(350)) { height -> height / 16 })
+                        .togetherWith(fadeOut(animationSpec = tween(200)))
+                },
+                label = "lyricsDisplayTransition",
+                modifier = Modifier.fillMaxSize()
+            ) { state ->
+                when (state) {
+                    is LyricsDisplayState.Loading -> {
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
@@ -257,13 +208,95 @@ fun LyricsTab(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             item {
-                                Text(
-                                    text = stringResource(R.string.player_lyrics_not_available),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                LoadingIndicator(color = MaterialTheme.colorScheme.primary)
                             }
                         }
+                    }
+                    is LyricsDisplayState.Error -> {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            item {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier.padding(24.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.error_something_went_wrong),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    FilledTonalButton(
+                                        onClick = { showLyricsOptionsSheet = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = stringResource(R.string.lyrics_search_query_button))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is LyricsDisplayState.NotAvailable -> {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            item {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    modifier = Modifier.padding(24.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.player_lyrics_not_available),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    FilledTonalButton(
+                                        onClick = { showLyricsOptionsSheet = true }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = stringResource(R.string.lyrics_search_query_button))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is LyricsDisplayState.Synced -> {
+                        SyncedLyricsView(
+                            lines = state.lines,
+                            listState = listState,
+                            trackStartTime = trackStartTime ?: 0L,
+                            syncOffsetMs = syncOffsetMs,
+                            getCurrentPosition = getCurrentPosition,
+                            providerInfo = state.lyrics?.providerInfo,
+                            hasWordSync = state.isWordSynced,
+                            onOpenOptions = { showLyricsOptionsSheet = true }
+                        )
+                    }
+                    is LyricsDisplayState.Plain -> {
+                        PlainLyricsView(
+                            lyrics = state.plain,
+                            listState = listState,
+                            providerInfo = state.lyrics?.providerInfo,
+                            onOpenOptions = { showLyricsOptionsSheet = true }
+                        )
                     }
                 }
             }
@@ -292,17 +325,18 @@ fun LyricsTab(
             label = "lyricsSideRotation"
         )
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             // Left: Options & Search (always accessible, including while searching/loading)
             androidx.compose.material3.FilledTonalIconButton(
                 onClick = { showLyricsOptionsSheet = true },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.CenterStart)
             ) {
                 Icon(
                     imageVector = Icons.Default.Tune,
@@ -310,7 +344,12 @@ fun LyricsTab(
                 )
             }
 
-            if (hasLyrics) {
+            // Center: Sync Offset (-) + Sync/Plain Toggle + Sync Offset (+)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = isCurrentlySynced,
                     enter = androidx.compose.animation.slideInHorizontally(initialOffsetX = { it * 2 }),
@@ -333,12 +372,12 @@ fun LyricsTab(
                             isSyncEnabled = !isSyncEnabled
                         }
                     },
-                    enabled = canSync,
+                    enabled = canSync && hasLyrics,
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(cornerRadius),
                     modifier = Modifier.height(48.dp).zIndex(1f)
                 ) {
                     val buttonText = when {
-                        !isCurrentlySynced -> stringResource(R.string.lyrics_plain)
+                        !hasLyrics || !isCurrentlySynced -> stringResource(R.string.lyrics_plain)
                         syncOffsetMs != 0L -> "${if (syncOffsetMs > 0) "+" else ""}${syncOffsetMs / 1000f}s"
                         isWordSynced -> stringResource(R.string.lyrics_word_synced)
                         else -> stringResource(R.string.lyrics_line_synced)
@@ -366,33 +405,36 @@ fun LyricsTab(
                         )
                     }
                 }
+            }
 
-                // Download Button
-                androidx.compose.material3.FilledTonalIconButton(
-                    onClick = {
-                        if (currentLyrics != null) {
-                            if (onDownloadLyrics != null) {
-                                onDownloadLyrics(currentLyrics)
-                            } else {
-                                val payload = LyricsExporter.prepareExport(currentLyrics)
-                                pendingExportPayload = payload
-                                downloadLauncher.launch(payload.defaultFileName)
-                            }
+            // Right: Download Button
+            androidx.compose.material3.FilledTonalIconButton(
+                onClick = {
+                    if (currentLyrics != null) {
+                        if (onDownloadLyrics != null) {
+                            onDownloadLyrics(currentLyrics)
+                        } else {
+                            val payload = LyricsExporter.prepareExport(currentLyrics)
+                            pendingExportPayload = payload
+                            downloadLauncher.launch(payload.defaultFileName)
                         }
-                    },
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FileDownload,
-                        contentDescription = stringResource(R.string.lyrics_download)
-                    )
-                }
+                    }
+                },
+                enabled = hasLyrics && currentLyrics != null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.CenterEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FileDownload,
+                    contentDescription = stringResource(R.string.lyrics_download)
+                )
             }
         }
 
         if (showLyricsOptionsSheet) {
-            val allCandidates = (lyricsUiState as? LyricsUiState.Success)?.allCandidates ?: emptyList()
-            val activeLyrics = (lyricsUiState as? LyricsUiState.Success)?.lyrics
+            val allCandidates = (lyricsUiState as? LyricsUiState.Success)?.allCandidates?.takeIf { it.isNotEmpty() } ?: lastKnownCandidates
+            val activeLyrics = (lyricsUiState as? LyricsUiState.Success)?.lyrics ?: lastKnownLyrics
             val initialTitle = customQueryTitle ?: currentTrack ?: activeLyrics?.trackTitle ?: ""
             val initialArtist = customQueryArtist ?: currentArtist ?: activeLyrics?.artistName ?: ""
 
@@ -499,8 +541,7 @@ fun buildWordSyncedAnnotatedString(
                 val color = if (isSung) primaryColor else dimColor
                 withStyle(
                     SpanStyle(
-                        color = color,
-                        fontWeight = if (isSung) FontWeight.Bold else FontWeight.SemiBold
+                        color = color
                     )
                 ) {
                     append(word.text)
@@ -517,8 +558,7 @@ fun buildWordSyncedAnnotatedString(
                 val color = if (isSung) primaryColor else dimColor
                 withStyle(
                     SpanStyle(
-                        color = color,
-                        fontWeight = if (isSung) FontWeight.Bold else FontWeight.SemiBold
+                        color = color
                     )
                 ) {
                     append(word.text.trim())
@@ -543,8 +583,7 @@ fun buildWordSyncedAnnotatedString(
                 }
                 withStyle(
                     SpanStyle(
-                        color = color,
-                        fontWeight = if (isSung) FontWeight.Bold else FontWeight.SemiBold
+                        color = color
                     )
                 ) {
                     append(line.text.substring(matchIdx, matchIdx + trimmedWord.length))
@@ -553,8 +592,7 @@ fun buildWordSyncedAnnotatedString(
             } else {
                 withStyle(
                     SpanStyle(
-                        color = color,
-                        fontWeight = if (isSung) FontWeight.Bold else FontWeight.SemiBold
+                        color = color
                     )
                 ) {
                     append(word.text)
@@ -840,18 +878,15 @@ fun LyricsOptionsBottomSheet(
     onResetToTrack: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var trackTitleInput by rememberSaveable(currentTrackTitle) { mutableStateOf(currentTrackTitle) }
-    var artistInput by rememberSaveable(currentArtistName) { mutableStateOf(currentArtistName.orEmpty()) }
+    var trackTitleInput by rememberSaveable(streamTrackTitle) { mutableStateOf(currentTrackTitle) }
+    var artistInput by rememberSaveable(streamTrackTitle) { mutableStateOf(currentArtistName.orEmpty()) }
     val coroutineScope = rememberCoroutineScope()
 
     fun dismissWithAction(action: () -> Unit) {
+        action()
         coroutineScope.launch {
             sheetState.hide()
-        }.invokeOnCompletion {
-            if (!sheetState.isVisible) {
-                onDismissRequest()
-                action()
-            }
+            onDismissRequest()
         }
     }
 
@@ -952,6 +987,8 @@ fun LyricsOptionsBottomSheet(
             ) {
                 OutlinedButton(
                     onClick = {
+                        trackTitleInput = streamTrackTitle.orEmpty()
+                        artistInput = streamArtistName.orEmpty()
                         dismissWithAction {
                             onResetToTrack()
                         }
@@ -979,73 +1016,105 @@ fun LyricsOptionsBottomSheet(
             }
 
             val isAutoSelected = selectedProviderId == null || selectedProviderId.equals("auto", ignoreCase = true)
-            val totalOptionCount = 1 + ALL_AVAILABLE_PROVIDERS.size
 
+            val autoChosenLyrics = remember(allCandidates, activeLyrics) {
+                allCandidates
+                    .filter { it.hasWordSync || !it.syncedLyrics.isNullOrEmpty() || !it.plainLyrics.isNullOrBlank() }
+                    .minWithOrNull(
+                        compareBy(
+                            { candidate ->
+                                when {
+                                    candidate.hasWordSync -> 0
+                                    !candidate.syncedLyrics.isNullOrEmpty() -> 1
+                                    else -> 2
+                                }
+                            },
+                            { candidate ->
+                                val idx = ALL_AVAILABLE_PROVIDERS.indexOfFirst {
+                                    it.id.equals(candidate.providerInfo.id, ignoreCase = true)
+                                }
+                                if (idx >= 0) idx else Int.MAX_VALUE
+                            }
+                        )
+                    ) ?: allCandidates.firstOrNull() ?: activeLyrics
+            }
+
+            val autoProviderName = autoChosenLyrics?.providerInfo?.displayName
+            val autoSyncType = when {
+                autoChosenLyrics?.hasWordSync == true -> stringResource(R.string.lyrics_word_synced)
+                autoChosenLyrics?.syncedLyrics?.isNotEmpty() == true -> stringResource(R.string.lyrics_line_synced)
+                autoChosenLyrics != null -> stringResource(R.string.lyrics_plain)
+                else -> null
+            }
+            val autoSubtitle = if (autoProviderName != null && autoSyncType != null) {
+                "$autoProviderName • $autoSyncType"
+            } else {
+                stringResource(R.string.lyrics_provider_auto_subtitle)
+            }
+
+            // Auto Option (Standalone Card - NOT a list item)
+            Surface(
+                onClick = {
+                    onSelectProvider(null)
+                },
+                shape = groupSingleShape,
+                color = if (isAutoSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                contentColor = if (isAutoSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.lyrics_provider_auto),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = autoSubtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isAutoSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Providers Grouped List
+            val providerCount = ALL_AVAILABLE_PROVIDERS.size
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
-                // Item 0: Auto (Recommended)
-                val autoShape = lyricsGroupShape(0, totalOptionCount)
-                Surface(
-                    onClick = {
-                        dismissWithAction {
-                            onSelectProvider(null)
-                        }
-                    },
-                    shape = autoShape,
-                    color = if (isAutoSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.lyrics_provider_auto),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            val activeProvider = activeLyrics?.providerInfo?.displayName
-                            val syncType = when {
-                                activeLyrics?.hasWordSync == true -> stringResource(R.string.lyrics_word_synced)
-                                activeLyrics?.syncedLyrics?.isNotEmpty() == true -> stringResource(R.string.lyrics_line_synced)
-                                activeLyrics != null -> stringResource(R.string.lyrics_plain)
-                                else -> null
-                            }
-                            val subtitle = if (activeProvider != null && syncType != null) {
-                                "$activeProvider • $syncType"
-                            } else {
-                                stringResource(R.string.lyrics_provider_auto_subtitle)
-                            }
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                // Items 1..N: Individual providers
                 ALL_AVAILABLE_PROVIDERS.forEachIndexed { idx, provider ->
-                    val itemIndex = idx + 1
-                    val itemShape = lyricsGroupShape(itemIndex, totalOptionCount)
+                    val itemShape = lyricsGroupShape(idx, providerCount)
                     val matching = allCandidates.firstOrNull { it.providerInfo.id.equals(provider.id, ignoreCase = true) }
-                    val isSelected = !isAutoSelected && selectedProviderId.equals(provider.id, ignoreCase = true)
+                    val isSelected = if (isAutoSelected) {
+                        provider.id.equals(autoChosenLyrics?.providerInfo?.id, ignoreCase = true)
+                    } else {
+                        selectedProviderId.equals(provider.id, ignoreCase = true)
+                    }
+                    val isAvailable = matching != null
 
                     Surface(
                         onClick = {
-                            dismissWithAction {
-                                onSelectProvider(provider.id)
+                            if (isAvailable) {
+                                if (!isAutoSelected && selectedProviderId.equals(provider.id, ignoreCase = true)) {
+                                    onSelectProvider(null)
+                                } else {
+                                    onSelectProvider(provider.id)
+                                }
                             }
                         },
+                        enabled = isAvailable,
                         shape = itemShape,
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                        modifier = Modifier.fillMaxWidth()
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(if (!isAvailable) Modifier.alpha(0.5f) else Modifier)
                     ) {
                         Row(
                             modifier = Modifier
@@ -1056,7 +1125,6 @@ fun LyricsOptionsBottomSheet(
                             Text(
                                 text = provider.displayName,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                                 modifier = Modifier.weight(1f)
                             )
 
@@ -1067,6 +1135,7 @@ fun LyricsOptionsBottomSheet(
                                     else -> stringResource(R.string.lyrics_plain)
                                 }
                                 val badgeColor = when {
+                                    isSelected -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
                                     matching.hasWordSync -> MaterialTheme.colorScheme.primaryContainer
                                     !matching.syncedLyrics.isNullOrEmpty() -> MaterialTheme.colorScheme.secondaryContainer
                                     else -> MaterialTheme.colorScheme.surfaceVariant
@@ -1079,6 +1148,7 @@ fun LyricsOptionsBottomSheet(
                                         text = badgeText,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.SemiBold,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
