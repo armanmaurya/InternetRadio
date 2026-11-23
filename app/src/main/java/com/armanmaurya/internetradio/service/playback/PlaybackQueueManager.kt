@@ -38,11 +38,13 @@ class PlaybackQueueManager @Inject constructor(
     private var sessionCallback: PlaybackSessionCallback? = null
     private var libraryStatusJob: Job? = null
     private var showStationThumbnails: Boolean = true
+    private var autoSwitchOnStreamEnd: Boolean = false
 
     init {
         scope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 showStationThumbnails = prefs.showStationThumbnails
+                autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
             }
         }
     }
@@ -64,6 +66,9 @@ class PlaybackQueueManager @Inject constructor(
 
     @OptIn(UnstableApi::class)
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !autoSwitchOnStreamEnd) {
+            return
+        }
         libraryStatusJob?.cancel()
         val stationUuid = mediaItem?.mediaId
         if (stationUuid != null) {

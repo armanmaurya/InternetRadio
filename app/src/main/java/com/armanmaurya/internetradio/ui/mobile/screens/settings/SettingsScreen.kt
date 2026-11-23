@@ -71,6 +71,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Favorite
 import com.armanmaurya.internetradio.core.config.StoreConfig
@@ -246,6 +247,7 @@ fun SettingsScreen(
                 expandedItem = expandedItem,
                 onExpandedItemChange = { expandedItem = it },
                 onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart,
+                onSetAutoSwitchOnStreamEnd = viewModel::setAutoSwitchOnStreamEnd,
                 onSetStopOnAudioBecomingNoisy = viewModel::setStopOnAudioBecomingNoisy,
                 onSetPauseOnVolumeZero = viewModel::setPauseOnVolumeZero,
                 onSetEnableVolumeBoost = viewModel::setEnableVolumeBoost,
@@ -715,6 +717,7 @@ private fun PlayerSection(
     expandedItem: String?,
     onExpandedItemChange: (String?) -> Unit,
     onSetAutoPlayOnStart: (Boolean) -> Unit,
+    onSetAutoSwitchOnStreamEnd: (Boolean) -> Unit,
     onSetStopOnAudioBecomingNoisy: (Boolean) -> Unit,
     onSetPauseOnVolumeZero: (Boolean) -> Unit,
     onSetEnableVolumeBoost: (Boolean) -> Unit,
@@ -738,6 +741,17 @@ private fun PlayerSection(
             onToggle = onSetAutoPlayOnStart,
             icon = Icons.Default.PlayArrow,
             shape = topShape
+        )
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+
+        ToggleItem(
+            title = stringResource(R.string.settings_auto_switch_on_stream_end),
+            subtitle = stringResource(R.string.settings_auto_switch_on_stream_end_desc),
+            isEnabled = uiState.autoSwitchOnStreamEnd,
+            onToggle = onSetAutoSwitchOnStreamEnd,
+            icon = Icons.Default.SkipNext,
+            shape = middleShape
         )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))

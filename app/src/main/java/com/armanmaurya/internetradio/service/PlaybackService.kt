@@ -95,6 +95,8 @@ class PlaybackService : MediaLibraryService() {
 
     private var showStationThumbnails: Boolean = true
     private var alarmFadeInSeconds: Int = 0
+    private var autoSwitchOnStreamEnd: Boolean = false
+    private var eofRetryJob: Job? = null
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -113,6 +115,7 @@ class PlaybackService : MediaLibraryService() {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 loadErrorHandlingPolicy.maxRetryDurationMs = prefs.maxRetryDuration
                 showStationThumbnails = prefs.showStationThumbnails
+                autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
                 alarmFadeInSeconds =
                     if (prefs.isAlarmVolumeTransitionEnabled) prefs.alarmVolumeTransitionSeconds else 0
             }
@@ -216,6 +219,73 @@ class PlaybackService : MediaLibraryService() {
         exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
         exoPlayer.setWakeMode(C.WAKE_MODE_NETWORK)
 
+        var currentMediaIndex = 0
+        var consecutiveEofRetryCount = 0
+        var lastEofRetryTimestamp = 0L
+
+        fun retryCurrentStation(targetIndex: Int) {
+            if (exoPlayer.mediaItemCount <= 0 || targetIndex !in 0 until exoPlayer.mediaItemCount) return
+            val now = System.currentTimeMillis()
+            if (now - lastEofRetryTimestamp > 15_000L) {
+                consecutiveEofRetryCount = 0
+            }
+            lastEofRetryTimestamp = now
+            consecutiveEofRetryCount++
+
+            if (consecutiveEofRetryCount > 10) {
+                retryStateTracker.reset()
+                exoPlayer.pause()
+            } else {
+                val delayMs = if (consecutiveEofRetryCount == 1) 500L else (1L shl (consecutiveEofRetryCount - 1)).coerceAtMost(10L) * 1000L
+                retryStateTracker.startRetryCountdown(delayMs)
+                eofRetryJob?.cancel()
+                eofRetryJob = serviceScope.launch {
+                    kotlinx.coroutines.delay(delayMs)
+                    if (targetIndex in 0 until exoPlayer.mediaItemCount) {
+                        exoPlayer.seekToDefaultPosition(targetIndex)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    }
+                }
+            }
+        }
+
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !autoSwitchOnStreamEnd) {
+                    val targetIndex = currentMediaIndex
+                    retryCurrentStation(targetIndex)
+                    return
+                }
+                currentMediaIndex = exoPlayer.currentMediaItemIndex
+                if (reason != Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                    consecutiveEofRetryCount = 0
+                    eofRetryJob?.cancel()
+                }
+            }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
+                    if (!autoSwitchOnStreamEnd || exoPlayer.mediaItemCount <= 1) {
+                        val targetIndex = exoPlayer.currentMediaItemIndex
+                        retryCurrentStation(targetIndex)
+                    }
+                } else if (state == Player.STATE_READY) {
+                    if (System.currentTimeMillis() - lastEofRetryTimestamp > 15_000L) {
+                        consecutiveEofRetryCount = 0
+                    }
+                }
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady) {
+                    eofRetryJob?.cancel()
+                    retryStateTracker.reset()
+                    consecutiveEofRetryCount = 0
+                }
+            }
+        })
+
         val radioPlayer = RadioPlayer(exoPlayer, retryStateTracker)
         player = radioPlayer
 
@@ -254,6 +324,7 @@ class PlaybackService : MediaLibraryService() {
         widgetUpdater.pushStoppedWidgetUpdate()
         queueManager.detachPlayer()
         audioDeviceObserver.detachPlayer()
+        eofRetryJob?.cancel()
         volumeFadeController.release()
         audioEffectsManager.release()
         serviceScope.cancel()

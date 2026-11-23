@@ -181,6 +181,9 @@ class PlayerControllerImpl @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !autoSwitchOnStreamEnd) {
+                return
+            }
             android.util.Log.d("BlankSheetDebug", "transition id=${mediaItem?.mediaId} reason=$reason parsed=${mediaItem?.toRadioStation()?.name} active=${activeStation?.name} playlist=${currentPlaylist.size}")
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (mediaItem == null) {
@@ -329,6 +332,7 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     private var isVolumeBoostEnabled = false
+    private var autoSwitchOnStreamEnd = false
 
     init {
         android.util.Log.d("BlankSheetDebug", "PlayerControllerImpl created")
@@ -345,6 +349,7 @@ class PlayerControllerImpl @Inject constructor(
         scope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 isVolumeBoostEnabled = prefs.enableVolumeBoost
+                autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
                 if (!prefs.enableVolumeBoost && _playbackSession.value.volume > 1.0f) {
                     setVolume(1.0f)
                 }

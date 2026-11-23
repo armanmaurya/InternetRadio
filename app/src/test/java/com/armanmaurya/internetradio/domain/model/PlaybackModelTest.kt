@@ -37,4 +37,16 @@ class PlaybackModelTest {
         assertEquals(PlaybackSource.Recent, PlaybackSource.Recent)
         assertEquals(PlaybackSource.None, PlaybackSource.None)
     }
+
+    @Test
+    fun appPreferences_autoSwitchOnStreamEnd_defaultsToFalse() {
+        val prefs = AppPreferences()
+        assertFalse("autoSwitchOnStreamEnd should default to false to prevent unexpected station hopping", prefs.autoSwitchOnStreamEnd)
+    }
+
+    @Test
+    fun appPreferences_autoSwitchOnStreamEnd_canBeEnabled() {
+        val prefs = AppPreferences(autoSwitchOnStreamEnd = true)
+        assertTrue(prefs.autoSwitchOnStreamEnd)
+    }
 }

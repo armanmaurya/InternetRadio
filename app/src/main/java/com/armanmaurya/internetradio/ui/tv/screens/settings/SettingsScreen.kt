@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Refresh
 import androidx.tv.material3.Switch
 import com.armanmaurya.internetradio.domain.model.AppPreferences
@@ -155,6 +156,7 @@ fun SettingsScreen(
             prefs = uiState,
             onOpenPage = { openPage = it },
             onSetAutoPlay = viewModel::setAutoPlayOnStart,
+            onSetAutoSwitchOnStreamEnd = viewModel::setAutoSwitchOnStreamEnd,
             onSetPauseOnVolumeZero = viewModel::setPauseOnVolumeZero,
             onSetVolumeBoost = { enable ->
                 // Turning boost on needs the same warning as the phone.
@@ -322,6 +324,7 @@ private fun SettingsMainList(
     prefs: AppPreferences,
     onOpenPage: (SettingsPage) -> Unit,
     onSetAutoPlay: (Boolean) -> Unit,
+    onSetAutoSwitchOnStreamEnd: (Boolean) -> Unit,
     onSetPauseOnVolumeZero: (Boolean) -> Unit,
     onSetVolumeBoost: (Boolean) -> Unit,
     onAppLanguageClick: () -> Unit,
@@ -415,6 +418,15 @@ private fun SettingsMainList(
                     icon = Icons.Default.PlayCircle,
                     checked = prefs.autoPlayOnStart,
                     onCheckedChange = onSetAutoPlay
+                )
+            }
+            item {
+                SettingsToggleRow(
+                    title = stringResource(R.string.settings_auto_switch_on_stream_end),
+                    description = stringResource(R.string.settings_auto_switch_on_stream_end_desc),
+                    icon = Icons.Default.SkipNext,
+                    checked = prefs.autoSwitchOnStreamEnd,
+                    onCheckedChange = onSetAutoSwitchOnStreamEnd
                 )
             }
             item {

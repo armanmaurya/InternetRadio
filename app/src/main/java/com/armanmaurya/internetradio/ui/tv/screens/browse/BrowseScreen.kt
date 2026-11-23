@@ -84,6 +84,10 @@ fun BrowseScreen(
                         text = stringResource(R.string.home_no_stations_found_for, uiState.searchQuery),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    else -> Text(
+                        text = stringResource(R.string.home_no_stations_found),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         } else {

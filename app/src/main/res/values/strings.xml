@@ -79,6 +79,8 @@
     <string name="settings_disable_update_check_desc">Do not automatically check for app updates on startup</string>
     <string name="settings_auto_play">Auto play on start</string>
     <string name="settings_auto_play_desc">Play the last listened station when app starts</string>
+    <string name="settings_auto_switch_on_stream_end">Auto-switch station</string>
+    <string name="settings_auto_switch_on_stream_end_desc">Play next station if stream ends</string>
     <string name="settings_tv_screensaver">Screensaver</string>
     <string name="settings_about_foss_edition">FOSS Edition</string>
     <string name="settings_about_play_edition">Google Play Edition</string>
@@ -300,6 +302,7 @@
     <string name="home_no_recent_stations_filtered">No recently played stations matching your filters.</string>
     <string name="home_no_recent_stations">No recently played stations</string>
     <string name="home_no_stations_found_for">No stations found for \"%1$s\"</string>
+    <string name="home_no_stations_found">No stations found</string>
     <string name="home_no_library_stations_filter">No library stations found with filter</string>
     <string name="home_no_library_stations_yet">No library stations yet</string>
     <string name="home_clear_recent_title">Clear recent history?</string>

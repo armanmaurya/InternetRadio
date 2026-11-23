@@ -59,6 +59,7 @@ class TrackObserver @Inject constructor(
     private val historyMutex = Mutex()
     private var stationArtworkUri: Uri? = null
     private var showCoverArtInNotification: Boolean = true
+    private var autoSwitchOnStreamEnd: Boolean = false
 
     /** The track currently credited in history, kept across pauses so resuming can continue it. */
     private data class HistoryTrack(
@@ -73,6 +74,7 @@ class TrackObserver @Inject constructor(
         scope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 showCoverArtInNotification = prefs.showCoverArtInNotification
+                autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
             }
         }
     }
@@ -105,6 +107,9 @@ class TrackObserver @Inject constructor(
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !autoSwitchOnStreamEnd) {
+            return
+        }
         flushActiveProgressAsync()
         stopProgressHeartbeat()
         activeFetchJob?.cancel()

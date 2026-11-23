@@ -77,6 +77,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setAutoSwitchOnStreamEnd(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setAutoSwitchOnStreamEnd(enabled)
+        }
+    }
+
     fun setTvScreensaverMinutes(minutes: Int) {
         viewModelScope.launch {
             settingsRepository.setTvScreensaverMinutes(minutes)

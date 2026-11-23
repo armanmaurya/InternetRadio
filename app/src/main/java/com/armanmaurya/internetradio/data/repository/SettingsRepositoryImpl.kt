@@ -64,6 +64,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val RECENT_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("recent_limit")
         val DEFAULT_TAB = androidx.datastore.preferences.core.intPreferencesKey("default_tab")
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
+        val AUTO_SWITCH_ON_STREAM_END = booleanPreferencesKey("auto_switch_on_stream_end")
         val TV_SCREENSAVER_MINUTES = androidx.datastore.preferences.core.intPreferencesKey("tv_screensaver_minutes")
         val TV_LYRICS_OPEN = booleanPreferencesKey("tv_lyrics_open")
         val APP_LAUNCH_COUNT = androidx.datastore.preferences.core.intPreferencesKey("app_launch_count")
@@ -142,6 +143,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val recentLimit = preferences[PreferencesKeys.RECENT_LIMIT] ?: 50
             val defaultTab = preferences[PreferencesKeys.DEFAULT_TAB] ?: 0
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
+            val autoSwitchOnStreamEnd = preferences[PreferencesKeys.AUTO_SWITCH_ON_STREAM_END] ?: false
             val tvScreensaverMinutes = preferences[PreferencesKeys.TV_SCREENSAVER_MINUTES] ?: 5
             val tvLyricsOpen = preferences[PreferencesKeys.TV_LYRICS_OPEN] ?: false
             val appLaunchCount = preferences[PreferencesKeys.APP_LAUNCH_COUNT] ?: 0
@@ -190,6 +192,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 recentLimit = recentLimit,
                 defaultTab = defaultTab,
                 autoPlayOnStart = autoPlayOnStart,
+                autoSwitchOnStreamEnd = autoSwitchOnStreamEnd,
                 tvScreensaverMinutes = tvScreensaverMinutes,
                 tvLyricsOpen = tvLyricsOpen,
                 appLaunchCount = appLaunchCount,
@@ -227,6 +230,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setAutoPlayOnStart(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.AUTO_PLAY_ON_START] = enabled }
+    }
+
+    override suspend fun setAutoSwitchOnStreamEnd(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.AUTO_SWITCH_ON_STREAM_END] = enabled }
     }
 
     override suspend fun setTvScreensaverMinutes(minutes: Int) {

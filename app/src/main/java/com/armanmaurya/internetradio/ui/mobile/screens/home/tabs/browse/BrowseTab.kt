@@ -135,7 +135,7 @@ fun BrowseContent(
         when {
             uiState.isLoading -> { /* handled below */ }
             uiState.error != null -> { /* handled below */ }
-            uiState.stations.isEmpty() && uiState.isSearchActive -> { /* handled below */ }
+            uiState.stations.isEmpty() -> { /* handled below */ }
             else -> {
                 itemsIndexed(
                     items = uiState.stations,
@@ -237,13 +237,18 @@ fun BrowseContent(
                     Text(text = stringResource(R.string.action_retry))
                 }
             }
-        } else if (uiState.stations.isEmpty() && uiState.isSearchActive) {
+        } else if (uiState.stations.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
+                val emptyText = if (uiState.isSearchActive && uiState.searchQuery.isNotBlank()) {
+                    stringResource(R.string.home_no_stations_found_for, uiState.searchQuery)
+                } else {
+                    stringResource(R.string.home_no_stations_found)
+                }
                 Text(
-                    text = stringResource(R.string.home_no_stations_found_for, uiState.searchQuery),
+                    text = emptyText,
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.padding(32.dp),
