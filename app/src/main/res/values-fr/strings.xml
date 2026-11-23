@@ -485,66 +485,82 @@
     <string name="recording_folder_access_wrong_folder">Sélectionnez le dossier Music/InternetRadio</string>
     <plurals name="export_button">
         <item quantity="one">Exporter %1$d station</item>
+        <item quantity="many">Exporter %1$d stations</item>
         <item quantity="other">Exporter %1$d stations</item>
     </plurals>
     <plurals name="import_plays">
         <item quantity="one">%1$d écoute</item>
+        <item quantity="many">%1$d écoutes</item>
         <item quantity="other">%1$d écoutes</item>
     </plurals>
     <plurals name="import_starred">
         <item quantity="one">%1$d titre favori</item>
+        <item quantity="many">%1$d titres favoris</item>
         <item quantity="other">%1$d titres favoris</item>
     </plurals>
     <plurals name="import_button">
         <item quantity="one">Importer %1$d station</item>
+        <item quantity="many">Importer %1$d stations</item>
         <item quantity="other">Importer %1$d stations</item>
     </plurals>
     <plurals name="settings_exported_success">
         <item quantity="one">%1$d station exportée</item>
+        <item quantity="many">%1$d stations exportées</item>
         <item quantity="other">%1$d stations exportées</item>
     </plurals>
     <plurals name="settings_gradual_volume_seconds">
         <item quantity="one">%1$d seconde</item>
+        <item quantity="many">%1$d secondes</item>
         <item quantity="other">%1$d secondes</item>
     </plurals>
     <plurals name="settings_imported_failed">
         <item quantity="one">Impossible de lire %1$d fichier</item>
+        <item quantity="many">Impossible de lire %1$d fichiers</item>
         <item quantity="other">Impossible de lire %1$d fichiers</item>
     </plurals>
     <plurals name="library_remove_schedules_desc">
         <item quantity="one">Cette station a %1$d programmation qui sera aussi supprimée.</item>
+        <item quantity="many">Cette station a %1$d programmations qui seront aussi supprimées.</item>
         <item quantity="other">Cette station a %1$d programmations qui seront aussi supprimées.</item>
     </plurals>
     <plurals name="select_country_states_count">
         <item quantity="one">%1$d région</item>
+        <item quantity="many">%1$d régions</item>
         <item quantity="other">%1$d régions</item>
     </plurals>
     <plurals name="player_timer_ends_in_msg">
         <item quantity="one">Fin dans %1$d minute.</item>
+        <item quantity="many">Fin dans %1$d minutes.</item>
         <item quantity="other">Fin dans %1$d minutes.</item>
     </plurals>
     <plurals name="delete_recordings_message">
         <item quantity="one">Supprimer %1$d élément ?</item>
+        <item quantity="many">Supprimer %1$d éléments ?</item>
         <item quantity="other">Supprimer %1$d éléments ?</item>
     </plurals>
     <plurals name="recordings_count">
         <item quantity="one">%1$d enregistrement</item>
+        <item quantity="many">%1$d enregistrements</item>
         <item quantity="other">%1$d enregistrements</item>
     </plurals>
     <plurals name="stations_count">
         <item quantity="one">%1$d station</item>
+        <item quantity="many">%1$d stations</item>
         <item quantity="other">%1$d stations</item>
     </plurals>
     <plurals name="tracks_count">
         <item quantity="one">%1$d titre</item>
+        <item quantity="many">%1$d titres</item>
         <item quantity="other">%1$d titres</item>
     </plurals>
     <plurals name="minutes_count">
         <item quantity="one">%1$d minute</item>
+        <item quantity="many">%1$d minutes</item>
         <item quantity="other">%1$d minutes</item>
     </plurals>
     <plurals name="player_session_songs_count">
         <item quantity="one">%1$d titre</item>
+        <item quantity="many">%1$d titres</item>
         <item quantity="other">%1$d titres</item>
     </plurals>
 </resources>
