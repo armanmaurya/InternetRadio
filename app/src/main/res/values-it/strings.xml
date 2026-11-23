@@ -543,4 +543,24 @@
     <string name="lyrics_word_synced">Parola</string>
     <string name="lyrics_line_synced">Riga</string>
     <string name="lyrics_providers_title">Fornitori testi</string>
+    <string name="import_part_starred">Tracce preferite</string>
+    <plurals name="import_starred">
+        <item quantity="one">%1$d preferito</item>
+        <item quantity="many">%1$d preferiti</item>
+        <item quantity="other">%1$d preferiti</item>
+    </plurals>
+    <string name="lyrics_plain">Semplice</string>
+    <string name="lyrics_providers_subtitle">Configura le sorgenti dei testi e le priorità di fallback</string>
+    <string name="lyrics_providers_description">Trascina per riordinare la priorità di ricerca dei fornitori. Il player richiede i testi a partire dalla prima voce dell\'elenco.</string>
+    <string name="cd_reorder_lyrics_provider">Riordina fornitore</string>
+    <string name="lyrics_options_title">Fornitori</string>
+    <string name="lyrics_track_title">Titolo della traccia</string>
+    <string name="lyrics_artist_name">Artista (facoltativo)</string>
+    <string name="lyrics_search_action">Cerca</string>
+    <string name="lyrics_reset_action">Reimposta a traccia</string>
+    <string name="lyrics_provider_auto">Auto (Consigliato)</string>
+    <string name="lyrics_provider_auto_subtitle">Seleziona automaticamente la qualità migliore</string>
+    <string name="lyrics_provider_not_found">Nessun testo trovato</string>
+    <string name="lyrics_search_query_button">Cerca o modifica richiesta</string>
+    <string name="lyrics_cd_options">Opzioni dei testi e ricerca</string>
 </resources>
