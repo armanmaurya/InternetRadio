@@ -259,7 +259,7 @@ class PlayerUseCasesTest {
 
         override suspend fun getCountries(): Result<List<com.armanmaurya.internetradio.domain.model.Country>> = Result.success(emptyList())
         override suspend fun getLanguages(filter: String?): Result<List<com.armanmaurya.internetradio.domain.model.Language>> = Result.success(emptyList())
-        override suspend fun getTags(filter: String?): Result<List<com.armanmaurya.internetradio.domain.model.Tag>> = Result.success(emptyList())
+        override suspend fun getTags(filter: String?, prioritizeLocal: Boolean): Result<List<com.armanmaurya.internetradio.domain.model.Tag>> = Result.success(emptyList())
         override suspend fun getCurrentCountryCode(): Result<String> = Result.success("US")
         override suspend fun getStationsByUuid(uuids: List<String>): Result<List<RadioStation>> = Result.success(emptyList())
         override suspend fun getStationsByUrl(url: String): Result<List<RadioStation>> = Result.success(emptyList())

@@ -33,7 +33,7 @@ interface StationRepository {
     ): Result<List<RadioStation>>
     suspend fun getCountries(): Result<List<Country>>
     suspend fun getLanguages(filter: String? = null): Result<List<Language>>
-    suspend fun getTags(filter: String? = null): Result<List<Tag>>
+    suspend fun getTags(filter: String? = null, prioritizeLocal: Boolean = false): Result<List<Tag>>
     suspend fun getCurrentCountryCode(): Result<String>
     suspend fun registerClick(stationUuid: String)
     suspend fun getStationsByUuid(uuids: List<String>): Result<List<RadioStation>>

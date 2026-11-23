@@ -19,6 +19,9 @@ interface StationDao {
     @Query("SELECT * FROM stations WHERE isCustom = 1")
     suspend fun getCustomStations(): List<StationEntity>
 
+    @Query("SELECT * FROM stations")
+    suspend fun getAllStations(): List<StationEntity>
+
     @Query("UPDATE stations SET stationUuid = :newUuid, isCustom = 0 WHERE stationUuid = :oldUuid")
     suspend fun updateStationUuid(oldUuid: String, newUuid: String)
 

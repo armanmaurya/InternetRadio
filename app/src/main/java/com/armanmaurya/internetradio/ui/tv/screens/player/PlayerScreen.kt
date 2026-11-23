@@ -82,10 +82,12 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.armanmaurya.internetradio.R
+import com.armanmaurya.internetradio.domain.model.Lyrics
 import com.armanmaurya.internetradio.ui.shared.components.LoadMoreWhenNearEnd
 import com.armanmaurya.internetradio.ui.shared.components.shimmerEffect
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel.LyricsUiState
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.delay
 
@@ -96,6 +98,12 @@ private const val AMBIENT_DELAY_MS = 10_000L
 private const val AMBIENT_DRIFT_MS = 60_000L
 
 private val ambientDriftOffsets = listOf(0 to 0, 14 to -10, -10 to -18, 8 to 12, -14 to 6)
+
+private enum class TvPlayerSidebar {
+    TRACKS,
+    ABOUT,
+    LYRICS
+}
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -117,16 +125,38 @@ fun PlayerScreen(
     val trackHistory by playerViewModel.trackHistory.collectAsStateWithLifecycle()
     val savedTracks by playerViewModel.savedTracks.collectAsStateWithLifecycle()
 
-    var isHistoryOpen by remember { mutableStateOf(false) }
+    var activeSidebar by remember { mutableStateOf<TvPlayerSidebar?>(null) }
+    val isHistoryOpen = activeSidebar == TvPlayerSidebar.TRACKS
+    val isAboutOpen = activeSidebar == TvPlayerSidebar.ABOUT
+    val isLyricsProvidersOpen = activeSidebar == TvPlayerSidebar.LYRICS
     var sidebarHadFocus by remember { mutableStateOf(false) }
     var isSleepTimerOpen by remember { mutableStateOf(false) }
     var isVolumeOpen by remember { mutableStateOf(false) }
-    var isAboutOpen by remember { mutableStateOf(false) }
     val sleepTimerMinutesLeft = rememberSleepTimerMinutesLeft(playbackState.sleepTimerEndTime)
+
+    var lastKnownCandidates by remember { mutableStateOf<List<Lyrics>>(emptyList()) }
+    var lastKnownLyrics by remember { mutableStateOf<Lyrics?>(null) }
+
+    LaunchedEffect(playbackState.currentTrack) {
+        lastKnownCandidates = emptyList()
+        lastKnownLyrics = null
+    }
+
+    LaunchedEffect(playbackState.lyricsUiState) {
+        val state = playbackState.lyricsUiState
+        if (state is LyricsUiState.Success) {
+            lastKnownCandidates = state.allCandidates
+            lastKnownLyrics = state.lyrics
+        }
+    }
 
     val sidebarFocusRequester = remember { FocusRequester() }
     val tracksButtonFocusRequester = remember { FocusRequester() }
+    val aboutButtonFocusRequester = remember { FocusRequester() }
+    val lyricsButtonFocusRequester = remember { FocusRequester() }
+    val lyricsOptionsFocusRequester = remember { FocusRequester() }
     val playButtonFocusRequester = remember { FocusRequester() }
+    var isLyricsFocused by remember { mutableStateOf(false) }
 
     // Optimistic play state: flips to true immediately on click so the
     // icon shows Pause before the media3 callback fires.
@@ -180,8 +210,9 @@ fun PlayerScreen(
         }
     }
 
-    LaunchedEffect(isHistoryOpen) {
-        if (isHistoryOpen) {
+    LaunchedEffect(activeSidebar) {
+        if (activeSidebar != null) {
+            awaitFrame()
             try {
                 sidebarFocusRequester.requestFocus()
             } catch (_: Exception) {
@@ -189,21 +220,19 @@ fun PlayerScreen(
         }
     }
 
-    BackHandler(enabled = isLyricsOpen && !isHistoryOpen) {
-        onLyricsOpenChange(false)
+    BackHandler(enabled = isLyricsFocused) {
+        try {
+            lyricsOptionsFocusRequester.requestFocus()
+        } catch (_: Exception) {
+            try {
+                lyricsButtonFocusRequester.requestFocus()
+            } catch (_: Exception) {
+            }
+        }
     }
 
-    val aboutStation = station
-    if (isAboutOpen && aboutStation != null) {
-        TvStationAboutDialog(
-            station = aboutStation,
-            streamCodec = playbackState.streamCodec,
-            streamBitrate = playbackState.streamBitrate,
-            onDismiss = {
-                isAboutOpen = false
-                lastInteraction = System.currentTimeMillis()
-            }
-        )
+    BackHandler(enabled = isLyricsOpen && activeSidebar == null && !isLyricsFocused) {
+        onLyricsOpenChange(false)
     }
 
     if (isVolumeOpen) {
@@ -230,10 +259,16 @@ fun PlayerScreen(
         )
     }
 
-    BackHandler(enabled = isHistoryOpen) {
-        isHistoryOpen = false
+    BackHandler(enabled = activeSidebar != null) {
+        val closing = activeSidebar
+        activeSidebar = null
         try {
-            tracksButtonFocusRequester.requestFocus()
+            when (closing) {
+                TvPlayerSidebar.TRACKS -> tracksButtonFocusRequester.requestFocus()
+                TvPlayerSidebar.ABOUT -> aboutButtonFocusRequester.requestFocus()
+                TvPlayerSidebar.LYRICS -> lyricsOptionsFocusRequester.requestFocus()
+                null -> Unit
+            }
         } catch (_: Exception) {
         }
     }
@@ -480,7 +515,9 @@ fun PlayerScreen(
                     TvPlayerIconButton(
                         icon = Icons.AutoMirrored.Filled.QueueMusic,
                         contentDescription = stringResource(R.string.player_tab_tracks),
-                        onClick = { isHistoryOpen = !isHistoryOpen },
+                        onClick = {
+                            activeSidebar = if (activeSidebar == TvPlayerSidebar.TRACKS) null else TvPlayerSidebar.TRACKS
+                        },
                         modifier = Modifier.focusRequester(tracksButtonFocusRequester),
                         isActive = isHistoryOpen
                     )
@@ -488,12 +525,17 @@ fun PlayerScreen(
                         icon = Icons.Default.Lyrics,
                         contentDescription = stringResource(R.string.player_tab_lyrics),
                         onClick = { onLyricsOpenChange(!isLyricsOpen) },
+                        modifier = Modifier.focusRequester(lyricsButtonFocusRequester),
                         isActive = isLyricsOpen
                     )
                     TvPlayerIconButton(
                         icon = Icons.Default.Info,
                         contentDescription = stringResource(R.string.player_tab_about),
-                        onClick = { isAboutOpen = true }
+                        onClick = {
+                            activeSidebar = if (activeSidebar == TvPlayerSidebar.ABOUT) null else TvPlayerSidebar.ABOUT
+                        },
+                        modifier = Modifier.focusRequester(aboutButtonFocusRequester),
+                        isActive = isAboutOpen
                     )
                     TvPlayerIconButton(
                         icon = Icons.Default.Timer,
@@ -560,13 +602,19 @@ fun PlayerScreen(
                 syncOffsetMs = playbackState.lyricsSyncOffsetMs,
                 getCurrentPosition = { playerViewModel.currentPosition },
                 onSyncOffsetChange = playerViewModel::setLyricsSyncOffset,
+                onOpenLyricsOptions = {
+                    activeSidebar = if (activeSidebar == TvPlayerSidebar.LYRICS) null else TvPlayerSidebar.LYRICS
+                },
+                lyricsOptionsFocusRequester = lyricsOptionsFocusRequester,
+                controlBarFocusRequester = lyricsButtonFocusRequester,
+                onLyricsFocusChange = { isLyricsFocused = it },
                 modifier = Modifier.fillMaxSize()
             )
         }
 
-        // Track History Right Sidebar
+        // Right Sidebar (Tracks or About)
         AnimatedVisibility(
-            visible = isHistoryOpen,
+            visible = activeSidebar != null,
             modifier = Modifier.align(Alignment.CenterEnd),
             enter = slideInHorizontally(initialOffsetX = { it }),
             exit = slideOutHorizontally(targetOffsetX = { it })
@@ -580,13 +628,21 @@ fun PlayerScreen(
                         if (state.hasFocus) {
                             sidebarHadFocus = true
                         } else if (sidebarHadFocus) {
-                            isHistoryOpen = false
+                            activeSidebar = null
                             sidebarHadFocus = false
                         }
                     }
                     .onKeyEvent { event ->
                         if (event.key == Key.DirectionLeft && event.type == KeyEventType.KeyDown) {
-                            tracksButtonFocusRequester.requestFocus()
+                            try {
+                                when (activeSidebar) {
+                                    TvPlayerSidebar.TRACKS -> tracksButtonFocusRequester.requestFocus()
+                                    TvPlayerSidebar.ABOUT -> aboutButtonFocusRequester.requestFocus()
+                                    TvPlayerSidebar.LYRICS -> lyricsOptionsFocusRequester.requestFocus()
+                                    null -> Unit
+                                }
+                            } catch (_: Exception) {
+                            }
                             true
                         } else {
                             false
@@ -594,41 +650,92 @@ fun PlayerScreen(
                     }
                     .padding(24.dp)
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = stringResource(R.string.player_tab_tracks),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    val historyListState = rememberLazyListState()
-                    LoadMoreWhenNearEnd(
-                        listState = historyListState,
-                        onLoadMore = playerViewModel::loadMoreHistory
-                    )
-                    if (trackHistory.isEmpty() && savedTracks.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .focusRequester(sidebarFocusRequester)
-                                .focusable(),
-                            contentAlignment = Alignment.Center
-                        ) {
+                when (activeSidebar) {
+                    TvPlayerSidebar.TRACKS -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
                             Text(
-                                text = stringResource(R.string.player_no_tracks_played),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.player_tab_tracks),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            val historyListState = rememberLazyListState()
+                            LoadMoreWhenNearEnd(
+                                listState = historyListState,
+                                onLoadMore = playerViewModel::loadMoreHistory
+                            )
+                            if (trackHistory.isEmpty() && savedTracks.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .focusRequester(sidebarFocusRequester)
+                                        .focusable(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.player_no_tracks_played),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                TvTrackHistoryList(
+                                    trackHistory = trackHistory,
+                                    savedTracks = savedTracks,
+                                    listState = historyListState,
+                                    firstItemModifier = Modifier.focusRequester(sidebarFocusRequester),
+                                    onToggleStar = playerViewModel::toggleTrackStarred
+                                )
+                            }
+                        }
+                    }
+                    TvPlayerSidebar.ABOUT -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = stringResource(R.string.player_tab_about),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            TvStationAboutList(
+                                station = station,
+                                streamCodec = playbackState.streamCodec,
+                                streamBitrate = playbackState.streamBitrate,
+                                firstItemModifier = Modifier.focusRequester(sidebarFocusRequester)
                             )
                         }
-                    } else {
-                        TvTrackHistoryList(
-                            trackHistory = trackHistory,
-                            savedTracks = savedTracks,
-                            listState = historyListState,
-                            firstItemModifier = Modifier.focusRequester(sidebarFocusRequester),
-                            onToggleStar = playerViewModel::toggleTrackStarred
-                        )
                     }
+                    TvPlayerSidebar.LYRICS -> {
+                        val candidates = (playbackState.lyricsUiState as? LyricsUiState.Success)?.allCandidates?.takeIf { it.isNotEmpty() } ?: lastKnownCandidates
+                        val activeLyrics = (playbackState.lyricsUiState as? LyricsUiState.Success)?.lyrics ?: lastKnownLyrics
+                        val streamTitle = playbackState.cleanTrackName ?: playbackState.currentTrack
+                        val streamArtist = playbackState.cleanArtistName
+                        val initialTitle = playbackState.customLyricsQueryTitle ?: streamTitle ?: activeLyrics?.trackTitle ?: ""
+                        val initialArtist = playbackState.customLyricsQueryArtist ?: streamArtist ?: activeLyrics?.artistName ?: ""
+
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = stringResource(R.string.lyrics_providers_title),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            TvLyricsProvidersList(
+                                allCandidates = candidates,
+                                activeLyrics = activeLyrics,
+                                selectedProviderId = playbackState.selectedLyricsProviderId,
+                                currentTrackTitle = initialTitle,
+                                currentArtistName = initialArtist,
+                                streamTrackTitle = streamTitle,
+                                streamArtistName = streamArtist,
+                                onSearch = playerViewModel::searchLyrics,
+                                onResetToTrack = playerViewModel::resetLyricsQuery,
+                                onSelectProvider = playerViewModel::selectLyricsProvider,
+                                firstItemModifier = Modifier.focusRequester(sidebarFocusRequester)
+                            )
+                        }
+                    }
+                    null -> Unit
                 }
             }
         }

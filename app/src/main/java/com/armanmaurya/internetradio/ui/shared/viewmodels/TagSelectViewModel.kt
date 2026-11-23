@@ -79,7 +79,7 @@ class TagSelectViewModel @Inject constructor(
     private fun loadTags() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            repository.getTags()
+            repository.getTags(prioritizeLocal = true)
                 .onSuccess { tags ->
                     _uiState.update { it.copy(tags = tags, isLoading = false) }
                 }

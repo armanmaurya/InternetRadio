@@ -93,27 +93,41 @@ class StationRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getTags(filter: String?): Result<List<Tag>> =
+    override suspend fun getTags(filter: String?, prioritizeLocal: Boolean): Result<List<Tag>> =
         runCatching {
-            val apiTags = if (filter.isNullOrBlank()) {
-                api.getTags(order = "stationcount", reverse = true)
-                    .map { it.toDomain() }
-            } else {
-                api.getTagsFiltered(filter = filter, order = "stationcount", reverse = true)
-                    .map { it.toDomain() }
-            }
-
-            val customStations = stationDao.getCustomStations()
-            val customTags = customStations.flatMap { it.tags }
+            val localStations = runCatching { stationDao.getAllStations() }.getOrDefault(emptyList())
+            val localTags = localStations.flatMap { it.tags }
                 .filter { it.isNotBlank() }
                 .filter { if (!filter.isNullOrBlank()) it.contains(filter, ignoreCase = true) else true }
                 .distinct()
                 .map { Tag(name = it, stationCount = 1) }
 
-            val apiTagNames = apiTags.map { it.name.lowercase() }.toSet()
-            val uniqueCustomTags = customTags.filter { it.name.lowercase() !in apiTagNames }
+            val apiTagsResult = runCatching {
+                if (filter.isNullOrBlank()) {
+                    api.getTags(order = "stationcount", reverse = true)
+                        .map { it.toDomain() }
+                } else {
+                    api.getTagsFiltered(filter = filter, order = "stationcount", reverse = true)
+                        .map { it.toDomain() }
+                }
+            }
 
-            apiTags + uniqueCustomTags
+            val apiTags = apiTagsResult.getOrDefault(emptyList())
+            if (apiTagsResult.isFailure && localTags.isEmpty()) {
+                throw apiTagsResult.exceptionOrNull() ?: IllegalStateException("Failed to load tags")
+            }
+
+            val localTagNames = localTags.map { it.name.lowercase() }.toSet()
+            val apiTagNames = apiTags.map { it.name.lowercase() }.toSet()
+            val uniqueLocalTags = localTags.filter { it.name.lowercase() !in apiTagNames }
+
+            if (prioritizeLocal) {
+                val matchingApiTags = apiTags.filter { it.name.lowercase() in localTagNames }
+                val remainingApiTags = apiTags.filter { it.name.lowercase() !in localTagNames }
+                uniqueLocalTags + matchingApiTags + remainingApiTags
+            } else {
+                apiTags + uniqueLocalTags
+            }
         }
 
     override suspend fun getCurrentCountryCode(): Result<String> =

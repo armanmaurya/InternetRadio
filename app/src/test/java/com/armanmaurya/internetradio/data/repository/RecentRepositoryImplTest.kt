@@ -164,6 +164,7 @@ class RecentRepositoryImplTest {
         }
         override suspend fun getStationById(stationUuid: String): StationEntity? = stations[stationUuid]
         override suspend fun getCustomStations(): List<StationEntity> = emptyList()
+        override suspend fun getAllStations(): List<StationEntity> = stations.values.toList()
         override suspend fun updateStationUuid(oldUuid: String, newUuid: String) {}
         override fun getAllFavorites(): Flow<List<StationEntity>> = flowOf(emptyList())
         override fun getFavoritesByOldestAdded(): Flow<List<StationEntity>> = flowOf(emptyList())

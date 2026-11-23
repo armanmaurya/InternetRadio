@@ -32,6 +32,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -85,9 +90,25 @@ fun TvLyricsPanel(
     syncOffsetMs: Long,
     getCurrentPosition: () -> Long,
     onSyncOffsetChange: (Long) -> Unit,
+    onOpenLyricsOptions: () -> Unit = {},
+    lyricsOptionsFocusRequester: FocusRequester? = null,
+    controlBarFocusRequester: FocusRequester? = null,
+    onLyricsFocusChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val success = lyricsUiState as? LyricsUiState.Success
+    val hasSynced = success?.syncedLyrics?.isNotEmpty() == true && trackStartTime != null
+    val hasAny = lyricsUiState is LyricsUiState.Success &&
+        (hasSynced || !lyricsUiState.plainLyrics.isNullOrBlank())
+
+    val providerName = success?.lyrics?.providerInfo?.displayName ?: stringResource(R.string.lyrics_provider_lrclib)
+    val isWordSync = success?.lyrics?.hasWordSync == true ||
+        success?.syncedLyrics?.any { !it.words.isNullOrEmpty() } == true
+    val syncTypeStr = if (hasSynced) {
+        if (isWordSync) " • " + stringResource(R.string.lyrics_word_synced) else " • " + stringResource(R.string.lyrics_line_synced)
+    } else ""
+    val providerCredit = if (hasAny) stringResource(R.string.lyrics_powered_by) + providerName + syncTypeStr else null
+
     Column(modifier = modifier) {
         Box(
             modifier = Modifier
@@ -108,9 +129,17 @@ fun TvLyricsPanel(
                     lines = synced,
                     trackStartTime = trackStartTime!!,
                     syncOffsetMs = syncOffsetMs,
-                    getCurrentPosition = getCurrentPosition
+                    getCurrentPosition = getCurrentPosition,
+                    providerCredit = providerCredit,
+                    controlBarFocusRequester = controlBarFocusRequester,
+                    onFocusChange = onLyricsFocusChange
                 )
-                plain != null -> PlainLyrics(plain)
+                plain != null -> PlainLyrics(
+                    lyrics = plain,
+                    providerCredit = providerCredit,
+                    controlBarFocusRequester = controlBarFocusRequester,
+                    onFocusChange = onLyricsFocusChange
+                )
                 else -> Text(
                     text = stringResource(
                         if (lyricsUiState is LyricsUiState.Error) R.string.error_something_went_wrong
@@ -123,11 +152,13 @@ fun TvLyricsPanel(
             }
         }
 
-        val hasSynced = (lyricsUiState as? LyricsUiState.Success)?.syncedLyrics?.isNotEmpty() == true &&
-            trackStartTime != null
-        val hasAny = lyricsUiState is LyricsUiState.Success &&
-            (hasSynced || !lyricsUiState.plainLyrics.isNullOrBlank())
-        if (hasAny) {
+        if (lyricsUiState !is LyricsUiState.Loading) {
+            val iconColors = IconButtonDefaults.colors(
+                containerColor = Color.White.copy(alpha = 0.12f),
+                contentColor = Color.White,
+                focusedContainerColor = Color.White,
+                focusedContentColor = Color.Black
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,17 +166,20 @@ fun TvLyricsPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val providerName = success?.lyrics?.providerInfo?.displayName ?: stringResource(R.string.lyrics_provider_lrclib)
-                val isWordSync = success?.lyrics?.hasWordSync == true ||
-                    success?.syncedLyrics?.any { !it.words.isNullOrEmpty() } == true
-                val syncTypeStr = if (hasSynced) {
-                    if (isWordSync) " • " + stringResource(R.string.lyrics_word_synced) else " • " + stringResource(R.string.lyrics_line_synced)
-                } else ""
-                Text(
-                    text = stringResource(R.string.lyrics_powered_by) + providerName + syncTypeStr,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.5f)
-                )
+                IconButton(
+                    onClick = onOpenLyricsOptions,
+                    colors = iconColors,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .then(if (lyricsOptionsFocusRequester != null) Modifier.focusRequester(lyricsOptionsFocusRequester) else Modifier)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = stringResource(R.string.lyrics_options_title),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
                 if (hasSynced) {
                     SyncOffsetControl(syncOffsetMs, onSyncOffsetChange)
                 }
@@ -203,15 +237,17 @@ private fun SyncedLyrics(
     lines: List<LrcLine>,
     trackStartTime: Long,
     syncOffsetMs: Long,
-    getCurrentPosition: () -> Long
+    getCurrentPosition: () -> Long,
+    providerCredit: String?,
+    controlBarFocusRequester: FocusRequester?,
+    onFocusChange: (Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     var currentTimeMs by remember { mutableLongStateOf(0L) }
     val scope = rememberCoroutineScope()
     val stepPx = with(LocalDensity.current) { 120.dp.toPx() }
     var isFocused by remember { mutableStateOf(false) }
-    // Up/Down while focused lets you look around; following the song pauses until a few seconds
-    // after the last press, or until focus leaves the lyrics.
+    // Up while focused lets you peek at past lyrics; following pauses until reset or focus leaves.
     var lastManualScrollAt by remember { mutableLongStateOf(0L) }
     var isFollowPaused by remember { mutableStateOf(false) }
     LaunchedEffect(lastManualScrollAt, isFocused) {
@@ -260,20 +296,46 @@ private fun SyncedLyrics(
             .fillMaxSize()
             .onFocusChanged {
                 isFocused = it.isFocused
-                if (!it.isFocused) lastManualScrollAt = 0L
+                onFocusChange(it.isFocused)
+                if (!it.isFocused) {
+                    lastManualScrollAt = 0L
+                    isFollowPaused = false
+                }
             }
             .onKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                val direction = when (event.key) {
-                    Key.DirectionDown -> if (listState.canScrollForward) 1 else 0
-                    Key.DirectionUp -> if (listState.canScrollBackward) -1 else 0
-                    else -> return@onKeyEvent false
+                if (event.key == Key.DirectionLeft) {
+                    try {
+                        controlBarFocusRequester?.requestFocus()
+                    } catch (_: Exception) {
+                    }
+                    return@onKeyEvent true
                 }
-                // At either end, let focus move on instead.
-                if (direction == 0) return@onKeyEvent false
-                lastManualScrollAt = System.currentTimeMillis()
-                scope.launch { listState.animateScrollBy(direction * stepPx) }
-                true
+                if (event.key == Key.DirectionDown) {
+                    if (!isFollowPaused) {
+                        // Following the song normally: move focus directly to footer controls!
+                        return@onKeyEvent false
+                    }
+                    // User scrolled up into past lyrics. Scroll back down toward active line.
+                    val info = listState.layoutInfo
+                    val item = info.visibleItemsInfo.firstOrNull { it.index == activeIndexWithOffset }
+                    if (item != null) {
+                        isFollowPaused = false
+                        lastManualScrollAt = 0L
+                        return@onKeyEvent false
+                    }
+                    lastManualScrollAt = System.currentTimeMillis()
+                    scope.launch { listState.animateScrollBy(stepPx) }
+                    return@onKeyEvent true
+                }
+                if (event.key == Key.DirectionUp) {
+                    if (!listState.canScrollBackward) return@onKeyEvent false
+                    lastManualScrollAt = System.currentTimeMillis()
+                    isFollowPaused = true
+                    scope.launch { listState.animateScrollBy(-stepPx) }
+                    return@onKeyEvent true
+                }
+                false
             }
             .focusable(),
         contentPadding = PaddingValues(vertical = 160.dp)
@@ -320,11 +382,26 @@ private fun SyncedLyrics(
                 )
             }
         }
+        if (providerCredit != null) {
+            item(key = "lyrics_credit") {
+                Text(
+                    text = providerCredit,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.45f),
+                    modifier = Modifier.padding(top = 28.dp, bottom = 48.dp)
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun PlainLyrics(lyrics: String) {
+private fun PlainLyrics(
+    lyrics: String,
+    providerCredit: String?,
+    controlBarFocusRequester: FocusRequester?,
+    onFocusChange: (Boolean) -> Unit
+) {
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val stepPx = with(LocalDensity.current) { 120.dp.toPx() }
@@ -338,9 +415,19 @@ private fun PlainLyrics(lyrics: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .onFocusChanged { isFocused = it.isFocused }
+            .onFocusChanged {
+                isFocused = it.isFocused
+                onFocusChange(it.isFocused)
+            }
             .onKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                if (event.key == Key.DirectionLeft) {
+                    try {
+                        controlBarFocusRequester?.requestFocus()
+                    } catch (_: Exception) {
+                    }
+                    return@onKeyEvent true
+                }
                 when (event.key) {
                     Key.DirectionDown -> {
                         if (!scrollState.canScrollForward) return@onKeyEvent false
@@ -357,16 +444,27 @@ private fun PlainLyrics(lyrics: String) {
             }
             .focusable()
     ) {
-        Text(
-            text = lyrics,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White.copy(alpha = textAlpha),
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState, enabled = false)
                 .padding(end = 24.dp, top = 48.dp, bottom = 48.dp)
-        )
+        ) {
+            Text(
+                text = lyrics,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = textAlpha)
+            )
+            if (providerCredit != null) {
+                Spacer(Modifier.height(32.dp))
+                Text(
+                    text = providerCredit,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.45f)
+                )
+            }
+        }
 
         // Thin scroll indicator on the right edge, shown only while focused.
         BoxWithConstraints(

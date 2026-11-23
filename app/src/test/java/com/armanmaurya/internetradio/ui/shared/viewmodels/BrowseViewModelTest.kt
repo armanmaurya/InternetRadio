@@ -177,7 +177,7 @@ class BrowseViewModelTest {
 
         override suspend fun getCountries(): Result<List<Country>> = Result.success(emptyList())
         override suspend fun getLanguages(filter: String?): Result<List<Language>> = Result.success(emptyList())
-        override suspend fun getTags(filter: String?): Result<List<Tag>> = Result.success(emptyList())
+        override suspend fun getTags(filter: String?, prioritizeLocal: Boolean): Result<List<Tag>> = Result.success(emptyList())
         override suspend fun registerClick(stationUuid: String) {}
         override suspend fun getStationsByUuid(uuids: List<String>): Result<List<RadioStation>> = Result.success(emptyList())
         override suspend fun getStationsByUrl(url: String): Result<List<RadioStation>> = Result.success(emptyList())
