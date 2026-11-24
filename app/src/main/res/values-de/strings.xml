@@ -22,6 +22,7 @@
     <string name="cd_back">Zurück</string>
     <string name="cd_preview">Vorschau</string>
     <string name="cd_close_search">Suche schließen</string>
+    <string name="cd_close">Schließen</string>
     <string name="cd_search">Suchen</string>
     <string name="cd_clear_search">Suche löschen</string>
     <string name="cd_delete">Löschen</string>
@@ -78,6 +79,8 @@
     <string name="settings_disable_update_check_desc">Suche beim Start nicht automatisch nach App-Aktualisierungen</string>
     <string name="settings_auto_play">Automatisches Abspielen beim Start</string>
     <string name="settings_auto_play_desc">Beim Start der App den zuletzt gehörten Sender abspielen</string>
+    <string name="settings_auto_switch_on_stream_end">Sender automatisch bei Ende wechseln</string>
+    <string name="settings_auto_switch_on_stream_end_desc">Den nächsten Sender abspielen, wenn der Stream endet</string>
     <string name="settings_tv_screensaver">Bildschirmschoner</string>
     <string name="settings_about_foss_edition">FOSS Edition</string>
     <string name="settings_about_play_edition">Google Play Edition</string>
@@ -140,6 +143,28 @@
     <string name="import_part_station">Sender</string>
     <string name="import_part_station_new">Zur Bibliothek hinzufügen</string>
     <string name="import_part_station_existing">Sender überschreiben</string>
+    <string name="import_mode_update">Aktualisierung</string>
+    <string name="import_mode_replace">Ersetzung</string>
+    <string name="import_field_stream_url">Stream-URL</string>
+    <string name="import_field_station_name">Name</string>
+    <string name="import_field_tags">Tags</string>
+    <string name="import_field_icon">Icon</string>
+    <string name="import_field_homepage">Homepage</string>
+    <string name="import_field_country">Land</string>
+    <string name="import_field_language">Sprache</string>
+    <string name="import_field_audio">Audioformat</string>
+    <string name="import_field_details">Details</string>
+    <string name="import_diff_updating">Aktualisierung</string>
+    <string name="import_diff_replacing">Ersetzen</string>
+    <string name="import_diff_same">Identisch</string>
+    <string name="import_diff_skipped">Übersprungen</string>
+    <string name="import_diff_none">Nichts</string>
+    <string name="import_diff_keeps_existing_icon">Behält existierendes Icon</string>
+    <string name="import_diff_clears_tags">Löscht Tags</string>
+    <string name="import_diff_clears_languages">Löscht Sprachen</string>
+    <string name="import_diff_clears_icon">Löscht Icon</string>
+    <string name="import_diff_update_icon">Icon aus Datei aktualisieren</string>
+    <string name="import_diff_replace_icon">Durch Datei-Icon ersetzen</string>
     <string name="import_part_history">Titelverlauf</string>
     <string name="import_part_starred">Favorisierte Titel</string>
     <plurals name="import_plays">
@@ -178,7 +203,11 @@
         <item quantity="other">%1$d Sekunden</item>
     </plurals>
     <string name="settings_import_title">Sender importieren</string>
-    <string name="settings_import_subtitle">Sender aus einer Sicherungsdatei wiederherstellen</string>
+    <string name="settings_import_subtitle">Von einer einer Sicherungsdatei oder kompatiblen Anwendung</string>
+    <string name="import_source_internetradio">Internet Radio</string>
+    <string name="import_source_internetradio_ext">.json</string>
+    <string name="import_source_radiodroid">RadioDroid</string>
+    <string name="import_source_radiodroid_ext">.m3u, .m3u8</string>
     <string name="settings_imported">Importiert: %1$d</string>
     <string name="settings_imported_empty">Keine Änderungen — Alle Sender existieren bereits</string>
     <plurals name="settings_imported_failed">
@@ -273,6 +302,7 @@
     <string name="home_no_recent_stations_filtered">Keine kürzlich abgespielten Sender entsprechen den Filtern.</string>
     <string name="home_no_recent_stations">Keine kürzlich abgespielten Sender.</string>
     <string name="home_no_stations_found_for">Für \"%1$s\" wurden keine Sender gefunden.</string>
+    <string name="home_no_stations_found">Keinen Sender gefunden</string>
     <string name="home_no_library_stations_filter">Mit dem Filter wurden keine Sender in der Bibliothek gefunden.</string>
     <string name="home_no_library_stations_yet">Noch keine Sender in der Bibliothek.</string>
     <string name="home_clear_recent_title">Verlauf löschen?</string>
@@ -534,6 +564,28 @@
     <string name="shortcut_not_supported">Der Startbildschirm unterstützt keine angehefteten Verknüpfungen</string>
     <string name="lyrics_powered_by">Powered by</string>
     <!-- <string name="lyrics_provider_lrclib" translatable="false">LRCLIB</string> -->
+    <string name="lyrics_downloaded_success">Songtext erfolgreich gespeichert</string>
+    <string name="lyrics_download_failed">Songtext konnten nicht gespeichert werden</string>
+    <string name="lyrics_download">Songtext herunterladen</string>
+    <string name="lyrics_word">Wort</string>
+    <string name="lyrics_line">Zeile</string>
+    <string name="lyrics_word_synced">Wort</string>
+    <string name="lyrics_line_synced">Zeile</string>
+    <string name="lyrics_plain">Unformatiert</string>
+    <string name="lyrics_providers_title">Songtextanbieter</string>
+    <string name="lyrics_providers_subtitle">Songtextquellen und Priorität der Ersatzquellen konfigurieren</string>
+    <string name="lyrics_providers_description">Ziehen um die Anbieter-Suchpriorität festzulegen. Der Player sucht zuerst beim obersten Anbieter nach dem Songtext und wechselt bei Bedarf der Reihe nach zu den darunterliegenden Anbietern.</string>
+    <string name="cd_reorder_lyrics_provider">Anbieter neu anordnen</string>
+    <string name="lyrics_options_title">Anbieter</string>
+    <string name="lyrics_track_title">Songtext-Titel</string>
+    <string name="lyrics_artist_name">Interpret (optional)</string>
+    <string name="lyrics_search_action">Suche</string>
+    <string name="lyrics_reset_action">Songtext zurücksetzen</string>
+    <string name="lyrics_provider_auto">Automatisch (Empfohlen)</string>
+    <string name="lyrics_provider_auto_subtitle">Automatisch die höchste Qualität auswählen</string>
+    <string name="lyrics_provider_not_found">Kein Songtext gefunden</string>
+    <string name="lyrics_search_query_button">Suchen oder Suchanfrage bearbeiten</string>
+    <string name="lyrics_cd_options">Songtextoptionen und Suche</string>
 
     <string name="review_message_foss">Gefällt Dir Internet Radio? Bitte ziehe in Betracht das Projekt zu unterstützen indem du es auf GitHub folgst/einen Stern vergibst. Deine Unterstützung bedeutet uns sehr viel!</string>
     <string name="review_message_play">Gefällt Dir Internet Radio? Bitte nimm Dir etwas Zeit um die App zu bewerten. Deine Unterstützung bedeutet uns sehr viel!</string>
