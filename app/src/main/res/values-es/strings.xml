@@ -563,4 +563,7 @@
     <string name="lyrics_provider_not_found">No se encontraron letras</string>
     <string name="lyrics_search_query_button">Buscar o editar consulta</string>
     <string name="lyrics_cd_options">Opciones de letras y búsqueda</string>
+    <string name="settings_auto_switch_on_stream_end">Cambio automático de emisora</string>
+    <string name="settings_auto_switch_on_stream_end_desc">Reproducir la siguiente emisora si finaliza la transmisión</string>
+    <string name="home_no_stations_found">No se encontraron emisoras</string>
 </resources>
