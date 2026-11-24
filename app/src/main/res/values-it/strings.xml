@@ -563,4 +563,7 @@
     <string name="lyrics_provider_not_found">Nessun testo trovato</string>
     <string name="lyrics_search_query_button">Cerca o modifica richiesta</string>
     <string name="lyrics_cd_options">Opzioni dei testi e ricerca</string>
+    <string name="settings_auto_switch_on_stream_end">Cambio automatico di stazione</string>
+    <string name="settings_auto_switch_on_stream_end_desc">Riproduci la stazione successiva se termina lo streaming</string>
+    <string name="home_no_stations_found">Nessuna stazione trovata</string>
 </resources>
