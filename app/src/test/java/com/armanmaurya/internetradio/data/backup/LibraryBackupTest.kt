@@ -127,4 +127,27 @@ class LibraryBackupTest {
         assertEquals(1000L, stars.single().starredAt)
         assertEquals(2, station.tracks!!.size)
     }
+
+    @Test
+    fun `station volume level round trips and defaults to 1_0f for legacy backups`() {
+        val entity = StationEntity(
+            stationUuid = "s-vol",
+            name = "Quiet FM",
+            url = "https://quiet.example.com",
+            volumeLevel = 1.45f
+        )
+        val json = Gson().toJson(LibraryBackup(stations = listOf(entity.toBackupStation())))
+        val restoredEntity = Gson().fromJson(json, LibraryBackup::class.java)
+            .stations!!.single()
+            .toStationEntity()
+
+        assertEquals(1.45f, restoredEntity.volumeLevel, 0.001f)
+
+        val legacyStation = BackupStation(
+            stationUuid = "s-legacy",
+            name = "Legacy FM",
+            url = "https://legacy.example.com"
+        ).toStationEntity()
+        assertEquals(1.0f, legacyStation.volumeLevel, 0.001f)
+    }
 }

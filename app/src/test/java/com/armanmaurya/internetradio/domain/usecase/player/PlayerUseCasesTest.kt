@@ -128,6 +128,7 @@ class PlayerUseCasesTest {
     fun setPlayerVolumeUseCase_updatesVolume() {
         setPlayerVolumeUseCase(0.75f)
         assertEquals(0.75f, fakePlayerController.currentVolume, 0.001f)
+        assertTrue(fakePlayerController.lastPersistForStation)
     }
 
     @Test
@@ -162,6 +163,7 @@ class PlayerUseCasesTest {
         var sleepTimerDuration: Long? = null
         var cancelSleepTimerCalled = false
         var currentVolume: Float = 1f
+        var lastPersistForStation: Boolean = false
 
         override fun play(
             stations: List<RadioStation>,
@@ -196,8 +198,9 @@ class PlayerUseCasesTest {
         override fun cancelSleepTimer() {
             cancelSleepTimerCalled = true
         }
-        override fun setVolume(volume: Float) {
+        override fun setVolume(volume: Float, persistForStation: Boolean) {
             this.currentVolume = volume
+            this.lastPersistForStation = persistForStation
         }
         override fun setLyricsSyncOffset(offsetMs: Long) {}
         override fun syncAndroidAutoContext(
@@ -218,6 +221,7 @@ class PlayerUseCasesTest {
         override suspend fun addRecentStation(station: RadioStation) {
             recentStations.add(station)
         }
+        override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {}
         override suspend fun removeRecent(stationUuid: String) {}
         override suspend fun clearAllRecent() {}
         override suspend fun trimToLimit() {}

@@ -27,7 +27,7 @@ interface PlayerController {
     fun previous()
     fun pause()
     fun togglePlayPause()
-    fun setVolume(volume: Float)
+    fun setVolume(volume: Float, persistForStation: Boolean = false)
     fun stop()
     fun setSleepTimer(durationMillis: Long)
     fun cancelSleepTimer()

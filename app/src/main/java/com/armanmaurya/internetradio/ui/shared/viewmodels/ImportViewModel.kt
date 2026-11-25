@@ -453,7 +453,8 @@ class ImportViewModel @Inject constructor(
                                         countryCode = if (diff.countryDiffers && !diff.updateCountry) existing.countryCode else fromFile.countryCode,
                                         languageCodes = if (diff.languageDiffers && !diff.updateLanguage) existing.languageCodes else fromFile.languageCodes,
                                         codec = if (diff.audioDiffers && !diff.updateAudio) existing.codec else fromFile.codec,
-                                        bitrate = if (diff.audioDiffers && !diff.updateAudio) existing.bitrate else fromFile.bitrate
+                                        bitrate = if (diff.audioDiffers && !diff.updateAudio) existing.bitrate else fromFile.bitrate,
+                                        volumeLevel = source.station.volumeLevel?.let { fromFile.volumeLevel } ?: existing.volumeLevel
                                     )
                                 }
                             } else {

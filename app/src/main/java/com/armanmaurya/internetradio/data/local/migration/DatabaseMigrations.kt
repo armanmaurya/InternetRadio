@@ -223,6 +223,12 @@ object DatabaseMigrations {
             database.execSQL(
                 "CREATE INDEX IF NOT EXISTS `index_track_history_stationUuid_timestamp` ON `track_history` (`stationUuid`, `timestamp`)"
             )
+            database.execSQL(
+                "ALTER TABLE `stations` ADD COLUMN `volumeLevel` REAL NOT NULL DEFAULT 1.0"
+            )
+            database.execSQL(
+                "ALTER TABLE `recent_stations` ADD COLUMN `volumeLevel` REAL DEFAULT NULL"
+            )
         }
     }
 

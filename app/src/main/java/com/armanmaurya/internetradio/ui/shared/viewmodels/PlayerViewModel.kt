@@ -556,8 +556,8 @@ class PlayerViewModel @Inject constructor(
                 val isCasting = device != null
                 if (isCasting) playerController.setVolume(0f)
                 if (wasCasting && !isCasting) {
-                    playerController.setVolume(1f)
                     val station = playbackSession.value.currentStation
+                    playerController.setVolume(station?.volumeLevel ?: 1f)
                     if (station != null) {
                         playerController.play(listOf(station), 0, playWhenReady = true)
                     }
@@ -582,9 +582,11 @@ class PlayerViewModel @Inject constructor(
             } else {
                 val codecToSave = session.streamCodec ?: station.codec
                 val bitrateToSave = session.streamBitrate ?: station.bitrate
+                val currentVolume = if (connectedCastDevice.value == null) session.volume else 1.0f
                 val stationToSave = station.copy(
                     codec = codecToSave,
-                    bitrate = bitrateToSave
+                    bitrate = bitrateToSave,
+                    volumeLevel = station.volumeLevel ?: currentVolume
                 )
                 libraryRepository.addStationToLibrary(stationToSave)
                 playerController.updateCurrentStation(stationToSave)
@@ -749,8 +751,8 @@ class PlayerViewModel @Inject constructor(
 
     fun disconnectCastDevice() {
         disconnectCastDeviceUseCase()
-        playerController.setVolume(1f)
         val station = playbackSession.value.currentStation
+        playerController.setVolume(station?.volumeLevel ?: 1f)
         if (station != null) {
             playerController.play(listOf(station), 0)
         }

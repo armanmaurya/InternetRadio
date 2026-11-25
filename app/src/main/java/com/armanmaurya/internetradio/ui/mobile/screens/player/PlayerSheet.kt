@@ -584,20 +584,6 @@ fun PlayerSheetContent(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .clickable(enabled = progress < 0.1f, onClick = onExpand)
         ) {
-            if (MaterialTheme.colorScheme.surfaceContainerLow == androidx.compose.ui.graphics.Color.Black) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                            androidx.compose.foundation.shape.RoundedCornerShape(
-                                topStart = 28.dp,
-                                topEnd = 28.dp
-                            )
-                        )
-                )
-            }
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
         

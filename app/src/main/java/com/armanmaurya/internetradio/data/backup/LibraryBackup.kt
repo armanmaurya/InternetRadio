@@ -52,6 +52,7 @@ data class BackupStation(
     val iso3166_2: String? = null,
     val geoLat: Double? = null,
     val geoLong: Double? = null,
+    val volumeLevel: Float? = null,
     val tracks: List<BackupTrack>? = null,
     val starredTracks: List<BackupStarredTrack>? = null
 ) {
@@ -99,7 +100,8 @@ data class BackupStation(
             geoLat = geoLat,
             geoLong = geoLong,
             orderIndex = 0,
-            lastPlayedAt = null
+            lastPlayedAt = null,
+            volumeLevel = volumeLevel?.takeIf { !it.isNaN() }?.coerceIn(0f, 2f) ?: 1.0f
         )
     }
 }
@@ -125,6 +127,7 @@ fun StationEntity.toBackupStation(
         iso3166_2 = iso3166_2,
         geoLat = geoLat,
         geoLong = geoLong,
+        volumeLevel = volumeLevel,
         tracks = tracks,
         starredTracks = starredTracks
     )

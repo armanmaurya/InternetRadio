@@ -32,7 +32,9 @@ data class StationEntity(
     val addedAt: Long? = null,
     @ColumnInfo(defaultValue = "0")
     val orderIndex: Int = 0,
-    val lastPlayedAt: Long? = null
+    val lastPlayedAt: Long? = null,
+    @ColumnInfo(defaultValue = "1.0")
+    val volumeLevel: Float = 1.0f
 )
 
 fun StationEntity.toDomain() = RadioStation(
@@ -66,7 +68,8 @@ fun StationEntity.toDomain() = RadioStation(
     geoLong = geoLong,
     geoDistance = null,
     hasExtendedInfo = false,
-    isCustom = isCustom
+    isCustom = isCustom,
+    volumeLevel = volumeLevel
 )
 
 // The stations table only holds library stations; recents live in recent_stations
@@ -94,5 +97,6 @@ fun RadioStation.toEntity(
     isFavorite = isFavorite,
     addedAt = addedAt,
     orderIndex = orderIndex,
-    lastPlayedAt = lastPlayedAt
+    lastPlayedAt = lastPlayedAt,
+    volumeLevel = volumeLevel ?: 1.0f
 )

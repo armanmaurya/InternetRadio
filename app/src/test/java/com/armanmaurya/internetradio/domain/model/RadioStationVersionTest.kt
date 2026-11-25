@@ -34,4 +34,11 @@ class RadioStationVersionTest {
         assertFalse(browseVersion.copy(stationUuid = "station-b").isSameVersionAs(browseVersion))
         assertFalse(browseVersion.isSameVersionAs(null))
     }
+
+    @Test
+    fun browseAndLibraryVolume_areDifferentVersions() {
+        val libraryVersion = browseVersion.copy(volumeLevel = 1.0f)
+        assertFalse(libraryVersion.isSameVersionAs(browseVersion))
+        assertTrue(libraryVersion.isSameVersionAs(browseVersion.copy(volumeLevel = 1.0f)))
+    }
 }

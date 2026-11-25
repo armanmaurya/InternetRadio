@@ -68,6 +68,9 @@ interface StationDao {
     @Query("DELETE FROM stations WHERE stationUuid = :stationUuid")
     suspend fun deleteStationById(stationUuid: String)
 
+    @Query("UPDATE stations SET volumeLevel = :volumeLevel WHERE stationUuid = :stationUuid")
+    suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float)
+
     // Play time used by the library "recently played" sort; recents live in RecentStationDao
     @Query("UPDATE stations SET lastPlayedAt = :timestamp WHERE stationUuid = :stationUuid")
     suspend fun updateLastPlayed(stationUuid: String, timestamp: Long)

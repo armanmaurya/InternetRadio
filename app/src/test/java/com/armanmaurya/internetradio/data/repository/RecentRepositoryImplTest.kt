@@ -28,8 +28,8 @@ class RecentRepositoryImplTest {
     private lateinit var settingsRepository: FakeSettingsRepository
     private lateinit var repository: RecentRepositoryImpl
 
-    private val browseVersion = createStation(name = "Rock FM", url = "http://browse.example.com/stream")
-    private val libraryVersion = createStation(name = "My Rock FM", url = "http://edited.example.com/stream")
+    private val browseVersion = createStation(name = "Rock FM", url = "http://browse.example.com/stream", volumeLevel = null)
+    private val libraryVersion = createStation(name = "My Rock FM", url = "http://edited.example.com/stream", volumeLevel = 0.7f)
 
     @Before
     fun setUp() {
@@ -121,6 +121,22 @@ class RecentRepositoryImplTest {
         assertEquals(listOf("station-3"), repository.getAllRecent().first().map { it.stationUuid })
     }
 
+    @Test
+    fun volumeLevel_preservedForLibraryAndNullForBrowse() = runTest {
+        repository.addRecentStation(libraryVersion)
+        assertEquals(0.7f, repository.getStationById(STATION_UUID)?.volumeLevel)
+
+        repository.updateStationVolume(STATION_UUID, 0.45f)
+        assertEquals(0.45f, repository.getStationById(STATION_UUID)?.volumeLevel)
+
+        repository.addRecentStation(browseVersion)
+        assertEquals(null, repository.getStationById(STATION_UUID)?.volumeLevel)
+
+        // Updating volume when recent holds Browse copy (null) keeps it null
+        repository.updateStationVolume(STATION_UUID, 0.8f)
+        assertEquals(null, repository.getStationById(STATION_UUID)?.volumeLevel)
+    }
+
     private class FakeRecentStationDao : RecentStationDao {
         private val stations = MutableStateFlow<Map<String, RecentStationEntity>>(emptyMap())
         private var clock = 0L
@@ -143,6 +159,13 @@ class RecentRepositoryImplTest {
         override suspend fun getStationById(stationUuid: String): RecentStationEntity? = stations.value[stationUuid]
 
         override suspend fun updateStationUuid(oldUuid: String, newUuid: String) {}
+
+        override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {
+            val current = stations.value[stationUuid] ?: return
+            if (current.volumeLevel != null) {
+                stations.value = stations.value + (stationUuid to current.copy(volumeLevel = volumeLevel))
+            }
+        }
 
         override suspend fun deleteStationById(stationUuid: String) {
             stations.value = stations.value - stationUuid
@@ -181,6 +204,9 @@ class RecentRepositoryImplTest {
             stations.remove(stationUuid)
         }
         override suspend fun nextOrderIndex(): Int = (stations.values.maxOfOrNull { it.orderIndex } ?: -1) + 1
+        override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {
+            stations[stationUuid]?.let { stations[stationUuid] = it.copy(volumeLevel = volumeLevel) }
+        }
         override suspend fun updateLastPlayed(stationUuid: String, timestamp: Long) {
             stations[stationUuid]?.let { stations[stationUuid] = it.copy(lastPlayedAt = timestamp) }
         }
@@ -189,7 +215,8 @@ class RecentRepositoryImplTest {
     private fun createStation(
         uuid: String = STATION_UUID,
         name: String,
-        url: String
+        url: String,
+        volumeLevel: Float? = null
     ) = RadioStation(
         changeUuid = "",
         stationUuid = uuid,
@@ -220,7 +247,8 @@ class RecentRepositoryImplTest {
         geoLat = null,
         geoLong = null,
         geoDistance = null,
-        hasExtendedInfo = false
+        hasExtendedInfo = false,
+        volumeLevel = volumeLevel
     )
 
     private companion object {

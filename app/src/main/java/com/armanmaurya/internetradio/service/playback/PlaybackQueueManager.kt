@@ -5,6 +5,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import com.armanmaurya.internetradio.domain.controller.CastController
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.repository.LibraryRepository
@@ -30,7 +31,9 @@ class PlaybackQueueManager @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val settingsRepository: SettingsRepository,
-    private val playerController: PlayerController
+    private val playerController: PlayerController,
+    private val audioEffectsManager: AudioEffectsManager,
+    private val castController: CastController
 ) : Player.Listener {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -39,12 +42,14 @@ class PlaybackQueueManager @Inject constructor(
     private var libraryStatusJob: Job? = null
     private var showStationThumbnails: Boolean = true
     private var autoSwitchOnStreamEnd: Boolean = false
+    private var isVolumeBoostEnabled: Boolean = false
 
     init {
         scope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 showStationThumbnails = prefs.showStationThumbnails
                 autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
+                isVolumeBoostEnabled = prefs.enableVolumeBoost
             }
         }
     }
@@ -96,9 +101,22 @@ class PlaybackQueueManager @Inject constructor(
                 ?: playlistStation
                 ?: libraryRepository.getLibraryStationById(stationUuid)
             if (station != null) {
+                if (!isScheduled) {
+                    attachedPlayer?.let { applyStationVolumeIfPresent(it, station) }
+                }
                 recentRepository.addRecentStation(station)
             }
         }
+    }
+
+    private fun applyStationVolumeIfPresent(player: Player, station: RadioStation?) {
+        val targetVolume = station?.volumeLevel ?: return
+        if (castController.connectedDevice.value != null) return
+        val maxVolume = if (isVolumeBoostEnabled) 2f else 1f
+        val effectiveVolume = targetVolume.coerceIn(0f, maxVolume)
+        player.volume = effectiveVolume.coerceIn(0f, 1f)
+        val boost = if (isVolumeBoostEnabled && effectiveVolume > 1f) (effectiveVolume - 1f).coerceIn(0f, 1f) else 0f
+        audioEffectsManager.setVolumeBoost(boost)
     }
 
     /**
@@ -115,8 +133,10 @@ class PlaybackQueueManager @Inject constructor(
 
         val mediaItems: List<MediaItem>
         val startIndex: Int
+        val restoredStation: RadioStation
 
         if (libraryIndex != -1) {
+            restoredStation = libraryStations[libraryIndex]
             mediaItems = libraryStations.map { station ->
                 station.toMediaItem(context, showThumbnails = showStationThumbnails)
             }
@@ -126,6 +146,7 @@ class PlaybackQueueManager @Inject constructor(
             val recentIndex =
                 recentStations.indexOfFirst { it.stationUuid == lastStation.stationUuid }
                     .coerceAtLeast(0)
+            restoredStation = recentStations.getOrNull(recentIndex) ?: lastStation
             mediaItems = recentStations.map { station ->
                 station.toMediaItem(context, showThumbnails = showStationThumbnails)
             }
@@ -133,6 +154,8 @@ class PlaybackQueueManager @Inject constructor(
         }
 
         targetPlayer.volume = 1f
+        audioEffectsManager.setVolumeBoost(0f)
+        applyStationVolumeIfPresent(targetPlayer, restoredStation)
         targetPlayer.setMediaItems(mediaItems, startIndex, 0L)
         targetPlayer.playWhenReady = true
         targetPlayer.prepare()

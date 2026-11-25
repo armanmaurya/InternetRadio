@@ -22,6 +22,9 @@ interface RecentStationDao {
     @Query("UPDATE recent_stations SET stationUuid = :newUuid, isCustom = 0 WHERE stationUuid = :oldUuid")
     suspend fun updateStationUuid(oldUuid: String, newUuid: String)
 
+    @Query("UPDATE recent_stations SET volumeLevel = :volumeLevel WHERE stationUuid = :stationUuid AND volumeLevel IS NOT NULL")
+    suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float)
+
     @Query("DELETE FROM recent_stations WHERE stationUuid = :stationUuid")
     suspend fun deleteStationById(stationUuid: String)
 

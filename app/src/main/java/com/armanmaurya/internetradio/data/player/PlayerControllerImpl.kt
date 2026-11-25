@@ -8,6 +8,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.armanmaurya.internetradio.domain.controller.CastController
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.AppPreferences
 import com.armanmaurya.internetradio.domain.model.LibrarySortOption
@@ -17,6 +18,7 @@ import com.armanmaurya.internetradio.domain.model.RadioStation
 import com.armanmaurya.internetradio.domain.model.isSameVersionAs
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import com.armanmaurya.internetradio.service.PlaybackService
+import com.armanmaurya.internetradio.service.playback.EXTRA_SCHEDULED_PLAYBACK
 import com.armanmaurya.internetradio.service.playback.PlaybackSessionCallback
 import com.armanmaurya.internetradio.service.playback.toMediaItem
 import com.armanmaurya.internetradio.service.playback.toRadioStation
@@ -48,6 +50,7 @@ class PlayerControllerImpl @Inject constructor(
     private val stationRepository: StationRepository,
     private val recentRepository: RecentRepository,
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
+    private val castController: CastController,
     private val audioAmplitudeManager: AudioAmplitudeManager
 ) : PlayerController {
     private var controllerFuture = MediaController.Builder(
@@ -201,8 +204,12 @@ class PlayerControllerImpl @Inject constructor(
             
             val tagStation = currentPlaylist.find { it.stationUuid == originalId }
                 ?: mediaItem.toRadioStation()
+            val isScheduled = mediaItem.mediaMetadata.extras?.getBoolean(EXTRA_SCHEDULED_PLAYBACK) == true
 
             if (tagStation != null) {
+                if (activeStation?.stationUuid != tagStation.stationUuid) {
+                    flushPendingVolumeSave()
+                }
                 activeStation = tagStation
                 _isFetchingArtwork.value = false
                 _playbackSession.update { 
@@ -219,6 +226,9 @@ class PlayerControllerImpl @Inject constructor(
                         sessionActiveDurationMs = 0L,
                         sessionResumeTimeMs = null
                     ) 
+                }
+                if (!isScheduled) {
+                    applyStationVolumeIfPresent(tagStation)
                 }
                 scope.launch { recentRepository.addRecentStation(tagStation) }
                 
@@ -333,6 +343,10 @@ class PlayerControllerImpl @Inject constructor(
 
     private var isVolumeBoostEnabled = false
     private var autoSwitchOnStreamEnd = false
+    private var hasObservedBoostPref = false
+    private var volumeSaveJob: Job? = null
+    private var pendingVolumeSaveUuid: String? = null
+    private var pendingVolumeSaveValue: Float = 1.0f
 
     init {
         android.util.Log.d("BlankSheetDebug", "PlayerControllerImpl created")
@@ -348,10 +362,18 @@ class PlayerControllerImpl @Inject constructor(
     private fun observeVolumeBoostPreference() {
         scope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
+                val wasFirstObservation = !hasObservedBoostPref
+                hasObservedBoostPref = true
                 isVolumeBoostEnabled = prefs.enableVolumeBoost
                 autoSwitchOnStreamEnd = prefs.autoSwitchOnStreamEnd
                 if (!prefs.enableVolumeBoost && _playbackSession.value.volume > 1.0f) {
-                    setVolume(1.0f)
+                    applyPlayerVolume(1.0f)
+                } else if (wasFirstObservation && prefs.enableVolumeBoost) {
+                    val station = activeStation
+                    val isScheduled = controller?.currentMediaItem?.mediaMetadata?.extras?.getBoolean(EXTRA_SCHEDULED_PLAYBACK) == true
+                    if (!isScheduled && station?.volumeLevel != null && station.volumeLevel > 1.0f && _playbackSession.value.volume == 1.0f) {
+                        applyStationVolumeIfPresent(station)
+                    }
                 }
             }
         }
@@ -395,9 +417,21 @@ class PlayerControllerImpl @Inject constructor(
 
                     if (station != null) {
                         activeStation = station
+                        val initialVolume = if (
+                            station.volumeLevel != null &&
+                            castController.connectedDevice.value == null &&
+                            currentVolume == 1.0f &&
+                            station.volumeLevel > 1.0f &&
+                            isVolumeBoostEnabled
+                        ) {
+                            station.volumeLevel.coerceIn(0f, 2f)
+                        } else {
+                            currentVolume
+                        }
                         _playbackSession.update { state ->
                             state.copy(
                                 isPlaying = isCurrentlyPlaying,
+                                volume = initialVolume,
                                 currentStation = station,
                                 currentPlaylist = currentPlaylist,
                                 currentPlaylistIndex = currentIndex
@@ -448,12 +482,14 @@ class PlayerControllerImpl @Inject constructor(
 
         if (station.isSameVersionAs(activeStation)) {
             if (player.playbackState == Player.STATE_IDLE) {
+                applyStationVolumeIfPresent(station)
                 player.prepare()
             }
             if (playWhenReady) player.play() else player.pause()
             return
         }
 
+        flushPendingVolumeSave()
         activeStation = station
         _isBuffering.value = playWhenReady
         _playbackSession.update { 
@@ -474,6 +510,7 @@ class PlayerControllerImpl @Inject constructor(
                 sessionResumeTimeMs = null
             ) 
         }
+        applyStationVolumeIfPresent(station)
         
         val mediaItems = stations.map { it.toMediaItem() }
         player.setMediaItems(mediaItems, startIndex, 0L)
@@ -562,7 +599,7 @@ class PlayerControllerImpl @Inject constructor(
         }
     }
 
-    override fun setVolume(volume: Float) {
+    private fun applyPlayerVolume(volume: Float): Float {
         val maxVolume = if (isVolumeBoostEnabled) 2f else 1f
         val effectiveVolume = volume.coerceIn(0f, maxVolume)
         val clampedPlayerVolume = effectiveVolume.coerceIn(0f, 1f)
@@ -571,9 +608,70 @@ class PlayerControllerImpl @Inject constructor(
         val args = android.os.Bundle().apply { putFloat("KEY_BOOST", boost) }
         controller?.sendCustomCommand(PlaybackSessionCallback.COMMAND_SET_VOLUME_BOOST, args)
         _playbackSession.update { it.copy(volume = effectiveVolume) }
+        return effectiveVolume
+    }
+
+    private fun applyStationVolumeIfPresent(station: RadioStation) {
+        val targetVolume = station.volumeLevel ?: return
+        if (castController.connectedDevice.value != null) return
+        applyPlayerVolume(targetVolume)
+    }
+
+    private fun scheduleVolumePersistence(stationUuid: String, volumeLevel: Float) {
+        if (pendingVolumeSaveUuid != null && pendingVolumeSaveUuid != stationUuid) {
+            flushPendingVolumeSave()
+        }
+        volumeSaveJob?.cancel()
+        pendingVolumeSaveUuid = stationUuid
+        pendingVolumeSaveValue = volumeLevel
+        volumeSaveJob = scope.launch {
+            delay(300L)
+            persistStationVolume(stationUuid, volumeLevel)
+            if (pendingVolumeSaveUuid == stationUuid) {
+                pendingVolumeSaveUuid = null
+            }
+        }
+    }
+
+    private fun flushPendingVolumeSave() {
+        val uuid = pendingVolumeSaveUuid ?: return
+        val value = pendingVolumeSaveValue
+        volumeSaveJob?.cancel()
+        volumeSaveJob = null
+        pendingVolumeSaveUuid = null
+        scope.launch {
+            persistStationVolume(uuid, value)
+        }
+    }
+
+    private suspend fun persistStationVolume(stationUuid: String, volumeLevel: Float) {
+        libraryRepository.updateStationVolume(stationUuid, volumeLevel)
+        recentRepository.updateStationVolume(stationUuid, volumeLevel)
+    }
+
+    override fun setVolume(volume: Float, persistForStation: Boolean) {
+        val effectiveVolume = applyPlayerVolume(volume)
+        if (!persistForStation) return
+
+        val station = activeStation ?: return
+        if (station.volumeLevel == null) return
+
+        val updatedStation = station.copy(volumeLevel = effectiveVolume)
+        activeStation = updatedStation
+        currentPlaylist = currentPlaylist.map {
+            if (it.stationUuid == updatedStation.stationUuid) updatedStation else it
+        }
+        _playbackSession.update {
+            it.copy(
+                currentStation = if (it.currentStation?.stationUuid == updatedStation.stationUuid) updatedStation else it.currentStation,
+                currentPlaylist = currentPlaylist
+            )
+        }
+        scheduleVolumePersistence(updatedStation.stationUuid, effectiveVolume)
     }
 
     override fun stop() {
+        flushPendingVolumeSave()
         android.util.Log.w("BlankSheetDebug", "stop() called", Throwable())
         controller?.let { player ->
             player.stop()
@@ -587,7 +685,7 @@ class PlayerControllerImpl @Inject constructor(
         } catch (e: Exception) {
             android.util.Log.e("PlayerController", "Failed to send ACTION_STOP_PLAYBACK to PlaybackService", e)
         }
-        setVolume(1f)
+        applyPlayerVolume(1f)
         cancelSleepTimer()
         _playbackSession.update {
             it.copy(
@@ -624,10 +722,6 @@ class PlayerControllerImpl @Inject constructor(
         _playbackSession.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
     }
 
-    private fun MediaItem.toRadioStation(): RadioStation? {
-        return localConfiguration?.tag as? RadioStation
-    }
-    
     private fun RadioStation.toMediaItem(): MediaItem = toMediaItem(context)
 
     private suspend fun getFilteredLibraryStations(prefs: AppPreferences): List<RadioStation> {

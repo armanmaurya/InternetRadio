@@ -37,6 +37,7 @@ internal class FakeLibraryRepository : LibraryRepository {
     override suspend fun updateStations(stations: List<StationEntity>) {}
     override suspend fun addCustomStation(name: String, url: String, favicon: String, tags: List<String>, countryCode: String, languageCodes: List<String>, homepage: String, iso31662: String?, codec: String, bitrate: Int) {}
     override suspend fun updateStation(stationUuid: String, name: String, url: String, favicon: String, tags: List<String>, countryCode: String, languageCodes: List<String>, homepage: String, iso31662: String?, codec: String, bitrate: Int) {}
+    override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {}
     override suspend fun uploadAndSaveNewStation(name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String> = Result.success("")
     override suspend fun uploadExistingCustomStation(stationUuid: String, name: String, url: String, homepage: String, favicon: String, countryCode: String, iso31662: String?, languageCodes: List<String>, tags: List<String>, codec: String, bitrate: Int): Result<String> = Result.success("")
     override fun getStationsByName(): Flow<List<RadioStation>> = flowOf(emptyList())

@@ -179,6 +179,10 @@ class LibraryRepositoryImpl @Inject constructor(
         stationDao.insertOrUpdate(updated)
     }
 
+    override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {
+        stationDao.updateStationVolume(stationUuid, volumeLevel)
+    }
+
     override suspend fun removeStationFromLibrary(stationUuid: String) {
         stationDao.deleteStationById(stationUuid)
     }

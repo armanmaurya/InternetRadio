@@ -7,6 +7,6 @@ class SetPlayerVolumeUseCase @Inject constructor(
     private val playerController: PlayerController
 ) {
     operator fun invoke(volume: Float) {
-        playerController.setVolume(volume)
+        playerController.setVolume(volume, persistForStation = true)
     }
 }

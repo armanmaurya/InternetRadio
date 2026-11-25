@@ -335,7 +335,7 @@ class RecordingPlaybackControllerTest {
         override fun stop() {}
         override fun setSleepTimer(durationMillis: Long) {}
         override fun cancelSleepTimer() {}
-        override fun setVolume(volume: Float) {}
+        override fun setVolume(volume: Float, persistForStation: Boolean) {}
         override fun setLyricsSyncOffset(offsetMs: Long) {}
         override fun syncAndroidAutoContext(stations: List<RadioStation>, startIndex: Int, source: PlaybackSource) {}
         override fun updateCurrentStation(updatedStation: RadioStation, oldUuid: String?) {}

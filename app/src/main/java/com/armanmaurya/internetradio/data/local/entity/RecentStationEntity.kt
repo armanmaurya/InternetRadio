@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.armanmaurya.internetradio.domain.model.RadioStation
@@ -25,7 +26,9 @@ data class RecentStationEntity(
     val geoLat: Double?,
     val geoLong: Double?,
     val isCustom: Boolean,
-    val lastPlayedAt: Long
+    val lastPlayedAt: Long,
+    @ColumnInfo(defaultValue = "NULL")
+    val volumeLevel: Float? = null
 )
 
 fun RecentStationEntity.toDomain() = RadioStation(
@@ -59,7 +62,8 @@ fun RecentStationEntity.toDomain() = RadioStation(
     geoLong = geoLong,
     geoDistance = null,
     hasExtendedInfo = false,
-    isCustom = isCustom
+    isCustom = isCustom,
+    volumeLevel = volumeLevel
 )
 
 fun RadioStation.toRecentEntity(lastPlayedAt: Long) = RecentStationEntity(
@@ -78,5 +82,6 @@ fun RadioStation.toRecentEntity(lastPlayedAt: Long) = RecentStationEntity(
     geoLat = geoLat,
     geoLong = geoLong,
     isCustom = isCustom,
-    lastPlayedAt = lastPlayedAt
+    lastPlayedAt = lastPlayedAt,
+    volumeLevel = volumeLevel
 )

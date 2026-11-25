@@ -12,6 +12,9 @@ interface RecentRepository {
      */
     suspend fun addRecentStation(station: RadioStation)
 
+    /** Updates the persisted volume for a recent station only if it already stores one. */
+    suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float)
+
     /** Drops the oldest recents beyond the user's limit; called when the limit is lowered. */
     suspend fun trimToLimit()
     suspend fun removeRecent(stationUuid: String)

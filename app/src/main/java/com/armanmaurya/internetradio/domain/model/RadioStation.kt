@@ -32,7 +32,8 @@ data class RadioStation(
     val geoLong: Double?,
     val geoDistance: Double?,
     val hasExtendedInfo: Boolean,
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    val volumeLevel: Float? = null
 )
 
 /**
@@ -45,4 +46,5 @@ fun RadioStation.isSameVersionAs(other: RadioStation?): Boolean =
         name == other.name &&
         url == other.url &&
         urlResolved == other.urlResolved &&
-        favicon == other.favicon
+        favicon == other.favicon &&
+        volumeLevel == other.volumeLevel

@@ -42,6 +42,10 @@ class RecentRepositoryImpl @Inject constructor(
         trimToLimit()
     }
 
+    override suspend fun updateStationVolume(stationUuid: String, volumeLevel: Float) {
+        recentStationDao.updateStationVolume(stationUuid, volumeLevel)
+    }
+
     override suspend fun trimToLimit() {
         val limit = settingsRepository.appPreferencesFlow.first().recentLimit
         recentStationDao.cleanupOldRecents(keepCount = limit)
