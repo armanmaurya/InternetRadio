@@ -146,4 +146,14 @@
     </plurals>
     <string name="settings_imported_skipped">スキップ（重複）: %1$d</string>
     <string name="settings_imported_updated">更新: %1$d</string>
+    <string name="settings_gradual_volume_disabled">オフ</string>
+    <string name="settings_recording_section">録音</string>
+    <string name="settings_recording_time_format_title">ファイル名の時刻形式</string>
+    <string name="settings_time_format_12_hour">12時間制</string>
+    <string name="settings_time_format_24_hour">24時間制</string>
+    <string name="settings_schedule_section">スケジュール</string>
+    <string name="settings_community_section">コミュニティ</string>
+    <string name="settings_community_telegram_title">Telegram コミュニティ</string>
+    <string name="settings_community_telegram_desc">議論に参加し、最新情報を入手し、ラジオ局を共有しましょう</string>
+    <string name="settings_community_reddit_title">Reddit コミュニティ</string>
 </resources>
