@@ -28,6 +28,7 @@ import com.armanmaurya.internetradio.service.playback.createStationMediaItem
 import com.armanmaurya.internetradio.service.playback.engine.AmplitudeAudioProcessor
 import com.armanmaurya.internetradio.service.playback.engine.AudioAmplitudeManager
 import com.armanmaurya.internetradio.service.playback.engine.CoilBitmapLoader
+import com.armanmaurya.internetradio.service.playback.engine.EqualizerAudioProcessor
 import com.armanmaurya.internetradio.service.playback.engine.ExponentialBackoffLoadErrorHandlingPolicy
 import com.armanmaurya.internetradio.service.playback.engine.RetryStateTracker
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
@@ -43,6 +44,7 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import com.armanmaurya.internetradio.core.media.player.RadioPlayer
+import com.armanmaurya.internetradio.domain.repository.EqualizerRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
 import kotlinx.coroutines.Job
 import javax.inject.Inject
@@ -82,6 +84,9 @@ class PlaybackService : MediaLibraryService() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var equalizerRepository: EqualizerRepository
 
     @Inject
     lateinit var widgetUpdater: WidgetUpdater
@@ -198,6 +203,13 @@ class PlaybackService : MediaLibraryService() {
             DefaultMediaSourceFactory(this).setDataSourceFactory(dataSourceFactory)
                 .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
 
+        val equalizerProcessor = EqualizerAudioProcessor()
+        serviceScope.launch {
+            equalizerRepository.equalizerConfig.collect { config ->
+                equalizerProcessor.updateConfig(config)
+            }
+        }
+
         val renderersFactory = object : DefaultRenderersFactory(this) {
             override fun buildAudioSink(
                 context: Context,
@@ -205,7 +217,12 @@ class PlaybackService : MediaLibraryService() {
                 enableAudioTrackPlaybackParams: Boolean
             ): AudioSink? {
                 return DefaultAudioSink.Builder(context)
-                    .setAudioProcessors(arrayOf(AmplitudeAudioProcessor(audioAmplitudeManager::updateAmplitude)))
+                    .setAudioProcessors(
+                        arrayOf(
+                            equalizerProcessor,
+                            AmplitudeAudioProcessor(audioAmplitudeManager::updateAmplitude)
+                        )
+                    )
                     .build()
             }
         }

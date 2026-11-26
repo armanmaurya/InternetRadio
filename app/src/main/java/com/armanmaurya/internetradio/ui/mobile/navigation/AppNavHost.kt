@@ -15,6 +15,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.AppLanguageScreen
+import com.armanmaurya.internetradio.ui.mobile.screens.settings.EqualizerScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.ExportScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.ImportScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.LyricsProvidersScreen
@@ -83,9 +84,16 @@ fun AppNavHost(
                 onBackClick = { navController.popBackStack() },
                 onCheckUpdatesClick = onCheckUpdates,
                 onLanguageClick = { navController.navigate(AppDestination.AppLanguage.route) },
+                onEqualizerClick = { navController.navigate(AppDestination.Equalizer.route) },
                 onLyricsProvidersClick = { navController.navigate(AppDestination.LyricsProviders.route) },
                 onImportClick = { navController.navigate(AppDestination.ImportStations.route) },
                 onExportClick = { navController.navigate(AppDestination.ExportStations.route) },
+                contentPadding = contentPadding
+            )
+        }
+        composable(AppDestination.Equalizer.route) {
+            EqualizerScreen(
+                onBackClick = { navController.popBackStack() },
                 contentPadding = contentPadding
             )
         }

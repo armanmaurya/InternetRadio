@@ -62,6 +62,7 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Image
@@ -95,9 +96,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -111,12 +114,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.domain.model.AppPreferences
+import com.armanmaurya.internetradio.domain.model.EqualizerConfig
 import com.armanmaurya.internetradio.domain.model.RecordingTimeFormat
 import com.armanmaurya.internetradio.domain.model.StartOfWeek
+import com.armanmaurya.internetradio.ui.shared.components.equalizerPresetLabelRes
+import com.armanmaurya.internetradio.ui.shared.viewmodels.EqualizerViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.message
@@ -138,17 +146,20 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    equalizerViewModel: EqualizerViewModel = hiltViewModel(),
     importViewModel: ImportViewModel = hiltViewModel(),
     exportViewModel: ExportViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onCheckUpdatesClick: () -> Unit = {},
     onLanguageClick: () -> Unit = {},
+    onEqualizerClick: () -> Unit = {},
     onLyricsProvidersClick: () -> Unit = {},
     onImportClick: () -> Unit = {},
     onExportClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val equalizerUiState by equalizerViewModel.uiState.collectAsState()
 
     // UI-only state for expand/collapse
     var expandedItem by remember { mutableStateOf<String?>(null) }
@@ -257,6 +268,9 @@ fun SettingsScreen(
                 onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
                 onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 onSetMaxRetryDuration = viewModel::setMaxRetryDuration,
+                equalizerConfig = equalizerUiState.config,
+                onSetEqualizerEnabled = equalizerViewModel::setEnabled,
+                onEqualizerClick = onEqualizerClick,
                 onLyricsProvidersClick = onLyricsProvidersClick,
                 topShape = topShape,
                 middleShape = middleShape,
@@ -727,6 +741,9 @@ private fun PlayerSection(
     onToggleHistoryLimitDialog: () -> Unit,
     onSetHistoryLimit: (Int) -> Unit,
     onSetMaxRetryDuration: (Long) -> Unit,
+    equalizerConfig: EqualizerConfig,
+    onSetEqualizerEnabled: (Boolean) -> Unit,
+    onEqualizerClick: () -> Unit,
     onLyricsProvidersClick: () -> Unit,
     topShape: RoundedCornerShape,
     middleShape: RoundedCornerShape,
@@ -802,6 +819,15 @@ private fun PlayerSection(
                 }
             )
         }
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+
+        EqualizerSettingsItem(
+            equalizerConfig = equalizerConfig,
+            shape = middleShape,
+            onEnabledChange = onSetEqualizerEnabled,
+            onClick = onEqualizerClick
+        )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 
@@ -1520,5 +1546,45 @@ private fun ScheduleSection(
             }
         }
     }
+}
+
+@Composable
+internal fun EqualizerSettingsItem(
+    equalizerConfig: EqualizerConfig,
+    shape: RoundedCornerShape,
+    onEnabledChange: (Boolean) -> Unit,
+    onClick: () -> Unit
+) {
+    val equalizerSubtitle = if (equalizerConfig.enabled) {
+        stringResource(equalizerPresetLabelRes(equalizerConfig.presetId))
+    } else {
+        stringResource(R.string.settings_equalizer_off)
+    }
+    val equalizerToggleDesc = stringResource(R.string.settings_equalizer_enable_label)
+    Item(
+        title = stringResource(R.string.settings_equalizer_title),
+        subtitle = equalizerSubtitle,
+        onClick = onClick,
+        icon = Icons.Default.Equalizer,
+        shape = shape,
+        trailingContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                VerticalDivider(
+                    modifier = Modifier.height(28.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                Switch(
+                    checked = equalizerConfig.enabled,
+                    onCheckedChange = onEnabledChange,
+                    modifier = Modifier.semantics {
+                        contentDescription = equalizerToggleDesc
+                    }
+                )
+            }
+        }
+    )
 }
 

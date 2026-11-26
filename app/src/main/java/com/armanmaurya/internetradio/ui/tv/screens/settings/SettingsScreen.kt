@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Refresh
@@ -44,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -60,8 +63,11 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.RadioButton
 import androidx.tv.material3.Text
 import com.armanmaurya.internetradio.R
+import com.armanmaurya.internetradio.domain.model.EqualizerConfig
 import com.armanmaurya.internetradio.domain.model.RadioStation
+import com.armanmaurya.internetradio.ui.shared.components.equalizerPresetLabelRes
 import com.armanmaurya.internetradio.ui.shared.theme.AppColor
+import com.armanmaurya.internetradio.ui.shared.viewmodels.EqualizerViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ExportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.ImportViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.message
@@ -69,7 +75,7 @@ import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 
 /** Sub-pages opened from the main settings list, Google TV style (drill in, Back returns). */
 private enum class SettingsPage {
-    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, MAX_RETRY, VOLUME_BOOST_WARNING, IMPORT, EXPORT, IMPORT_SOURCE
+    COLOR, SCREENSAVER, DEFAULT_TAB, TRACK_HISTORY_LIMIT, RECENT_LIMIT, EQUALIZER, MAX_RETRY, VOLUME_BOOST_WARNING, IMPORT, EXPORT, IMPORT_SOURCE
 }
 
 private val TrackHistoryPresets = listOf(25, 50, 100, 200, 500, 1000)
@@ -82,6 +88,7 @@ private val SettingsColumnMaxWidth = 720.dp
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    equalizerViewModel: EqualizerViewModel = hiltViewModel(),
     onAboutClick: () -> Unit,
     onAppLanguageClick: () -> Unit,
     onPlayStation: (RadioStation) -> Unit = {},
@@ -89,6 +96,7 @@ fun SettingsScreen(
     isPlaybackActive: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val equalizerUiState by equalizerViewModel.uiState.collectAsState()
     val importViewModel: ImportViewModel = hiltViewModel()
     val exportViewModel: ExportViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -154,6 +162,7 @@ fun SettingsScreen(
             listState = mainListState,
             returnFocusTo = returnFocusTo,
             prefs = uiState,
+            equalizerConfig = equalizerUiState.config,
             onOpenPage = { openPage = it },
             onSetAutoPlay = viewModel::setAutoPlayOnStart,
             onSetAutoSwitchOnStreamEnd = viewModel::setAutoSwitchOnStreamEnd,
@@ -235,6 +244,8 @@ fun SettingsScreen(
             },
             onDone = ::closePage
         )
+
+        SettingsPage.EQUALIZER -> TvEqualizerPage(viewModel = equalizerViewModel)
 
         SettingsPage.MAX_RETRY -> SettingsOptionsPage(
             title = stringResource(R.string.settings_max_retry_duration),
@@ -322,6 +333,7 @@ private fun SettingsMainList(
     listState: LazyListState,
     returnFocusTo: SettingsPage?,
     prefs: AppPreferences,
+    equalizerConfig: EqualizerConfig,
     onOpenPage: (SettingsPage) -> Unit,
     onSetAutoPlay: (Boolean) -> Unit,
     onSetAutoSwitchOnStreamEnd: (Boolean) -> Unit,
@@ -445,6 +457,26 @@ private fun SettingsMainList(
                     checked = prefs.enableVolumeBoost,
                     onCheckedChange = onSetVolumeBoost,
                     modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.VOLUME_BOOST_WARNING))
+                )
+            }
+            item {
+                val eqValue = if (equalizerConfig.enabled) {
+                    stringResource(equalizerPresetLabelRes(equalizerConfig.presetId))
+                } else {
+                    stringResource(R.string.settings_equalizer_off)
+                }
+                SettingsRow(
+                    title = stringResource(R.string.settings_equalizer_title),
+                    value = eqValue,
+                    icon = Icons.Default.Equalizer,
+                    onClick = { onOpenPage(SettingsPage.EQUALIZER) },
+                    trailingPrefix = {
+                        Switch(
+                            checked = equalizerConfig.enabled,
+                            onCheckedChange = null
+                        )
+                    },
+                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.EQUALIZER))
                 )
             }
             item {
@@ -574,13 +606,14 @@ internal fun SettingsSectionHeader(title: String) {
 }
 
 @Composable
-private fun SettingsRow(
+internal fun SettingsRow(
     title: String,
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     value: String? = null,
-    showChevron: Boolean = true
+    showChevron: Boolean = true,
+    trailingPrefix: (@Composable () -> Unit)? = null
 ) {
     ListItem(
         selected = false,
@@ -588,8 +621,18 @@ private fun SettingsRow(
         headlineContent = { Text(title) },
         supportingContent = value?.let { { Text(it, maxLines = 1) } },
         leadingContent = { Icon(imageVector = icon, contentDescription = null) },
-        trailingContent = if (showChevron) {
-            { Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
+        trailingContent = if (trailingPrefix != null || showChevron) {
+            {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    trailingPrefix?.invoke()
+                    if (showChevron) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    }
+                }
+            }
         } else null,
         scale = ListItemDefaults.scale(focusedScale = 1.02f),
         modifier = modifier.fillMaxWidth()

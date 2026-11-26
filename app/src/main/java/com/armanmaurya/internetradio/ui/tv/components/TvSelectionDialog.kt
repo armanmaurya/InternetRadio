@@ -3,9 +3,12 @@ package com.armanmaurya.internetradio.ui.tv.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -64,21 +67,28 @@ fun TvSelectionDialog(
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
                 )
-                options.forEachIndexed { index, option ->
-                    ListItem(
-                        selected = false,
-                        onClick = {
-                            option.onClick()
-                            onDismiss()
-                        },
-                        headlineContent = { Text(option.label) },
-                        leadingContent = { RadioButton(selected = option.selected, onClick = null) },
-                        trailingContent = option.trailing,
-                        scale = ListItemDefaults.scale(focusedScale = 1.02f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .then(if (index == selectedIndex) Modifier.focusRequester(selectedFocus) else Modifier)
-                    )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .heightIn(max = 380.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    options.forEachIndexed { index, option ->
+                        ListItem(
+                            selected = false,
+                            onClick = {
+                                option.onClick()
+                                onDismiss()
+                            },
+                            headlineContent = { Text(option.label) },
+                            leadingContent = { RadioButton(selected = option.selected, onClick = null) },
+                            trailingContent = option.trailing,
+                            scale = ListItemDefaults.scale(focusedScale = 1.02f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(if (index == selectedIndex) Modifier.focusRequester(selectedFocus) else Modifier)
+                        )
+                    }
                 }
             }
         }

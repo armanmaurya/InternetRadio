@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -12,7 +13,10 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -20,7 +24,9 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.recording.RecordingPlaybackControllerImpl
+import com.armanmaurya.internetradio.domain.repository.EqualizerRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
+import com.armanmaurya.internetradio.service.playback.engine.EqualizerAudioProcessor
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +46,9 @@ class RecordingPlaybackService : MediaSessionService() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var equalizerRepository: EqualizerRepository
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -81,7 +90,27 @@ class RecordingPlaybackService : MediaSessionService() {
             .setConstantBitrateSeekingAlwaysEnabled(true)
         val mediaSourceFactory = DefaultMediaSourceFactory(this, extractorsFactory)
 
+        val equalizerProcessor = EqualizerAudioProcessor()
+        serviceScope.launch {
+            equalizerRepository.equalizerConfig.collect { config ->
+                equalizerProcessor.updateConfig(config)
+            }
+        }
+
+        val renderersFactory = object : DefaultRenderersFactory(this) {
+            override fun buildAudioSink(
+                context: Context,
+                enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean
+            ): AudioSink {
+                return DefaultAudioSink.Builder(context)
+                    .setAudioProcessors(arrayOf(equalizerProcessor))
+                    .build()
+            }
+        }
+
         val exoPlayer = ExoPlayer.Builder(this)
+            .setRenderersFactory(renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
             .setWakeMode(C.WAKE_MODE_LOCAL)

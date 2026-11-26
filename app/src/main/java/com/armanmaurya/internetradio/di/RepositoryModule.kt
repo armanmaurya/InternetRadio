@@ -102,6 +102,11 @@ abstract class RepositoryModule {
     ): SettingsRepository
 
     @Binds
+    abstract fun bindEqualizerRepository(
+        impl: com.armanmaurya.internetradio.data.repository.EqualizerRepositoryImpl
+    ): com.armanmaurya.internetradio.domain.repository.EqualizerRepository
+
+    @Binds
     abstract fun bindStationRepository(
         impl: StationRepositoryImpl
     ): StationRepository

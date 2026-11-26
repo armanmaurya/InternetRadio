@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.ui.mobile.navigation
 sealed class AppDestination(val route: String) {
     data object Discover : AppDestination("discover")
     data object Settings : AppDestination("settings")
+    data object Equalizer : AppDestination("equalizer")
     data object LyricsProviders : AppDestination("lyrics_providers")
     data object AppLanguage : AppDestination("app_language")
     data object ImportStations : AppDestination("import_stations")
