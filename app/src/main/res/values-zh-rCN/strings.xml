@@ -22,6 +22,7 @@
     <string name="cd_back">返回</string>
     <string name="cd_preview">预览</string>
     <string name="cd_close_search">关闭搜索</string>
+    <string name="cd_close">关闭</string>
     <string name="cd_search">搜索</string>
     <string name="cd_clear_search">清除搜索</string>
     <string name="cd_delete">删除</string>
@@ -78,6 +79,8 @@
     <string name="settings_disable_update_check_desc">启动时不自动检查应用更新</string>
     <string name="settings_auto_play">启动时自动播放</string>
     <string name="settings_auto_play_desc">应用启动时播放上次收听的电台</string>
+    <string name="settings_auto_switch_on_stream_end">自动切换电台</string>
+    <string name="settings_auto_switch_on_stream_end_desc">播放流结束时自动播放下一个电台</string>
     <string name="settings_tv_screensaver">屏幕保护程序</string>
     <string name="settings_about_foss_edition">FOSS 版</string>
     <string name="settings_about_play_edition">Google Play 版</string>
@@ -127,6 +130,58 @@
 
     <!-- ========================================== -->
     <string name="settings_backup_section">备份与恢复</string>
+    <string name="export_title">导出电台</string>
+    <string name="export_section_library">您的收藏库</string>
+    <plurals name="export_button">
+        <item quantity="other">导出 %1$d 个电台</item>
+    </plurals>
+    <string name="import_title">导入电台</string>
+    <string name="import_section_new">新增</string>
+    <string name="import_section_existing">已在收藏库中</string>
+    <string name="import_select_all">全选</string>
+    <string name="import_part_station">电台</string>
+    <string name="import_part_station_new">添加到您的收藏库</string>
+    <string name="import_part_station_existing">替换电台</string>
+    <string name="import_mode_update">更新</string>
+    <string name="import_mode_replace">替换</string>
+    <string name="import_field_stream_url">流媒体 URL</string>
+    <string name="import_field_station_name">名称</string>
+    <string name="import_field_tags">标签</string>
+    <string name="import_field_icon">图标</string>
+    <string name="import_field_homepage">主页</string>
+    <string name="import_field_country">国家/地区</string>
+    <string name="import_field_language">语言</string>
+    <string name="import_field_audio">音频格式</string>
+    <string name="import_field_details">详情</string>
+    <string name="import_diff_updating">将更新</string>
+    <string name="import_diff_replacing">将替换</string>
+    <string name="import_diff_same">相同</string>
+    <string name="import_diff_skipped">已跳过</string>
+    <string name="import_diff_none">无</string>
+    <string name="import_diff_keeps_existing_icon">保留现有图标</string>
+    <string name="import_diff_clears_tags">清除标签</string>
+    <string name="import_diff_clears_languages">清除语言</string>
+    <string name="import_diff_clears_icon">清除图标</string>
+    <string name="import_diff_update_icon">从文件更新图标</string>
+    <string name="import_diff_replace_icon">替换为文件中的图标</string>
+    <string name="import_part_history">曲目历史</string>
+    <string name="import_part_starred">已星标曲目</string>
+    <plurals name="import_plays">
+        <item quantity="other">%1$d 次播放</item>
+    </plurals>
+    <plurals name="import_starred">
+        <item quantity="other">%1$d 首已星标</item>
+    </plurals>
+    <string name="import_not_selected">不导入</string>
+    <string name="import_keep_all_plays">保留所有播放记录</string>
+    <string name="import_keep_all_plays_desc">将您的历史记录上限从 %1$d 提高到 %2$d。否则每个电台仅保留最新的 %1$d 条播放记录。</string>
+    <plurals name="import_button">
+        <item quantity="other">导入 %1$d 个电台</item>
+    </plurals>
+    <string name="import_no_matches">没有符合搜索条件的电台</string>
+    <string name="import_cd_playing">正在播放</string>
+    <string name="import_failed">无法导入，未做任何更改。</string>
+    <string name="import_no_stations">在所选文件中未找到电台</string>
     <string name="settings_conflict_overwrite">覆盖已有项</string>
     <string name="settings_export_title">导出电台</string>
     <string name="settings_export_subtitle">将您的电台保存到文件</string>
@@ -142,7 +197,11 @@
         <item quantity="other">%1$d 秒</item>
     </plurals>
     <string name="settings_import_title">导入电台</string>
-    <string name="settings_import_subtitle">从备份文件恢复电台</string>
+    <string name="settings_import_subtitle">从文件或兼容的应用导入</string>
+    <string name="import_source_internetradio">InternetRadio</string>
+    <string name="import_source_internetradio_ext">.json</string>
+    <string name="import_source_radiodroid">RadioDroid</string>
+    <string name="import_source_radiodroid_ext">.m3u, .m3u8</string>
     <string name="settings_imported">已导入：%1$d</string>
     <string name="settings_imported_empty">无变化 — 所有电台均已存在</string>
     <plurals name="settings_imported_failed">
@@ -235,6 +294,7 @@
     <string name="home_no_recent_stations_filtered">没有符合筛选条件的最近播放电台。</string>
     <string name="home_no_recent_stations">没有最近播放的电台</string>
     <string name="home_no_stations_found_for">未找到与“%1$s”相关的电台</string>
+    <string name="home_no_stations_found">未找到电台</string>
     <string name="home_no_library_stations_filter">收藏库中没有符合筛选条件的电台</string>
     <string name="home_no_library_stations_yet">收藏库中还没有电台</string>
     <string name="home_clear_recent_title">清除最近记录？</string>
@@ -487,6 +547,28 @@
     <string name="action_create_shortcut">创建快捷方式</string>
     <string name="shortcut_not_supported">启动器不支持固定快捷方式</string>
     <string name="lyrics_powered_by">歌词来源：</string>
+    <string name="lyrics_downloaded_success">歌词已成功保存</string>
+    <string name="lyrics_download_failed">保存歌词失败</string>
+    <string name="lyrics_download">下载歌词</string>
+    <string name="lyrics_word">逐字</string>
+    <string name="lyrics_line">逐行</string>
+    <string name="lyrics_word_synced">逐字</string>
+    <string name="lyrics_line_synced">逐行</string>
+    <string name="lyrics_plain">纯文本</string>
+    <string name="lyrics_providers_title">歌词来源</string>
+    <string name="lyrics_providers_subtitle">配置歌词来源和备选优先级</string>
+    <string name="lyrics_providers_description">拖动以重新排列来源的搜索优先级。播放器会从顶部开始搜索歌词，并在失败时按列表顺序向下回退。</string>
+    <string name="cd_reorder_lyrics_provider">调整来源顺序</string>
+    <string name="lyrics_options_title">来源</string>
+    <string name="lyrics_track_title">曲目标题</string>
+    <string name="lyrics_artist_name">艺人（可选）</string>
+    <string name="lyrics_search_action">搜索</string>
+    <string name="lyrics_reset_action">重置为当前曲目</string>
+    <string name="lyrics_provider_auto">自动（推荐）</string>
+    <string name="lyrics_provider_auto_subtitle">自动选择最高质量</string>
+    <string name="lyrics_provider_not_found">未找到歌词</string>
+    <string name="lyrics_search_query_button">搜索或编辑关键词</string>
+    <string name="lyrics_cd_options">歌词选项与搜索</string>
 
     <string name="review_message_foss">喜欢 Internet Radio 吗？如果喜欢，请考虑在 GitHub 上为项目点个 Star 来支持我们。您的支持对我们意义重大！</string>
     <string name="review_message_play">喜欢 Internet Radio 吗？如果喜欢，请花点时间为应用评分。您的支持对我们意义重大！</string>
@@ -524,4 +606,31 @@
     <string name="recording_folder_access_message">允许访问 Music/InternetRadio，以便将曲目列表和备注保存在录音旁边，并显示您较早的录音。</string>
     <string name="recording_folder_access_grant">授予访问权限</string>
     <string name="recording_folder_access_wrong_folder">请选择 Music/InternetRadio 文件夹</string>
+
+    <!-- Equalizer -->
+    <string name="settings_equalizer_title">均衡器</string>
+    <string name="settings_equalizer_off">关闭</string>
+    <string name="settings_equalizer_enabled">已启用</string>
+    <string name="settings_equalizer_enable_label">启用均衡器</string>
+    <string name="settings_equalizer_enable_desc">调节在线广播和录音的音频效果</string>
+    <string name="settings_equalizer_reset">重置</string>
+    <string name="settings_equalizer_presets">预设</string>
+    <string name="settings_equalizer_preamp">前置放大</string>
+    <string name="settings_equalizer_bands">频段</string>
+    <string name="settings_equalizer_cast_notice">均衡器仅适用于本机播放，不适用于正在投放的 Cast 设备。</string>
+    <string name="settings_equalizer_system_panel">打开系统均衡器</string>
+    <string name="settings_equalizer_system_panel_desc">改用您设备自带的音效面板</string>
+    <string name="settings_equalizer_tv_hint">在频段或“前置放大”上按确定键进行调整 · 按返回键完成</string>
+    <string name="settings_equalizer_tv_editing_band_hint">上下方向键调整 dB · 按确定或返回键完成</string>
+    <string name="settings_equalizer_tv_editing_preamp_hint">左右方向键调整前置放大 dB · 按确定或返回键完成</string>
+    <string name="equalizer_preset_flat">平坦</string>
+    <string name="equalizer_preset_vocal">人声 / 谈话</string>
+    <string name="equalizer_preset_bass_boost">低音增强</string>
+    <string name="equalizer_preset_treble_boost">高音增强</string>
+    <string name="equalizer_preset_rock">摇滚</string>
+    <string name="equalizer_preset_pop">流行</string>
+    <string name="equalizer_preset_jazz">爵士</string>
+    <string name="equalizer_preset_classical">古典</string>
+    <string name="equalizer_preset_custom">自定义</string>
+    <string name="equalizer_cd_band_slider">%1$s Hz 频段增益</string>
 </resources>
