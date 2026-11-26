@@ -1,7 +1,12 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 package com.armanmaurya.internetradio.ui.mobile.screens.settings.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -79,31 +84,40 @@ fun EqualizerPresetRow(
         modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        if (selectedPresetId == EqualizerPresets.CUSTOM_PRESET_ID) {
-            FilledTonalToggleButton(
-                checked = true,
-                onCheckedChange = {},
-                enabled = enabled,
-                shapes = chipShapes,
-                colors = chipColors,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.equalizer_preset_custom))
+        AnimatedVisibility(
+            visible = selectedPresetId == EqualizerPresets.CUSTOM_PRESET_ID,
+            enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+        ) {
+            Row {
+                FilledTonalToggleButton(
+                    checked = true,
+                    onCheckedChange = {},
+                    enabled = enabled,
+                    shapes = chipShapes,
+                    colors = chipColors,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(stringResource(R.string.equalizer_preset_custom))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
             }
         }
-        EqualizerPresets.BUILT_IN.forEach { preset ->
-            val isSelected = selectedPresetId == preset.id
-            FilledTonalToggleButton(
-                checked = isSelected,
-                onCheckedChange = { onSelectPreset(preset.id) },
-                enabled = enabled,
-                shapes = chipShapes,
-                colors = chipColors,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(stringResource(equalizerPresetLabelRes(preset.id)))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            EqualizerPresets.BUILT_IN.forEach { preset ->
+                val isSelected = selectedPresetId == preset.id
+                FilledTonalToggleButton(
+                    checked = isSelected,
+                    onCheckedChange = { onSelectPreset(preset.id) },
+                    enabled = enabled,
+                    shapes = chipShapes,
+                    colors = chipColors,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(stringResource(equalizerPresetLabelRes(preset.id)))
+                }
             }
         }
     }

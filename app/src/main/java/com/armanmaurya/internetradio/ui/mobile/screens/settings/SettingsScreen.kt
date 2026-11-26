@@ -268,13 +268,15 @@ fun SettingsScreen(
                 onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
                 onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 onSetMaxRetryDuration = viewModel::setMaxRetryDuration,
-                equalizerConfig = equalizerUiState.config,
-                onSetEqualizerEnabled = equalizerViewModel::setEnabled,
-                onEqualizerClick = onEqualizerClick,
                 onLyricsProvidersClick = onLyricsProvidersClick,
                 topShape = topShape,
                 middleShape = middleShape,
-                bottomShape = bottomShape,
+                bottomShape = bottomShape
+            )
+            AudioSection(
+                equalizerConfig = equalizerUiState.config,
+                onSetEqualizerEnabled = equalizerViewModel::setEnabled,
+                onEqualizerClick = onEqualizerClick,
                 singleShape = singleShape
             )
             RecordingSection(
@@ -741,14 +743,10 @@ private fun PlayerSection(
     onToggleHistoryLimitDialog: () -> Unit,
     onSetHistoryLimit: (Int) -> Unit,
     onSetMaxRetryDuration: (Long) -> Unit,
-    equalizerConfig: EqualizerConfig,
-    onSetEqualizerEnabled: (Boolean) -> Unit,
-    onEqualizerClick: () -> Unit,
     onLyricsProvidersClick: () -> Unit,
     topShape: RoundedCornerShape,
     middleShape: RoundedCornerShape,
-    bottomShape: RoundedCornerShape,
-    singleShape: RoundedCornerShape
+    bottomShape: RoundedCornerShape
 ) {
     Section(title = stringResource(R.string.settings_player_section)) {
         ToggleItem(
@@ -819,15 +817,6 @@ private fun PlayerSection(
                 }
             )
         }
-
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-
-        EqualizerSettingsItem(
-            equalizerConfig = equalizerConfig,
-            shape = middleShape,
-            onEnabledChange = onSetEqualizerEnabled,
-            onClick = onEqualizerClick
-        )
 
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
 
@@ -935,6 +924,23 @@ private fun PlayerSection(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun AudioSection(
+    equalizerConfig: EqualizerConfig,
+    onSetEqualizerEnabled: (Boolean) -> Unit,
+    onEqualizerClick: () -> Unit,
+    singleShape: RoundedCornerShape
+) {
+    Section(title = stringResource(R.string.settings_audio_section)) {
+        EqualizerSettingsItem(
+            equalizerConfig = equalizerConfig,
+            shape = singleShape,
+            onEnabledChange = onSetEqualizerEnabled,
+            onClick = onEqualizerClick
+        )
     }
 }
 

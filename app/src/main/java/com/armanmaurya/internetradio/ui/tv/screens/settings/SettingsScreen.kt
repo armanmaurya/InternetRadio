@@ -460,6 +460,17 @@ private fun SettingsMainList(
                 )
             }
             item {
+                SettingsRow(
+                    title = stringResource(R.string.settings_max_retry_duration),
+                    value = retryLabel,
+                    icon = Icons.Default.Refresh,
+                    onClick = { onOpenPage(SettingsPage.MAX_RETRY) },
+                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.MAX_RETRY))
+                )
+            }
+
+            item { SettingsSectionHeader(stringResource(R.string.settings_audio_section)) }
+            item {
                 val eqValue = if (equalizerConfig.enabled) {
                     stringResource(equalizerPresetLabelRes(equalizerConfig.presetId))
                 } else {
@@ -477,15 +488,6 @@ private fun SettingsMainList(
                         )
                     },
                     modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.EQUALIZER))
-                )
-            }
-            item {
-                SettingsRow(
-                    title = stringResource(R.string.settings_max_retry_duration),
-                    value = retryLabel,
-                    icon = Icons.Default.Refresh,
-                    onClick = { onOpenPage(SettingsPage.MAX_RETRY) },
-                    modifier = Modifier.focusRequester(rowFocus.getValue(SettingsPage.MAX_RETRY))
                 )
             }
 

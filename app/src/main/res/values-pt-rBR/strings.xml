@@ -68,6 +68,7 @@
     <string name="settings_update_failed">Falha ao verificar atualizações</string>
     <string name="settings_support_app">Apoie o app</string>
     <string name="settings_default_tab">Aba padrão ao iniciar</string>
+    <string name="settings_audio_section">Áudio</string>
     <string name="settings_player_section">Player</string>
     <string name="settings_stop_on_audio_noisy">Pausar ao desconectar dispositivo</string>
     <string name="settings_stop_on_audio_noisy_desc">Pausar a reprodução quando fones Bluetooth ou com fio forem desconectados</string>

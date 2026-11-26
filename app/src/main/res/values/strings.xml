@@ -88,6 +88,7 @@
     <string name="settings_update_failed">Failed to check for updates</string>
     <string name="settings_support_app">Support the App</string>
     <string name="settings_default_tab">Default Tab on Startup</string>
+    <string name="settings_audio_section">Audio</string>
     <string name="settings_player_section">Player</string>
     <string name="settings_stop_on_audio_noisy">Pause on device disconnect</string>
     <string name="settings_stop_on_audio_noisy_desc">Pause playback when Bluetooth or wired headphones are disconnected</string>

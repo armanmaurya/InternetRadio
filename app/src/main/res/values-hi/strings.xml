@@ -81,6 +81,7 @@
     <string name="settings_update_failed">अपडेट की जाँच विफल रही</string>
     <string name="settings_support_app">ऐप का समर्थन करें</string>
     <string name="settings_default_tab">शुरुआत में डिफ़ॉल्ट टैब</string>
+    <string name="settings_audio_section">ऑडियो</string>
     <string name="settings_player_section">प्लेयर</string>
     <string name="settings_stop_on_audio_noisy">डिवाइस डिस्कनेक्ट होने पर रोकें</string>
     <string name="settings_stop_on_audio_noisy_desc">ब्लूटूथ या वायर्ड हेडफ़ोन के डिस्कनेक्ट होने पर प्लेबैक रोकें</string>
