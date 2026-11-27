@@ -591,4 +591,5 @@
     <string name="equalizer_preset_classical">Clásica</string>
     <string name="equalizer_preset_custom">Personalizado</string>
     <string name="equalizer_cd_band_slider">Ganancia banda de %1$s Hz</string>
+    <string name="settings_audio_section">Audio</string>
 </resources>
