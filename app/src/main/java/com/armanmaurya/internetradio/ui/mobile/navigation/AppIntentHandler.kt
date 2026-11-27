@@ -10,9 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackMode
 import com.armanmaurya.internetradio.domain.controller.ShortcutController
+import com.armanmaurya.internetradio.service.RecordingPlaybackService
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingPlayerViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -26,26 +29,44 @@ fun AppIntentHandler(
     navController: NavHostController,
     scaffoldState: BottomSheetScaffoldState,
     playerViewModel: PlayerViewModel,
+    recordingPlayerViewModel: RecordingPlayerViewModel,
     homeViewModel: HomeViewModel
 ) {
     val scope = rememberCoroutineScope()
 
-    fun expandPlayerSheet() {
+    fun expandPlayerSheet(targetMode: ActivePlaybackMode = ActivePlaybackMode.STATION) {
         scope.launch {
-            if (playerViewModel.uiState.value.currentStation == null) {
-                withTimeoutOrNull(2500L) {
-                    playerViewModel.uiState.first { it.currentStation != null }
+            if (targetMode == ActivePlaybackMode.RECORDING) {
+                if (recordingPlayerViewModel.uiState.value.currentRecording == null) {
+                    withTimeoutOrNull(2500L) {
+                        recordingPlayerViewModel.uiState.first { it.currentRecording != null }
+                    }
                 }
-            }
-            if (playerViewModel.uiState.value.currentStation != null) {
-                delay(100)
-                try {
-                    scaffoldState.bottomSheetState.expand()
-                } catch (e: Exception) {
-                    delay(150)
+                if (recordingPlayerViewModel.uiState.value.currentRecording != null) {
+                    recordingPlayerViewModel.setActiveMode(ActivePlaybackMode.RECORDING)
+                    delay(100)
+                    runCatching { scaffoldState.bottomSheetState.expand() }.onFailure {
+                        delay(150)
+                        runCatching { scaffoldState.bottomSheetState.expand() }
+                    }
+                }
+            } else {
+                if (playerViewModel.uiState.value.currentStation == null) {
+                    withTimeoutOrNull(2500L) {
+                        playerViewModel.uiState.first { it.currentStation != null }
+                    }
+                }
+                if (playerViewModel.uiState.value.currentStation != null) {
+                    recordingPlayerViewModel.setActiveMode(ActivePlaybackMode.STATION)
+                    delay(100)
                     try {
                         scaffoldState.bottomSheetState.expand()
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {
+                        delay(150)
+                        try {
+                            scaffoldState.bottomSheetState.expand()
+                        } catch (_: Exception) {}
+                    }
                 }
             }
         }
@@ -60,6 +81,12 @@ fun AppIntentHandler(
                 intent.getStringExtra(ShortcutController.EXTRA_STATION_UUID)?.let { stationUuid ->
                     playerViewModel.playFromShortcut(stationUuid)
                 }
+            } else if (intent.action == RecordingPlaybackService.ACTION_OPEN_RECORDING_PLAYER ||
+                intent.getBooleanExtra("open_recording_player", false)
+            ) {
+                intent.action = null
+                intent.removeExtra("open_recording_player")
+                expandPlayerSheet(ActivePlaybackMode.RECORDING)
             } else if (intent.getStringExtra("open_tab") == "recordings") {
                 intent.removeExtra("open_tab")
                 val stationName = intent.getStringExtra("route_recording_station")
@@ -72,7 +99,7 @@ fun AppIntentHandler(
             } else if (intent.action == "com.armanmaurya.internetradio.ACTION_OPEN_PLAYER" || intent.getBooleanExtra("open_player_sheet", false)) {
                 intent.action = null
                 intent.removeExtra("open_player_sheet")
-                expandPlayerSheet()
+                expandPlayerSheet(ActivePlaybackMode.STATION)
             }
         }
     }

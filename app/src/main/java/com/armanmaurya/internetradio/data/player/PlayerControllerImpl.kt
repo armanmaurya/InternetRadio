@@ -8,6 +8,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackCoordinator
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackMode
 import com.armanmaurya.internetradio.domain.controller.CastController
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.model.AppPreferences
@@ -51,7 +53,8 @@ class PlayerControllerImpl @Inject constructor(
     private val recentRepository: RecentRepository,
     private val libraryRepository: com.armanmaurya.internetradio.domain.repository.LibraryRepository,
     private val castController: CastController,
-    private val audioAmplitudeManager: AudioAmplitudeManager
+    private val audioAmplitudeManager: AudioAmplitudeManager,
+    private val activePlaybackCoordinator: ActivePlaybackCoordinator
 ) : PlayerController {
     private var controllerFuture = MediaController.Builder(
         context,
@@ -475,6 +478,9 @@ class PlayerControllerImpl @Inject constructor(
             return
         }
         if (stations.isEmpty() || startIndex !in stations.indices) return
+        if (playWhenReady) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
+        }
 
         currentPlaylist = stations
         currentPlaybackSource = source
@@ -551,6 +557,7 @@ class PlayerControllerImpl @Inject constructor(
     override fun playIndex(index: Int) {
         val player = controller ?: return
         if (index in 0 until player.mediaItemCount) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             player.seekToDefaultPosition(index)
             player.play()
         }
@@ -559,9 +566,11 @@ class PlayerControllerImpl @Inject constructor(
     override fun next() {
         val player = controller ?: return
         if (player.hasNextMediaItem()) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             player.seekToNextMediaItem()
             player.play()
         } else if (player.mediaItemCount > 1) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             player.seekToDefaultPosition(0)
             player.play()
         }
@@ -570,9 +579,11 @@ class PlayerControllerImpl @Inject constructor(
     override fun previous() {
         val player = controller ?: return
         if (player.hasPreviousMediaItem()) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             player.seekToPreviousMediaItem()
             player.play()
         } else if (player.mediaItemCount > 1) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             player.seekToDefaultPosition(player.mediaItemCount - 1)
             player.play()
         }
@@ -591,6 +602,7 @@ class PlayerControllerImpl @Inject constructor(
         if (player.isPlaying || isBuffering) {
             player.pause()
         } else {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
             _isBuffering.value = true
             if (player.playbackState == Player.STATE_IDLE) {
                 player.prepare()

@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackCoordinator
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackMode
 import com.armanmaurya.internetradio.domain.controller.PlayerController
 import com.armanmaurya.internetradio.domain.controller.RecordingPlaybackController
 import com.armanmaurya.internetradio.domain.controller.RecordingRouteTarget
@@ -17,11 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,13 +30,20 @@ import javax.inject.Singleton
 @Singleton
 class RecordingPlaybackControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val playerController: PlayerController
+    private val playerController: PlayerController,
+    private val activePlaybackCoordinator: ActivePlaybackCoordinator
 ) : RecordingPlaybackController {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _currentRecording = MutableStateFlow<RecordingFile?>(null)
     override val currentRecording: StateFlow<RecordingFile?> = _currentRecording.asStateFlow()
+
+    private val _playlist = MutableStateFlow<List<RecordingFile>>(emptyList())
+    override val playlist: StateFlow<List<RecordingFile>> = _playlist.asStateFlow()
+
+    private val _currentIndex = MutableStateFlow(-1)
+    override val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -57,20 +63,54 @@ class RecordingPlaybackControllerImpl @Inject constructor(
     private val _isLooping = MutableStateFlow(false)
     override val isLooping: StateFlow<Boolean> = _isLooping.asStateFlow()
 
+    private val _amplitude = MutableStateFlow(0f)
+    override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
+
+    private val _sleepTimerEndTimeMs = MutableStateFlow<Long?>(null)
+    override val sleepTimerEndTimeMs: StateFlow<Long?> = _sleepTimerEndTimeMs.asStateFlow()
+
+    private val _sleepTimerTotalDurationMs = MutableStateFlow(0L)
+    override val sleepTimerTotalDurationMs: StateFlow<Long> = _sleepTimerTotalDurationMs.asStateFlow()
+
+    private val _volume = MutableStateFlow(1.0f)
+    override val volume: StateFlow<Float> = _volume.asStateFlow()
+
     @Volatile
     private var service: RecordingPlaybackService? = null
     @Volatile
     private var player: ExoPlayer? = null
     private var progressJob: Job? = null
+    private var sleepTimerJob: Job? = null
     private var playerListener: Player.Listener? = null
 
     init {
         scope.launch {
             playerController.playbackSession.collect { session ->
-                if (session.isPlaying && _isPlaying.value) {
-                    pause()
+                if (session.isPlaying) {
+                    if (_isPlaying.value) {
+                        pause()
+                    }
+                    activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
+                } else if (session.currentStation == null &&
+                    _currentRecording.value != null &&
+                    activePlaybackCoordinator.activeMode.value == ActivePlaybackMode.STATION
+                ) {
+                    activePlaybackCoordinator.setMode(ActivePlaybackMode.RECORDING)
                 }
             }
+        }
+    }
+
+    fun updateAmplitude(rms: Float) {
+        _amplitude.value = rms
+    }
+
+    override fun getCurrentPositionRealtime(): Long {
+        val p = player
+        return if (p != null && _isPlaying.value) {
+            p.currentPosition.coerceAtLeast(0L)
+        } else {
+            _currentPositionMs.value
         }
     }
 
@@ -85,6 +125,7 @@ class RecordingPlaybackControllerImpl @Inject constructor(
                     startProgressTracker()
                 } else {
                     stopProgressTracker()
+                    _amplitude.value = 0f
                     _currentPositionMs.value = exoPlayer.currentPosition
                 }
             }
@@ -98,11 +139,18 @@ class RecordingPlaybackControllerImpl @Inject constructor(
                         exoPlayer.seekTo(0)
                         exoPlayer.play()
                     } else {
-                        _isPlaying.value = false
-                        stopProgressTracker()
-                        exoPlayer.pause()
-                        exoPlayer.seekTo(0)
-                        _currentPositionMs.value = 0L
+                        val nextIdx = _currentIndex.value + 1
+                        val list = _playlist.value
+                        if (_currentIndex.value >= 0 && nextIdx in list.indices) {
+                            play(list[nextIdx], list)
+                        } else {
+                            _isPlaying.value = false
+                            _amplitude.value = 0f
+                            stopProgressTracker()
+                            exoPlayer.pause()
+                            exoPlayer.seekTo(0)
+                            _currentPositionMs.value = 0L
+                        }
                     }
                 }
             }
@@ -122,6 +170,7 @@ class RecordingPlaybackControllerImpl @Inject constructor(
         if (exoPlayer.duration > 0) {
             _durationMs.value = exoPlayer.duration
         }
+        exoPlayer.volume = _volume.value
         exoPlayer.setPlaybackSpeed(_playbackSpeed.value)
         exoPlayer.repeatMode = if (_isLooping.value) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
         if (exoPlayer.isPlaying) {
@@ -137,12 +186,23 @@ class RecordingPlaybackControllerImpl @Inject constructor(
             this.player = null
             stopProgressTracker()
             _isPlaying.value = false
+            _amplitude.value = 0f
         }
     }
 
-    override fun play(recording: RecordingFile) {
+    override fun play(recording: RecordingFile, playlist: List<RecordingFile>) {
         // Pause live radio stream so it doesn't play concurrently
         playerController.pause()
+        activePlaybackCoordinator.setMode(ActivePlaybackMode.RECORDING)
+
+        val resolvedPlaylist = when {
+            playlist.isNotEmpty() -> playlist
+            _playlist.value.any { it.uri == recording.uri } -> _playlist.value
+            else -> listOf(recording)
+        }
+        val resolvedIndex = resolvedPlaylist.indexOfFirst { it.uri == recording.uri }.coerceAtLeast(0)
+        _playlist.value = resolvedPlaylist
+        _currentIndex.value = resolvedIndex
 
         val isSameRecording = _currentRecording.value?.uri == recording.uri
         _currentRecording.value = recording
@@ -152,6 +212,7 @@ class RecordingPlaybackControllerImpl @Inject constructor(
 
         val p = player
         if (isSameRecording && p != null) {
+            p.volume = _volume.value
             p.setPlaybackSpeed(_playbackSpeed.value)
             p.play()
             return
@@ -171,6 +232,28 @@ class RecordingPlaybackControllerImpl @Inject constructor(
         }
     }
 
+    override fun playIndex(index: Int) {
+        val list = _playlist.value
+        val target = list.getOrNull(index) ?: return
+        play(target, list)
+    }
+
+    override fun next() {
+        val list = _playlist.value
+        val nextIndex = _currentIndex.value + 1
+        if (_currentIndex.value >= 0 && nextIndex in list.indices) {
+            play(list[nextIndex], list)
+        }
+    }
+
+    override fun previous() {
+        val list = _playlist.value
+        val prevIndex = _currentIndex.value - 1
+        if (prevIndex in list.indices) {
+            play(list[prevIndex], list)
+        }
+    }
+
     override fun pause() {
         val p = player
         if (p != null) {
@@ -182,6 +265,7 @@ class RecordingPlaybackControllerImpl @Inject constructor(
             context.startService(intent)
         }
         _isPlaying.value = false
+        _amplitude.value = 0f
     }
 
     override fun togglePlayPause() {
@@ -239,10 +323,55 @@ class RecordingPlaybackControllerImpl @Inject constructor(
         setLooping(!_isLooping.value)
     }
 
+    override fun setSleepTimer(durationMillis: Long) {
+        cancelSleepTimer()
+        val endTime = System.currentTimeMillis() + durationMillis
+        _sleepTimerEndTimeMs.value = endTime
+        _sleepTimerTotalDurationMs.value = durationMillis
+
+        sleepTimerJob = scope.launch {
+            while (isActive) {
+                val remaining = endTime - System.currentTimeMillis()
+                if (remaining <= 0L) {
+                    pause()
+                    cancelSleepTimer()
+                    break
+                }
+                delay(remaining.coerceAtMost(1000L))
+            }
+        }
+    }
+
+    override fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _sleepTimerEndTimeMs.value = null
+        _sleepTimerTotalDurationMs.value = 0L
+    }
+
+    override fun setVolume(volume: Float) {
+        val clamped = volume.coerceIn(0f, 1f)
+        _volume.value = clamped
+        val p = player
+        if (p != null) {
+            p.volume = clamped
+        } else {
+            val intent = Intent(context, RecordingPlaybackService::class.java).apply {
+                action = RecordingPlaybackService.ACTION_SET_VOLUME
+                putExtra(RecordingPlaybackService.EXTRA_VOLUME, clamped)
+            }
+            context.startService(intent)
+        }
+    }
+
     override fun stop() {
         stopProgressTracker()
+        cancelSleepTimer()
         _isPlaying.value = false
+        _amplitude.value = 0f
         _currentRecording.value = null
+        _playlist.value = emptyList()
+        _currentIndex.value = -1
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
 
@@ -254,9 +383,20 @@ class RecordingPlaybackControllerImpl @Inject constructor(
             action = RecordingPlaybackService.ACTION_STOP
         }
         context.startService(intent)
+
+        if (playerController.playbackSession.value.currentStation != null) {
+            activePlaybackCoordinator.setMode(ActivePlaybackMode.STATION)
+        }
     }
 
     override fun syncCurrentRecording(recordings: List<RecordingFile>) {
+        if (_playlist.value.isNotEmpty()) {
+            val byPath = recordings.associateBy { it.file.absolutePath }
+            val updatedPlaylist = _playlist.value.map { item -> byPath[item.file.absolutePath] ?: item }
+            if (updatedPlaylist != _playlist.value) {
+                _playlist.value = updatedPlaylist
+            }
+        }
         val current = _currentRecording.value ?: return
         // The file path is the same whether the recording was listed by file or through SAF
         val latest = recordings.firstOrNull { it.file.absolutePath == current.file.absolutePath } ?: return

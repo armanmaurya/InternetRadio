@@ -85,6 +85,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.armanmaurya.internetradio.core.utils.LyricsExporter
 import com.armanmaurya.internetradio.domain.lyrics.LyricsProviderInfo
 import com.armanmaurya.internetradio.domain.model.Lyrics
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 private sealed interface LyricsDisplayState {
@@ -105,6 +106,7 @@ fun LyricsTab(
     isPlaying: Boolean,
     getCurrentPosition: () -> Long,
     onSyncOffsetChange: (Long) -> Unit,
+    playbackSpeed: Float = 1.0f,
     onDownloadLyrics: ((Lyrics) -> Unit)? = null,
     currentTrack: String? = null,
     currentArtist: String? = null,
@@ -284,6 +286,8 @@ fun LyricsTab(
                             listState = listState,
                             trackStartTime = trackStartTime ?: 0L,
                             syncOffsetMs = syncOffsetMs,
+                            isPlaying = isPlaying,
+                            playbackSpeed = playbackSpeed,
                             getCurrentPosition = getCurrentPosition,
                             providerInfo = state.lyrics?.providerInfo,
                             hasWordSync = state.isWordSynced,
@@ -614,24 +618,64 @@ fun SyncedLyricsView(
     getCurrentPosition: () -> Long,
     providerInfo: LyricsProviderInfo? = null,
     hasWordSync: Boolean = false,
+    isPlaying: Boolean = true,
+    playbackSpeed: Float = 1.0f,
     onOpenOptions: (() -> Unit)? = null
 ) {
-    var currentTimeMs by remember { mutableLongStateOf(0L) }
+    val currentTimeMsState = remember { mutableLongStateOf(0L) }
     var activeIndex by remember(trackStartTime) { mutableIntStateOf(0) }
 
     LaunchedEffect(lines, trackStartTime) {
         listState.scrollToItem(0)
-        while (true) {
-            currentTimeMs = getCurrentPosition() - trackStartTime
-            delay(50) // 20 updates a second for snappy word-by-word response
+    }
+
+    LaunchedEffect(lines, trackStartTime, isPlaying, playbackSpeed) {
+        var lastRawPos = getCurrentPosition()
+        currentTimeMsState.longValue = lastRawPos - trackStartTime
+
+        if (!isPlaying) {
+            while (true) {
+                val rawPos = getCurrentPosition()
+                if (rawPos != lastRawPos) {
+                    lastRawPos = rawPos
+                    currentTimeMsState.longValue = rawPos - trackStartTime
+                }
+                delay(50)
+            }
+        } else {
+            val speed = playbackSpeed.coerceAtLeast(0.1f)
+            var smoothedPosMs = lastRawPos.toDouble()
+            var prevNanos = System.nanoTime()
+            while (true) {
+                delay(16)
+                val nowNanos = System.nanoTime()
+                val dtMs = ((nowNanos - prevNanos) / 1_000_000.0).coerceIn(0.0, 50.0)
+                prevNanos = nowNanos
+
+                val rawPos = getCurrentPosition()
+                val isSeekJump = abs(rawPos - smoothedPosMs) > 250.0 || rawPos < lastRawPos - 50L
+                val upperBound = rawPos + 80.0
+                smoothedPosMs = when {
+                    isSeekJump -> rawPos.toDouble()
+                    smoothedPosMs >= upperBound -> smoothedPosMs
+                    else -> {
+                        val advanced = smoothedPosMs + dtMs * speed
+                        val locked = advanced + (rawPos - advanced) * 0.12
+                        locked.coerceIn(smoothedPosMs, upperBound)
+                    }
+                }
+                lastRawPos = rawPos
+                currentTimeMsState.longValue = smoothedPosMs.toLong() - trackStartTime
+            }
         }
     }
 
-    // Calculate new index smoothly without launching effects every 50ms
-    val derivedIndex = remember(currentTimeMs, syncOffsetMs) {
-        val adjustedTime = currentTimeMs + syncOffsetMs
-        val idx = lines.indexOfLast { adjustedTime >= it.timestampMs }
-        if (idx >= 0) idx else 0
+    val derivedIndex by remember(lines, syncOffsetMs) {
+        derivedStateOf {
+            val adjustedTime = currentTimeMsState.longValue + syncOffsetMs
+            val idx = lines.indexOfLast { adjustedTime >= it.timestampMs }
+            if (idx >= 0) idx else 0
+        }
     }
 
     LaunchedEffect(derivedIndex) {
@@ -674,7 +718,7 @@ fun SyncedLyricsView(
             val dimColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
 
             if (isActive && !line.words.isNullOrEmpty()) {
-                val currentSongTime = currentTimeMs + syncOffsetMs
+                val currentSongTime = currentTimeMsState.longValue + syncOffsetMs
                 val annotatedString = buildWordSyncedAnnotatedString(
                     line = line,
                     currentSongTime = currentSongTime,
@@ -692,7 +736,7 @@ fun SyncedLyricsView(
                 )
             } else if (isActive) {
                 var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                val progress = line.sungFraction(currentTimeMs + syncOffsetMs, lines.getOrNull(index + 1)?.timestampMs)
+                val nextTimestampMs = lines.getOrNull(index + 1)?.timestampMs
 
                 Text(
                     text = line.text.ifBlank { "♪" },
@@ -709,7 +753,8 @@ fun SyncedLyricsView(
                         }
                         .drawWithContent {
                             drawContent() // Draw the opaque black text mask
-                            
+                            val progress = line.sungFraction(currentTimeMsState.longValue + syncOffsetMs, nextTimestampMs)
+
                             if (progress <= 0f) {
                                 drawRect(color = dimColor, blendMode = BlendMode.SrcIn)
                             } else {

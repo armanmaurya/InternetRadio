@@ -48,17 +48,11 @@ import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.domain.model.RecordingSession
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel
 import androidx.compose.animation.*
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.FastOutSlowInEasing
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFolderAccessWarning
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingRecordingCard
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingTrackQueue
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -81,49 +75,9 @@ fun RecordingsContent(
     val expandedRecordingUri by viewModel.expandedRecordingUri.collectAsStateWithLifecycle()
     val currentPlayingRecording by viewModel.currentPlayingRecording.collectAsStateWithLifecycle()
     val isPlayingRecording by viewModel.isPlayingRecording.collectAsStateWithLifecycle()
-    val recordingPositionMs by viewModel.recordingPositionMs.collectAsStateWithLifecycle()
-    val recordingDurationMs by viewModel.recordingDurationMs.collectAsStateWithLifecycle()
-    val recordingPlaybackSpeed by viewModel.recordingPlaybackSpeed.collectAsStateWithLifecycle()
-    val isRecordingLooping by viewModel.isRecordingLooping.collectAsStateWithLifecycle()
     val hasFolderAccess by viewModel.hasFolderAccess.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    var cachedPlayingRecording by remember { mutableStateOf<RecordingFile?>(null) }
-    if (currentPlayingRecording != null) {
-        cachedPlayingRecording = currentPlayingRecording
-    }
-    val rawRecordingToShow = currentPlayingRecording ?: cachedPlayingRecording
-    val recordingToShow = remember(rawRecordingToShow, folders) {
-        rawRecordingToShow?.let { rec ->
-            folders.asSequence()
-                .flatMap { it.recordings.asSequence() }
-                .firstOrNull { it.uri == rec.uri }
-                ?: rec
-        }
-    }
-
-    val nowPlayingTransition = updateTransition(
-        targetState = currentPlayingRecording != null,
-        label = "NowPlayingTransition"
-    )
-    val shouldShowNowPlayingCard = currentPlayingRecording != null || nowPlayingTransition.currentState
-    var showTrackList by remember { mutableStateOf(false) }
-
-    LaunchedEffect(currentPlayingRecording?.uri) {
-        showTrackList = false
-    }
-
-    val queueVisibleState = remember { MutableTransitionState(false) }
-    queueVisibleState.targetState = showTrackList && currentPlayingRecording != null
-    val shouldShowQueue = queueVisibleState.targetState || queueVisibleState.currentState || !queueVisibleState.isIdle
-
-    LaunchedEffect(showTrackList) {
-        if (showTrackList) {
-            listState.requestScrollToItem(0, 0)
-        }
-    }
 
     var cachedFolderStationName by remember { mutableStateOf<String?>(null) }
     if (selectedStationName != null) {
@@ -207,10 +161,8 @@ fun RecordingsContent(
             val targetScrollOffset = maxOf(0, (fileIndex * itemHeightPx - headerBottomPx).toInt())
             val contentItemIndex = contentItem?.index
                 ?: run {
-                    val hasTrackQueue = shouldShowNowPlayingCard && recordingToShow != null && recordingToShow.tracks.isNotEmpty() && shouldShowQueue
-                    val nowPlayingOffset = if (hasTrackQueue) 1 else 0
                     val activeSessionsOffset = if (currentActiveSessions.isNotEmpty()) 1 + (currentActiveSessions.size + 1) / 2 else 0
-                    nowPlayingOffset + activeSessionsOffset + 1
+                    activeSessionsOffset + 1
                 }
             listState.animateScrollToItem(index = contentItemIndex, scrollOffset = targetScrollOffset)
         }
@@ -263,61 +215,6 @@ fun RecordingsContent(
     ) {
         val libraryStationUuids by viewModel.libraryStationUuids.collectAsStateWithLifecycle()
 
-        nowPlayingTransition.AnimatedVisibility(
-            visible = { it },
-            enter = fadeIn(animationSpec = tween(220)) + expandVertically(
-                animationSpec = tween(250, easing = FastOutSlowInEasing),
-                expandFrom = Alignment.Top
-            ),
-            exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(
-                animationSpec = tween(250, easing = FastOutSlowInEasing),
-                shrinkTowards = Alignment.Top
-            )
-        ) {
-            if (recordingToShow != null) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
-                ) {
-                    NowPlayingRecordingCard(
-                        recording = recordingToShow,
-                        isPlaying = isPlayingRecording,
-                        currentPositionMs = recordingPositionMs,
-                        durationMs = recordingDurationMs,
-                        playbackSpeed = recordingPlaybackSpeed,
-                        isLooping = isRecordingLooping,
-                        onPlayPauseClick = viewModel::togglePlayPauseRecording,
-                        onSeek = viewModel::seekRecordingPlayback,
-                        onSpeedChange = viewModel::setPlaybackSpeed,
-                        onToggleLoop = viewModel::toggleLoopRecording,
-                        onRouteClick = {
-                            viewModel.routeToRecording(recordingToShow.stationName, recordingToShow.uri.toString())
-                        },
-                        onStopClick = {
-                            showTrackList = false
-                            viewModel.stopRecordingPlayback()
-                        },
-                        showTrackList = showTrackList,
-                        onToggleTrackList = {
-                            val next = !showTrackList
-                            showTrackList = next
-                            if (next) {
-                                listState.requestScrollToItem(0, 0)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = 16.dp,
-                                end = 16.dp,
-                                top = 0.dp,
-                                bottom = 10.dp
-                            )
-                    )
-                }
-            }
-        }
-
         if (!hasFolderAccess) {
             RecordingFolderAccessWarning(
                 initialPickerUri = viewModel.folderAccessInitialUri,
@@ -337,39 +234,6 @@ fun RecordingsContent(
                     bottom = 16.dp
                 )
             ) {
-                if (shouldShowNowPlayingCard && recordingToShow != null && recordingToShow.tracks.isNotEmpty() && shouldShowQueue) {
-                    item(key = "now_playing_track_queue") {
-                        androidx.compose.animation.AnimatedVisibility(
-                            visibleState = queueVisibleState,
-                            enter = fadeIn(animationSpec = tween(220)) + slideInVertically(
-                                animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                initialOffsetY = { -it }
-                            ) + expandVertically(
-                                animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                expandFrom = Alignment.Top,
-                                initialHeight = { 1 }
-                            ),
-                            exit = fadeOut(animationSpec = tween(180)) + slideOutVertically(
-                                animationSpec = tween(230, easing = FastOutSlowInEasing),
-                                targetOffsetY = { -it }
-                            ) + shrinkVertically(
-                                animationSpec = tween(230, easing = FastOutSlowInEasing),
-                                shrinkTowards = Alignment.Top
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            NowPlayingTrackQueue(
-                                recording = recordingToShow,
-                                currentPositionMs = recordingPositionMs,
-                                onSeek = viewModel::seekRecordingPlayback,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-                }
-
                 if (currentActiveSessions.isNotEmpty()) {
                     item(key = "active_recordings_header") {
                         Row(
@@ -378,7 +242,7 @@ fun RecordingsContent(
                                 .padding(
                                     start = 16.dp,
                                     end = 16.dp,
-                                    top = if (shouldShowNowPlayingCard) 6.dp else 0.dp,
+                                    top = 0.dp,
                                     bottom = 4.dp
                                 )
                         ) {
@@ -731,10 +595,10 @@ fun RecordingsContent(
                                                         if (isSelected) selectedFiles -= recording.uri.toString() else selectedFiles += recording.uri.toString()
                                                         if (selectedFiles.isEmpty()) selectionMode = false
                                                     } else {
-                                                        if (isCurrentlyPlaying) {
+                                                        if (isCurrentlyPlaying && isPlayingRecording) {
                                                             viewModel.togglePlayPauseRecording()
                                                         } else {
-                                                            viewModel.playRecording(recording)
+                                                            viewModel.playRecording(recording, currentFolder.recordings)
                                                         }
                                                     }
                                                 },
@@ -762,7 +626,7 @@ fun RecordingsContent(
             }
         }
         
-        if (folders.isEmpty() && currentActiveSessions.isEmpty() && currentPlayingRecording == null) {
+        if (folders.isEmpty() && currentActiveSessions.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

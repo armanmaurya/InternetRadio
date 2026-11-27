@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.armanmaurya.internetradio.R
 import androidx.compose.ui.unit.dp
 import com.armanmaurya.internetradio.domain.model.RecordingFile
+import com.armanmaurya.internetradio.ui.mobile.screens.home.components.PlayingVisualizer
 import java.util.Locale
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -182,6 +183,17 @@ fun RecordingFileItem(
                     }
                 }
             } else {
+                if (isCurrentlyPlaying) {
+                    PlayingVisualizer(
+                        isPlaybackActive = playbackIsPlaying,
+                        barColor = MaterialTheme.colorScheme.primary,
+                        barWidth = 3.dp,
+                        maxBarHeight = 16.dp,
+                        minBarHeight = 4.dp,
+                        barCount = 4,
+                        modifier = Modifier.padding(start = 8.dp, end = 4.dp)
+                    )
+                }
                 Box {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(

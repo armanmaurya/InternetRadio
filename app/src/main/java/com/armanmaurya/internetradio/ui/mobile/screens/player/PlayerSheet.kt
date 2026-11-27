@@ -14,12 +14,34 @@ import com.armanmaurya.internetradio.ui.mobile.screens.player.components.VolumeD
 import com.armanmaurya.internetradio.ui.mobile.screens.player.components.TrackDialog
 import com.armanmaurya.internetradio.ui.mobile.screens.player.components.Controls
 import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.recordings.RecordingsTab
+import android.text.format.DateUtils
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.AnimatedMiniModeSwitcherBar
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.HeaderPairButton
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.MINI_MODE_BAR_HEIGHT
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.PlayerBottomTabsBar
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.PlayerModeSegmentedPill
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingArtworkContent
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingFolderTabPage
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingNoteEditDialog
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingSeekBarSection
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingSpeedDialog
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.RecordingTracksTabPage
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.SPEED_CONTAINER_KEY
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.SPEED_VALUE_KEY
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.formatPlaybackSpeed
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.rememberBottomDrawerNestedScroll
 import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.about.AboutTab
+import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.about.RecordingAboutTab
 import com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.lyrics.LyricsTab
 import com.armanmaurya.internetradio.ui.shared.components.shimmerEffect
+import com.armanmaurya.internetradio.domain.controller.ActivePlaybackMode
+import com.armanmaurya.internetradio.domain.model.RecordingFile
+import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingPlayerUiState
+import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingPlayerViewModel
 import androidx.compose.ui.zIndex
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -37,6 +59,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -134,13 +157,14 @@ fun calculatePlayerSheetProgress(
 @Composable
 fun rememberPlayerSheetProgress(
     scaffoldState: BottomSheetScaffoldState,
-    bottomInset: Dp
+    bottomInset: Dp,
+    extraPeekHeight: Dp = 0.dp
 ): State<Float> {
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
     val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
     val imeInsets = WindowInsets.ime
-    val peekHeightPx = with(density) { (72.dp + bottomInset).toPx() }
+    val peekHeightPx = with(density) { (72.dp + extraPeekHeight + bottomInset).toPx() }
 
     return remember(scaffoldState, screenHeightPx, peekHeightPx, imeInsets) {
         derivedStateOf {
@@ -175,11 +199,25 @@ fun PlayerBottomSheet(
     modifier: Modifier = Modifier,
     keepScreenOn: Boolean = false,
     onDialogOpenChange: (Boolean) -> Unit = {},
-    playerViewModel: PlayerViewModel = hiltViewModel()
+    onNavigateToRecording: (RecordingFile) -> Unit = {},
+    playerViewModel: PlayerViewModel = hiltViewModel(),
+    recordingPlayerViewModel: RecordingPlayerViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val recordingUiState by recordingPlayerViewModel.uiState.collectAsStateWithLifecycle()
+    val activeMode by recordingPlayerViewModel.activeMode.collectAsStateWithLifecycle()
     val discoveredCastDevices by playerViewModel.discoveredCastDevices.collectAsStateWithLifecycle()
+
+    val hasStation = uiState.currentStation != null
+    val hasRecording = recordingUiState.currentRecording != null
+    val hasMedia = hasStation || hasRecording
+    val effectiveMode = when {
+        activeMode == ActivePlaybackMode.RECORDING && hasRecording -> ActivePlaybackMode.RECORDING
+        hasStation -> ActivePlaybackMode.STATION
+        hasRecording -> ActivePlaybackMode.RECORDING
+        else -> ActivePlaybackMode.STATION
+    }
 
     // BackHandler to collapse sheet when expanded
     BackHandler(enabled = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
@@ -206,18 +244,22 @@ fun PlayerBottomSheet(
 
     // Handle Swipe to Dismiss (Stop playback when swiped away)
     LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
-        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden && uiState.currentStation != null) {
-            playerViewModel.stop()
+        if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden && hasMedia) {
+            if (effectiveMode == ActivePlaybackMode.RECORDING) {
+                recordingPlayerViewModel.stop()
+            } else {
+                playerViewModel.stop()
+            }
         }
     }
 
-    // Handle Re-appearing (Show player when a station starts playing) and Hiding (when playback stops)
-    LaunchedEffect(uiState.currentStation) {
-        if (uiState.currentStation != null && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
+    // Handle Re-appearing (Show player when media starts playing) and Hiding (when playback stops)
+    LaunchedEffect(hasMedia) {
+        if (hasMedia && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
             if (scaffoldState.bottomSheetState.targetValue != SheetValue.Expanded) {
                 scaffoldState.bottomSheetState.partialExpand()
             }
-        } else if (uiState.currentStation == null && scaffoldState.bottomSheetState.currentValue != SheetValue.Hidden) {
+        } else if (!hasMedia && scaffoldState.bottomSheetState.currentValue != SheetValue.Hidden) {
             scaffoldState.bottomSheetState.hide()
         }
     }
@@ -270,8 +312,8 @@ fun PlayerBottomSheet(
         }
     )
 
-    LaunchedEffect(uiState.currentStation) {
-        if (uiState.currentStation != null) {
+    LaunchedEffect(hasMedia, effectiveMode) {
+        if (hasMedia) {
             dismissState.snapTo(SwipeToDismissBoxValue.Settled)
         }
     }
@@ -287,10 +329,15 @@ fun PlayerBottomSheet(
         pendingHistoryPayload = null
     }
 
+    val extraMiniHeight by animateDpAsState(
+        targetValue = if (hasStation && hasRecording) MINI_MODE_BAR_HEIGHT else 0.dp,
+        label = "miniModeSheetHeight"
+    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .heightIn(min = 72.dp + bottomInset)
+            .heightIn(min = 72.dp + extraMiniHeight + bottomInset)
     ) {
         SwipeToDismissBox(
             state = dismissState,
@@ -298,14 +345,23 @@ fun PlayerBottomSheet(
             enableDismissFromEndToStart = enableSwipeToDismiss,
             gesturesEnabled = enableSwipeToDismiss,
             onDismiss = {
-                scope.launch { scaffoldState.bottomSheetState.hide() }
+                if (hasStation && hasRecording) {
+                    if (effectiveMode == ActivePlaybackMode.RECORDING) {
+                        recordingPlayerViewModel.stop()
+                    } else {
+                        playerViewModel.stop()
+                    }
+                    scope.launch { dismissState.snapTo(SwipeToDismissBoxValue.Settled) }
+                } else {
+                    scope.launch { scaffoldState.bottomSheetState.hide() }
+                }
             },
             backgroundContent = {
                 if (dismissState.dismissDirection != SwipeToDismissBoxValue.Settled) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp)
+                            .height(72.dp + extraMiniHeight)
                             .padding(start = 16.dp, end = 16.dp)
                             .alpha(1f - (progress * 5f).coerceIn(0f, 1f)),
                         contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
@@ -328,7 +384,10 @@ fun PlayerBottomSheet(
             PlayerSheetContent(
                 isWidescreen = isWidescreen,
                 uiState = uiState,
+                recordingUiState = recordingUiState,
+                activeMode = effectiveMode,
                 progress = progress,
+                onSelectMode = recordingPlayerViewModel::setActiveMode,
                 onTogglePlayPause = playerViewModel::togglePlayPause,
                 onToggleFavorite = playerViewModel::toggleFavorite,
                 onSetSleepTimer = playerViewModel::setSleepTimer,
@@ -377,6 +436,24 @@ fun PlayerBottomSheet(
                         }
                     }
                 },
+                onToggleRecordingPlayPause = recordingPlayerViewModel::togglePlayPause,
+                onSeekRecording = recordingPlayerViewModel::seekTo,
+                onRecordingPrevious = recordingPlayerViewModel::previous,
+                onRecordingNext = recordingPlayerViewModel::next,
+                onPlayRecordingItem = recordingPlayerViewModel::playRecording,
+                onRecordingSpeedChange = recordingPlayerViewModel::setPlaybackSpeed,
+                onToggleRecordingLoop = recordingPlayerViewModel::toggleLoop,
+                onSetRecordingSleepTimer = recordingPlayerViewModel::setSleepTimer,
+                onCancelRecordingSleepTimer = recordingPlayerViewModel::cancelSleepTimer,
+                onRecordingVolumeChange = recordingPlayerViewModel::setVolume,
+                onRecordingSyncOffsetChange = recordingPlayerViewModel::setLyricsSyncOffset,
+                onSearchRecordingLyrics = recordingPlayerViewModel::searchLyrics,
+                onSelectRecordingLyricsProvider = recordingPlayerViewModel::selectLyricsProvider,
+                onResetRecordingLyricsQuery = recordingPlayerViewModel::resetLyricsQuery,
+                getRecordingPositionRealtime = recordingPlayerViewModel::getCurrentPositionRealtime,
+                onSaveRecordingNote = recordingPlayerViewModel::updateNote,
+                onDeleteRecordingItem = recordingPlayerViewModel::deleteRecording,
+                onNavigateToRecording = onNavigateToRecording,
                 onDialogOpenChange = onDialogOpenChange
             )
         }
@@ -401,6 +478,9 @@ fun PlayerSheetContent(
     onEditStation: (RadioStation) -> Unit,
     onToggleRecording: () -> Unit,
     onSyncOffsetChange: (Long) -> Unit,
+    recordingUiState: RecordingPlayerUiState = RecordingPlayerUiState(),
+    activeMode: ActivePlaybackMode = ActivePlaybackMode.STATION,
+    onSelectMode: (ActivePlaybackMode) -> Unit = {},
     onSearchLyrics: ((String, String?) -> Unit)? = null,
     onSelectLyricsProvider: ((String?) -> Unit)? = null,
     onResetLyricsQuery: (() -> Unit)? = null,
@@ -408,16 +488,41 @@ fun PlayerSheetContent(
     onVolumeChange: (Float) -> Unit = {},
     onConnectCastDevice: (CastDevice) -> Unit = {},
     onDisconnectCastDevice: () -> Unit = {},
-    onDeleteRecording: (com.armanmaurya.internetradio.domain.model.RecordingFile) -> Unit,
+    onDeleteRecording: (RecordingFile) -> Unit,
     getCurrentPosition: () -> Long,
     onToggleTrackStarred: (TrackHistoryEntity) -> Unit = {},
     onLoadMoreHistory: () -> Unit = {},
     onToggleCurrentTrackStarred: () -> Unit = {},
     onDownloadHistoryLyrics: ((TrackHistoryEntity) -> Unit)? = null,
+    onToggleRecordingPlayPause: () -> Unit = {},
+    onSeekRecording: (Long) -> Unit = {},
+    onRecordingPrevious: () -> Unit = {},
+    onRecordingNext: () -> Unit = {},
+    onPlayRecordingItem: (RecordingFile, List<RecordingFile>) -> Unit = { _, _ -> },
+    onRecordingSpeedChange: (Float) -> Unit = {},
+    onToggleRecordingLoop: () -> Unit = {},
+    onSetRecordingSleepTimer: (Long) -> Unit = {},
+    onCancelRecordingSleepTimer: () -> Unit = {},
+    onRecordingVolumeChange: (Float) -> Unit = {},
+    onRecordingSyncOffsetChange: (Long) -> Unit = {},
+    onSearchRecordingLyrics: (String, String?) -> Unit = { _, _ -> },
+    onSelectRecordingLyricsProvider: (String?) -> Unit = {},
+    onResetRecordingLyricsQuery: () -> Unit = {},
+    getRecordingPositionRealtime: () -> Long = { 0L },
+    onSaveRecordingNote: (RecordingFile, String?) -> Unit = { _, _ -> },
+    onDeleteRecordingItem: (RecordingFile) -> Unit = {},
+    onNavigateToRecording: (RecordingFile) -> Unit = {},
     onDialogOpenChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val playbackState = uiState
+    val station = playbackState.currentStation
+    val recording = recordingUiState.currentRecording
+    if (station == null && recording == null) return
+
+    val isRecordingMode = activeMode == ActivePlaybackMode.RECORDING && recording != null
+    val hasBothModes = station != null && recording != null
+
     val isFavorite = uiState.isFavorite
     val trackHistory = uiState.trackHistory
     val stationRecordings = uiState.stationRecordings
@@ -428,14 +533,12 @@ fun PlayerSheetContent(
     val amplitude = uiState.amplitude
     val connectedCastDevice = uiState.connectedCastDevice
     val volume = if (uiState.connectedCastDevice != null) uiState.castVolume else uiState.volume
-    val station = playbackState.currentStation ?: return
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
     val clipboardManager = LocalClipboardManager.current
     val context = androidx.compose.ui.platform.LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val castConnectedMessage = stringResource(R.string.player_cast_connected)
     val trackCopiedMessage = stringResource(R.string.player_copied_track_to_clipboard)
 
@@ -443,9 +546,9 @@ fun PlayerSheetContent(
     var searchDialogTrack by remember { mutableStateOf<String?>(null) }
     var showCastDialog by remember { mutableStateOf(false) }
     var showCoverArt by remember { mutableStateOf(false) }
-
-
-
+    var showVolumeDialog by remember { mutableStateOf(false) }
+    var showSpeedDialog by remember { mutableStateOf(false) }
+    var showNoteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(connectedCastDevice) {
         if (connectedCastDevice != null) {
@@ -456,14 +559,17 @@ fun PlayerSheetContent(
     @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
     val bottomPagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 4 })
 
+    val activeSleepTimerEndTime = if (isRecordingMode) recordingUiState.sleepTimerEndTimeMs else playbackState.sleepTimerEndTime
+    val activeSleepTimerTotalDuration = if (isRecordingMode) recordingUiState.sleepTimerTotalDurationMs else playbackState.sleepTimerTotalDuration
+
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(playbackState.sleepTimerEndTime) {
-        val endTime = playbackState.sleepTimerEndTime
+    LaunchedEffect(activeSleepTimerEndTime, isRecordingMode) {
+        val endTime = activeSleepTimerEndTime
         if (endTime != null) {
             while (true) {
                 currentTime = System.currentTimeMillis()
                 if (currentTime >= endTime) {
-                    onCancelSleepTimer()
+                    if (isRecordingMode) onCancelRecordingSleepTimer() else onCancelSleepTimer()
                     break
                 }
                 delay(1000)
@@ -471,35 +577,38 @@ fun PlayerSheetContent(
         }
     }
 
-    val displayCodec = (if (!isFavorite || station.codec.isBlank() || station.codec.equals("UNKNOWN", ignoreCase = true)) playbackState.streamCodec else null) ?: station.codec
-    val displayBitrate = (if (!isFavorite || station.bitrate <= 0) playbackState.streamBitrate else null) ?: station.bitrate
+    val displayCodec = if (station != null) {
+        (if (!isFavorite || station.codec.isBlank() || station.codec.equals("UNKNOWN", ignoreCase = true)) playbackState.streamCodec else null) ?: station.codec
+    } else ""
+    val displayBitrate = if (station != null) {
+        (if (!isFavorite || station.bitrate <= 0) playbackState.streamBitrate else null) ?: station.bitrate
+    } else 0
 
     val hasBitrate = displayBitrate > 0
     val hasCodec = displayCodec.isNotBlank() && displayCodec.uppercase() != "UNKNOWN"
     val hasInfo = hasBitrate || hasCodec
-    var userToggledTimer by rememberSaveable(station.stationUuid) { mutableStateOf(false) }
+    var userToggledTimer by rememberSaveable(station?.stationUuid ?: "none") { mutableStateOf(false) }
     val showTimer = if (hasInfo) userToggledTimer else true
 
-    var showVolumeDialog by remember { mutableStateOf(false) }
-
     // Tell the sheet when a player dialog is open so dragging can't collapse it underneath.
-    val isAnyDialogOpen = showCastDialog || showVolumeDialog || showSleepTimerDialog || searchDialogTrack != null
+    val isAnyDialogOpen = showCastDialog || showVolumeDialog || showSleepTimerDialog || searchDialogTrack != null || showSpeedDialog || showNoteDialog
+    BackHandler(enabled = showSpeedDialog) { showSpeedDialog = false }
     val currentOnDialogOpenChange by rememberUpdatedState(onDialogOpenChange)
     LaunchedEffect(isAnyDialogOpen) { currentOnDialogOpenChange(isAnyDialogOpen) }
     DisposableEffect(Unit) { onDispose { currentOnDialogOpenChange(false) } }
-    val volumeLevel = if (connectedCastDevice != null) volume else playbackState.volume
+    val volumeLevel = if (isRecordingMode) recordingUiState.volume else if (connectedCastDevice != null) volume else playbackState.volume
     val appPreferences = LocalAppPreferences.current
 
-    val remainingTime = playbackState.sleepTimerEndTime?.let { (it - currentTime).coerceAtLeast(0L) } ?: 0L
-    val sleepTimerProgress = if (playbackState.sleepTimerTotalDuration > 0) {
-        (remainingTime.toFloat() / playbackState.sleepTimerTotalDuration).coerceIn(0f, 1f)
+    val remainingTime = activeSleepTimerEndTime?.let { (it - currentTime).coerceAtLeast(0L) } ?: 0L
+    val sleepTimerProgress = if (activeSleepTimerTotalDuration > 0) {
+        (remainingTime.toFloat() / activeSleepTimerTotalDuration).coerceIn(0f, 1f)
     } else 0f
 
     val coroutineScope = rememberCoroutineScope()
     val historyProgressAnim = remember { Animatable(0f) }
     val historyProgress = historyProgressAnim.value
 
-    // Close history when collapsing sheet
+    // Close history when collapsing the outer sheet back to the mini-player
     LaunchedEffect(progress) {
         if (progress < 0.1f && historyProgress > 0f) {
             historyProgressAnim.snapTo(0f)
@@ -524,58 +633,13 @@ fun PlayerSheetContent(
         else -> aboutListState
     }
 
-    var wasAtTopWhenScrollStarted by remember { mutableStateOf(true) }
-
-    LaunchedEffect(currentListState.isScrollInProgress) {
-        if (currentListState.isScrollInProgress) {
-            wasAtTopWhenScrollStarted = currentListState.firstVisibleItemIndex == 0 && currentListState.firstVisibleItemScrollOffset == 0
-        }
-    }
-
     val maxDragDistance = with(density) { 600.dp.toPx() }
-
-    val nestedScrollConnection = remember(currentListState) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < 0 && historyProgressAnim.value < 1f) {
-                    val delta = -available.y / maxDragDistance
-                    coroutineScope.launch {
-                        historyProgressAnim.snapTo((historyProgressAnim.value + delta).coerceIn(0f, 1f))
-                    }
-                    return Offset(0f, available.y)
-                }
-                return Offset.Zero
-            }
-
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                if (available.y > 0 && historyProgressAnim.value > 0f) {
-                    val isDrag = source.toString().contains("Drag") || source.toString().contains("UserInput")
-                    if (isDrag && wasAtTopWhenScrollStarted) {
-                        val delta = -available.y / maxDragDistance
-                        coroutineScope.launch {
-                            historyProgressAnim.snapTo((historyProgressAnim.value + delta).coerceIn(0f, 1f))
-                        }
-                    }
-                    return Offset(0f, available.y)
-                }
-                return Offset.Zero
-            }
-
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                if (historyProgressAnim.value > 0f && historyProgressAnim.value < 1f) {
-                    if (available.y < -1000f) {
-                        historyProgressAnim.animateTo(1f)
-                    } else if (available.y > 1000f) {
-                        historyProgressAnim.animateTo(0f)
-                    } else {
-                        historyProgressAnim.animateTo(if (historyProgressAnim.value > 0.5f) 1f else 0f)
-                    }
-                    return Velocity(0f, available.y)
-                }
-                return Velocity.Zero
-            }
-        }
-    }
+    val nestedScrollConnection = rememberBottomDrawerNestedScroll(
+        currentListState = currentListState,
+        historyProgressAnim = historyProgressAnim,
+        maxDragDistance = maxDragDistance,
+        coroutineScope = coroutineScope
+    )
 
     SharedTransitionLayout {
         Box(
@@ -607,7 +671,7 @@ fun PlayerSheetContent(
         
         // Expanded position
         val baseExpandedX = if (isWidescreen) 32.dp + cutoutLeftPadding else (screenWidth - baseExpandedSize) / 2
-        val historyExpandedX = if (isWidescreen) baseExpandedX else 24.dp + cutoutLeftPadding // Move to left edge of column
+        val historyExpandedX = if (isWidescreen) baseExpandedX else miniX
         val actualExpandedX = lerp(baseExpandedX, historyExpandedX, historyProgress)
         
         val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -617,7 +681,7 @@ fun PlayerSheetContent(
         } else {
             68.dp + statusBarPadding
         }
-        val historyExpandedY = if (isWidescreen) baseExpandedY else 22.dp + statusBarPadding // Shifted further down
+        val historyExpandedY = if (isWidescreen) baseExpandedY else miniY + statusBarPadding
         val actualExpandedY = lerp(baseExpandedY, historyExpandedY, historyProgress)
         
         val currentX = lerp(miniX, actualExpandedX, progress)
@@ -682,282 +746,306 @@ fun PlayerSheetContent(
 
         val currentScale = if (baseExpandedSize.value > 0f) currentSize.value / baseExpandedSize.value else 1f
 
-
-        androidx.compose.runtime.CompositionLocalProvider(
-            androidx.compose.foundation.LocalOverscrollFactory provides null
-        ) {
-            androidx.compose.foundation.pager.HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            x = with(density) { currentX.toPx() }.roundToInt(),
-                            y = with(density) { currentY.toPx() }.roundToInt()
-                        )
-                    }
-                    .size(baseExpandedSize)
-                    .graphicsLayer {
-                        scaleX = currentScale
-                        scaleY = currentScale
-                        transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0f)
-                        clip = true
-                        shape = RoundedCornerShape(12.dp / currentScale)
-                    },
-                userScrollEnabled = progress > 0.5f // Only allow swiping when expanded
-            ) { page ->
-            val pageIndex = if (isInfinite && playlistSize > 0) {
-                ((page % playlistSize) + playlistSize) % playlistSize
-            } else {
-                page
-            }
-            val pageStation = playlist.getOrNull(pageIndex) ?: station
-            val isCurrentPlayingStation = pageStation.stationUuid == station.stationUuid
-            
-            val hasCoverArt = !playbackState.trackCoverArtUri.isNullOrBlank()
-            val isFetching = playbackState.isFetchingArtwork
-            val isShowingCover = isCurrentPlayingStation && showCoverArt && (hasCoverArt || isFetching)
-
-            val visualOverlaySize = lerp(lerp(16.dp, 48.dp, progress), 16.dp, historyProgress)
-            val overlaySize = visualOverlaySize / currentScale
-
-            val visualOverlayPadding = lerp(lerp(2.dp, 8.dp, progress), 2.dp, historyProgress)
-            val overlayPadding = visualOverlayPadding / currentScale
-
-            val coverFraction by androidx.compose.animation.core.animateFloatAsState(
-                targetValue = if (isShowingCover) 1f else 0f,
-                label = "coverFraction"
-            )
-
-            val animatedThumbSize = androidx.compose.ui.unit.lerp(baseExpandedSize, overlaySize, coverFraction)
-            val animatedThumbPadding = androidx.compose.ui.unit.lerp(0.dp, overlayPadding, coverFraction)
-            val animatedCornerRadius = androidx.compose.ui.unit.lerp(0.dp, 6.dp / currentScale, coverFraction)
-            val coverAlpha = coverFraction
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (isRecording && isCurrentPlayingStation) {
-                            Modifier.border(
-                                width = 2.dp / currentScale,
-                                color = androidx.compose.ui.graphics.Color(0xFFCC0000).copy(alpha = 1f - (progress * 5f).coerceIn(0f, 1f)),
-                                shape = RoundedCornerShape(12.dp / currentScale)
-                            )
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .clickable { showCoverArt = !showCoverArt }
-            ) {
-                if (appPreferences.showStationThumbnails && isCurrentPlayingStation && (hasCoverArt || isFetching)) {
-                    if (hasCoverArt) {
-                        SubcomposeAsyncImage(
-                            model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                                .data(playbackState.trackCoverArtUri)
-                                .size(coil3.size.Size.ORIGINAL)
-                                .build(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            filterQuality = FilterQuality.High,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(coverAlpha)
-                        )
-                    } else if (isFetching) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(coverAlpha)
-                                .shimmerEffect()
-                        )
-                    }
-                }
-
-                if (appPreferences.showStationThumbnails && pageStation.favicon.isNotBlank()) {
-                    SubcomposeAsyncImage(
-                        model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                            .data(pageStation.favicon.ifBlank { null })
-                            .size(coil3.size.Size.ORIGINAL)
-                            .build(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        filterQuality = FilterQuality.High,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(animatedThumbPadding)
-                            .size(animatedThumbSize)
-                            .clip(RoundedCornerShape(animatedCornerRadius))
-                            .then(
-                                if (isShowingCover) {
-                                    Modifier
-                                        .background(MaterialTheme.colorScheme.surface)
-                                        .border(1.dp / currentScale, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(animatedCornerRadius))
-                                } else {
-                                    Modifier
-                                }
-                            ),
-                        error = {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                    contentDescription = null,
-                                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
-                                )
-                            }
-                        },
-                        loading = {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                    contentDescription = null,
-                                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
-                                )
-                            }
-                        }
-                    )
-                } else {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(animatedThumbPadding)
-                            .size(animatedThumbSize)
-                            .clip(RoundedCornerShape(animatedCornerRadius))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .then(
-                                if (isShowingCover) {
-                                    Modifier
-                                        .background(MaterialTheme.colorScheme.surface)
-                                        .border(1.dp / currentScale, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(animatedCornerRadius))
-                                } else {
-                                    Modifier
-                                }
-                            )
-                    ) {
-                        androidx.compose.foundation.Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                            contentDescription = null,
-                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
-                        )
-                    }
-                }
-            }
+        val effectiveRecordingDuration = when {
+            recordingUiState.durationMs > 0L -> recordingUiState.durationMs
+            recording != null && recording.durationMs > 0L -> recording.durationMs
+            else -> 1L
         }
+        val activeRecTrack = recordingUiState.activeTrack
+        val activeRecTrackText = activeRecTrack?.let {
+            if (!it.artist.isNullOrBlank()) "${it.title} - ${it.artist}" else it.title
+        }
+        val recElapsedText = DateUtils.formatElapsedTime((recordingUiState.currentPositionMs / 1000L).coerceAtLeast(0L))
+        val recTotalText = if (effectiveRecordingDuration > 1L) DateUtils.formatElapsedTime(effectiveRecordingDuration / 1000L) else "00:00"
+
+        val activeTitle = if (isRecordingMode) recording!!.fileName else station!!.name
+        val recordingProgress = if (isRecordingMode) {
+            if (effectiveRecordingDuration > 1L) {
+                (recordingUiState.currentPositionMs.toFloat() / effectiveRecordingDuration).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+        } else {
+            null
+        }
+        val activeTrackSubtitle = if (isRecordingMode) {
+            buildString {
+                val label = activeRecTrackText ?: recording!!.stationName
+                if (label.isNotBlank()) {
+                    append(label)
+                    append(" • ")
+                }
+                append(recElapsedText)
+                if (effectiveRecordingDuration > 1L) {
+                    append(" / ")
+                    append(recTotalText)
+                }
+            }
+        } else if (retryCountdown != null) {
+            stringResource(R.string.player_retrying_in, retryCountdown)
+        } else if (playbackState.isLoading) {
+            stringResource(R.string.player_buffering)
+        } else {
+            playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
+        }
+        val activeCopyableTrack = if (isRecordingMode) activeRecTrackText else playbackState.currentTrack
+        val activeIsPlaying = if (isRecordingMode) recordingUiState.isPlaying else playbackState.isPlaying
+        val activeIsLoading = if (isRecordingMode) false else playbackState.isLoading
+        val activeHasPrevious = if (isRecordingMode) {
+            recordingUiState.hasPrevious && recordingUiState.playlist.size > 1
+        } else {
+            playbackState.hasPrevious && playbackState.currentPlaylist.size > 1
+        }
+        val activeHasNext = if (isRecordingMode) {
+            recordingUiState.hasNext && recordingUiState.playlist.size > 1
+        } else {
+            playbackState.hasNext && playbackState.currentPlaylist.size > 1
+        }
+        val onActiveTogglePlayPause = if (isRecordingMode) onToggleRecordingPlayPause else onTogglePlayPause
+        val onActivePrevious = if (isRecordingMode) onRecordingPrevious else onPrevious
+        val onActiveNext = if (isRecordingMode) onRecordingNext else onNext
+
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = with(density) { currentX.toPx() }.roundToInt(),
+                        y = with(density) { currentY.toPx() }.roundToInt()
+                    )
+                }
+                .size(baseExpandedSize)
+                .graphicsLayer {
+                    scaleX = currentScale
+                    scaleY = currentScale
+                    transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0f)
+                    clip = true
+                    shape = RoundedCornerShape(12.dp / currentScale)
+                }
+        ) {
+            AnimatedContent(
+                targetState = isRecordingMode,
+                transitionSpec = {
+                    fadeIn(androidx.compose.animation.core.tween(220)) togetherWith
+                        fadeOut(androidx.compose.animation.core.tween(180))
+                },
+                label = "ArtworkModeTransition"
+            ) { recMode ->
+                if (recMode && recording != null) {
+                    RecordingArtworkContent(
+                        folderArtworkUri = recordingUiState.folderArtworkUri,
+                        trackCoverArtUrl = activeRecTrack?.coverArtUrl,
+                        showStationThumbnails = appPreferences.showStationThumbnails,
+                        showCoverArt = showCoverArt,
+                        onToggleCoverArt = { showCoverArt = !showCoverArt },
+                        baseExpandedSize = baseExpandedSize,
+                        progress = progress,
+                        historyProgress = historyProgress,
+                        currentScale = currentScale
+                    )
+                } else if (station != null) {
+                    androidx.compose.runtime.CompositionLocalProvider(
+                        androidx.compose.foundation.LocalOverscrollFactory provides null
+                    ) {
+                        androidx.compose.foundation.pager.HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize(),
+                            userScrollEnabled = progress > 0.5f // Only allow swiping when expanded
+                        ) { page ->
+                            val pageIndex = if (isInfinite && playlistSize > 0) {
+                                ((page % playlistSize) + playlistSize) % playlistSize
+                            } else {
+                                page
+                            }
+                            val pageStation = playlist.getOrNull(pageIndex) ?: station
+                            val isCurrentPlayingStation = pageStation.stationUuid == station.stationUuid
+
+                            val hasCoverArt = !playbackState.trackCoverArtUri.isNullOrBlank()
+                            val isFetching = playbackState.isFetchingArtwork
+                            val isShowingCover = isCurrentPlayingStation && showCoverArt && (hasCoverArt || isFetching)
+
+                            val visualOverlaySize = lerp(lerp(16.dp, 48.dp, progress), 16.dp, historyProgress)
+                            val overlaySize = visualOverlaySize / currentScale
+
+                            val visualOverlayPadding = lerp(lerp(2.dp, 8.dp, progress), 2.dp, historyProgress)
+                            val overlayPadding = visualOverlayPadding / currentScale
+
+                            val coverFraction by androidx.compose.animation.core.animateFloatAsState(
+                                targetValue = if (isShowingCover) 1f else 0f,
+                                label = "coverFraction"
+                            )
+
+                            val animatedThumbSize = androidx.compose.ui.unit.lerp(baseExpandedSize, overlaySize, coverFraction)
+                            val animatedThumbPadding = androidx.compose.ui.unit.lerp(0.dp, overlayPadding, coverFraction)
+                            val animatedCornerRadius = androidx.compose.ui.unit.lerp(0.dp, 6.dp / currentScale, coverFraction)
+                            val coverAlpha = coverFraction
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .then(
+                                        if (isRecording && isCurrentPlayingStation) {
+                                            Modifier.border(
+                                                width = 2.dp / currentScale,
+                                                color = androidx.compose.ui.graphics.Color(0xFFCC0000).copy(alpha = 1f - (progress * 5f).coerceIn(0f, 1f)),
+                                                shape = RoundedCornerShape(12.dp / currentScale)
+                                            )
+                                        } else {
+                                            Modifier
+                                        }
+                                    )
+                                    .clickable { showCoverArt = !showCoverArt }
+                            ) {
+                                if (appPreferences.showStationThumbnails && isCurrentPlayingStation && (hasCoverArt || isFetching)) {
+                                    if (hasCoverArt) {
+                                        SubcomposeAsyncImage(
+                                            model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                .data(playbackState.trackCoverArtUri)
+                                                .size(coil3.size.Size.ORIGINAL)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            filterQuality = FilterQuality.High,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .alpha(coverAlpha)
+                                        )
+                                    } else if (isFetching) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .alpha(coverAlpha)
+                                                .shimmerEffect()
+                                        )
+                                    }
+                                }
+
+                                if (appPreferences.showStationThumbnails && pageStation.favicon.isNotBlank()) {
+                                    SubcomposeAsyncImage(
+                                        model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                            .data(pageStation.favicon.ifBlank { null })
+                                            .size(coil3.size.Size.ORIGINAL)
+                                            .build(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        filterQuality = FilterQuality.High,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomStart)
+                                            .padding(animatedThumbPadding)
+                                            .size(animatedThumbSize)
+                                            .clip(RoundedCornerShape(animatedCornerRadius))
+                                            .then(
+                                                if (isShowingCover) {
+                                                    Modifier
+                                                        .background(MaterialTheme.colorScheme.surface)
+                                                        .border(1.dp / currentScale, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(animatedCornerRadius))
+                                                } else {
+                                                    Modifier
+                                                }
+                                            ),
+                                        error = {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            ) {
+                                                androidx.compose.foundation.Image(
+                                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                                    contentDescription = null,
+                                                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
+                                                )
+                                            }
+                                        },
+                                        loading = {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            ) {
+                                                androidx.compose.foundation.Image(
+                                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                                    contentDescription = null,
+                                                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
+                                                )
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomStart)
+                                            .padding(animatedThumbPadding)
+                                            .size(animatedThumbSize)
+                                            .clip(RoundedCornerShape(animatedCornerRadius))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            .then(
+                                                if (isShowingCover) {
+                                                    Modifier
+                                                        .background(MaterialTheme.colorScheme.surface)
+                                                        .border(1.dp / currentScale, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(animatedCornerRadius))
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                    ) {
+                                        androidx.compose.foundation.Image(
+                                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                            contentDescription = null,
+                                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .graphicsLayer { scaleX = 1.6f; scaleY = 1.6f }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // --- Mini Content (Fades out as we expand) ---
         if (progress < 0.9f) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(72.dp)
-                    .padding(start = 16.dp, end = 16.dp + cutoutRightPadding)
-                    .alpha(1f - (progress * 5f).coerceIn(0f, 1f)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Space for the moving thumbnail
-                Spacer(modifier = Modifier.width(miniSize + 12.dp + cutoutLeftPadding))
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            enabled = progress < 0.1f,
-                            onClick = onExpand
-                        ),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = station.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                    )
-                    val currentTrackText = if (retryCountdown != null) {
-                        stringResource(R.string.player_retrying_in, retryCountdown)
-                    } else if (playbackState.isLoading) {
-                        stringResource(R.string.player_buffering)
-                    } else {
-                        playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
-                    }
-                    Text(
-                        text = currentTrackText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .basicMarquee(iterations = Int.MAX_VALUE)
-                            .pointerInput(currentTrackText) {
-                                detectTapGestures(
-                                    onTap = {
-                                        if (progress < 0.1f) onExpand()
-                                    },
-                                    onLongPress = {
-                                        if (playbackState.currentTrack != null) {
-                                            clipboardManager.setText(AnnotatedString(currentTrackText))
-                                            Toast.makeText(context, trackCopiedMessage, Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                )
-                            }
-                    )
-                }
-
-                if (playbackState.hasPrevious && playbackState.currentPlaylist.size > 1) {
-                    IconButton(onClick = onPrevious) {
-                        Icon(
-                            imageVector = Icons.Default.SkipPrevious,
-                            contentDescription = stringResource(R.string.player_cd_previous)
-                        )
-                    }
-                }
-
-                IconButton(onClick = onTogglePlayPause) {
-                    if (playbackState.isLoading) {
-                        androidx.compose.material3.LoadingIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    } else {
-                        Icon(
-                            imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null
-                        )
-                    }
-                }
-
-                if (playbackState.hasNext && playbackState.currentPlaylist.size > 1) {
-                    IconButton(onClick = onNext) {
-                        Icon(
-                            imageVector = Icons.Default.SkipNext,
-                            contentDescription = stringResource(R.string.player_cd_next)
-                        )
-                    }
-                }
-            }
+            MiniPlayerContent(
+                activeTitle = activeTitle,
+                activeTrackSubtitle = activeTrackSubtitle,
+                activeCopyableTrack = activeCopyableTrack,
+                activeHasPrevious = activeHasPrevious,
+                activeHasNext = activeHasNext,
+                activeIsPlaying = activeIsPlaying,
+                activeIsLoading = activeIsLoading,
+                recordingProgress = recordingProgress,
+                hasBothModes = hasBothModes,
+                activeMode = activeMode,
+                stationName = station?.name,
+                recordingName = recording?.fileName,
+                isStationPlaying = playbackState.isPlaying,
+                isRecordingPlaying = recordingUiState.isPlaying,
+                includeThumbnailSpace = true,
+                thumbnailSpacerWidth = miniSize + 12.dp + cutoutLeftPadding,
+                cutoutLeftPadding = cutoutLeftPadding,
+                cutoutRightPadding = cutoutRightPadding,
+                interactionEnabled = progress < 0.1f,
+                onTitleClick = onExpand,
+                onCopyTrack = { track ->
+                    clipboardManager.setText(AnnotatedString(track))
+                    Toast.makeText(context, trackCopiedMessage, Toast.LENGTH_SHORT).show()
+                },
+                onPrevious = onActivePrevious,
+                onTogglePlayPause = onActiveTogglePlayPause,
+                onNext = onActiveNext,
+                onSelectMode = onSelectMode,
+                modifier = Modifier.alpha(1f - (progress * 5f).coerceIn(0f, 1f))
+            )
         }
 
         // --- Expanded Content (Fades in as we expand) ---
@@ -997,9 +1085,6 @@ fun PlayerSheetContent(
                             )
                         }
 
-                        // Cast and bookmark as a connected pair: outer corners match the collapse
-                        // button, inner corners are tight. Cast has its own container so the cast
-                        // dialog can grow out of it (shared-bounds container transform).
                         Row(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
@@ -1007,61 +1092,116 @@ fun PlayerSheetContent(
                             horizontalArrangement = Arrangement.spacedBy(2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val castShape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 4.dp, bottomEnd = 4.dp)
-                            val bookmarkShape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 12.dp, bottomEnd = 12.dp)
+                            val leftPairShape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 4.dp, bottomEnd = 4.dp)
+                            val rightPairShape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 12.dp, bottomEnd = 12.dp)
                             val isCasting = connectedCastDevice != null
 
                             Box(modifier = Modifier.size(width = 48.dp, height = 40.dp)) {
-                                androidx.compose.animation.AnimatedVisibility(
-                                    visible = !showCastDialog,
-                                    enter = fadeIn(androidx.compose.animation.core.tween(300)),
-                                    exit = fadeOut(androidx.compose.animation.core.tween(300))
-                                ) {
-                                    HeaderPairButton(
-                                        checked = isCasting,
-                                        shape = castShape,
-                                        enabled = historyProgress == 0f,
-                                        onClick = { showCastDialog = true },
-                                        modifier = Modifier.sharedBounds(
-                                            sharedContentState = rememberSharedContentState(
-                                                key = com.armanmaurya.internetradio.ui.shared.components.CAST_CONTAINER_KEY
-                                            ),
-                                            animatedVisibilityScope = this@AnimatedVisibility,
-                                            enter = fadeIn(androidx.compose.animation.core.tween(300)),
-                                            exit = fadeOut(androidx.compose.animation.core.tween(300)),
-                                            boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) },
-                                            clipInOverlayDuringTransition = OverlayClip(castShape)
-                                        )
+                                if (isRecordingMode) {
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = !showSpeedDialog,
+                                        enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                        exit = fadeOut(androidx.compose.animation.core.tween(300))
                                     ) {
-                                        Icon(
-                                            imageVector = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
-                                            contentDescription = stringResource(R.string.player_cd_cast),
-                                            modifier = Modifier
-                                                .sharedElement(
-                                                    sharedContentState = rememberSharedContentState(
-                                                        key = com.armanmaurya.internetradio.ui.shared.components.CAST_ICON_KEY
-                                                    ),
+                                        HeaderPairButton(
+                                            checked = recordingUiState.playbackSpeed != 1.0f,
+                                            shape = leftPairShape,
+                                            enabled = historyProgress == 0f,
+                                            onClick = { showSpeedDialog = true },
+                                            modifier = Modifier.sharedBounds(
+                                                sharedContentState = rememberSharedContentState(key = SPEED_CONTAINER_KEY),
+                                                animatedVisibilityScope = this@AnimatedVisibility,
+                                                enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                                exit = fadeOut(androidx.compose.animation.core.tween(300)),
+                                                boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) },
+                                                clipInOverlayDuringTransition = OverlayClip(leftPairShape)
+                                            )
+                                        ) {
+                                            Text(
+                                                text = formatPlaybackSpeed(recordingUiState.playbackSpeed),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1,
+                                                modifier = Modifier.sharedElement(
+                                                    sharedContentState = rememberSharedContentState(key = SPEED_VALUE_KEY),
                                                     animatedVisibilityScope = this@AnimatedVisibility,
                                                     boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) }
                                                 )
-                                                .size(24.dp)
-                                        )
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = !showCastDialog,
+                                        enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                        exit = fadeOut(androidx.compose.animation.core.tween(300))
+                                    ) {
+                                        HeaderPairButton(
+                                            checked = isCasting,
+                                            shape = leftPairShape,
+                                            enabled = historyProgress == 0f,
+                                            onClick = { showCastDialog = true },
+                                            modifier = Modifier.sharedBounds(
+                                                sharedContentState = rememberSharedContentState(
+                                                    key = com.armanmaurya.internetradio.ui.shared.components.CAST_CONTAINER_KEY
+                                                ),
+                                                animatedVisibilityScope = this@AnimatedVisibility,
+                                                enter = fadeIn(androidx.compose.animation.core.tween(300)),
+                                                exit = fadeOut(androidx.compose.animation.core.tween(300)),
+                                                boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) },
+                                                clipInOverlayDuringTransition = OverlayClip(leftPairShape)
+                                            )
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isCasting) Icons.Default.CastConnected else Icons.Default.Cast,
+                                                contentDescription = stringResource(R.string.player_cd_cast),
+                                                modifier = Modifier
+                                                    .sharedElement(
+                                                        sharedContentState = rememberSharedContentState(
+                                                            key = com.armanmaurya.internetradio.ui.shared.components.CAST_ICON_KEY
+                                                        ),
+                                                        animatedVisibilityScope = this@AnimatedVisibility,
+                                                        boundsTransform = { _, _ -> androidx.compose.animation.core.tween(durationMillis = 350) }
+                                                    )
+                                                    .size(24.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
 
                             HeaderPairButton(
-                                checked = isFavorite,
-                                shape = bookmarkShape,
+                                checked = !isRecordingMode && isFavorite,
+                                shape = rightPairShape,
                                 enabled = historyProgress == 0f,
-                                onClick = onToggleFavorite,
+                                onClick = {
+                                    if (isRecordingMode && recording != null) {
+                                        onCollapse()
+                                        onNavigateToRecording(recording)
+                                    } else {
+                                        onToggleFavorite()
+                                    }
+                                },
                                 modifier = Modifier.size(width = 48.dp, height = 40.dp)
                             ) {
-                                Icon(
-                                    imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = stringResource(R.string.player_cd_toggle_favorite),
-                                    modifier = Modifier.size(24.dp)
-                                )
+                                AnimatedContent(
+                                    targetState = isRecordingMode,
+                                    label = "rightPairIcon"
+                                ) { recMode ->
+                                    if (recMode) {
+                                        Icon(
+                                            imageVector = Icons.Default.NearMe,
+                                            contentDescription = stringResource(R.string.recording_cd_go_to_recording),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                            contentDescription = stringResource(R.string.player_cd_toggle_favorite),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                         
@@ -1091,60 +1231,88 @@ fun PlayerSheetContent(
                             String.format(Locale.US, "%02d:%02d", minutes, seconds)
                         }
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .clip(RoundedCornerShape(16.dp))
-                                .clickable(enabled = hasInfo && historyProgress == 0f) { userToggledTimer = !userToggledTimer }
-                                .animateContentSize()
-                                .padding(
-                                    start = 12.dp,
-                                    end = if (hasInfo) 8.dp else 12.dp,
-                                    top = 6.dp,
-                                    bottom = 6.dp
-                                )
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        if (hasBothModes) {
+                            PlayerModeSegmentedPill(
+                                activeMode = activeMode,
+                                isStationPlaying = playbackState.isPlaying,
+                                isRecordingPlaying = recordingUiState.isPlaying,
+                                enabled = historyProgress == 0f,
+                                onSelectMode = onSelectMode,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        } else if (isRecordingMode) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                AnimatedContent(
-                                    targetState = showTimer,
-                                    label = "TimerTransition"
-                                ) { isShowingTimer ->
-                                    if (isShowingTimer) {
-                                        Text(
-                                            text = timerString,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    } else {
-                                        val infoText = if (hasBitrate && hasCodec) {
-                                            stringResource(R.string.player_station_codec_bitrate, displayCodec.uppercase(), displayBitrate.toString())
-                                        } else if (hasBitrate) {
-                                            stringResource(R.string.player_station_bitrate_only, displayBitrate.toString())
+                                Text(
+                                    text = if (effectiveRecordingDuration > 1L) "$recElapsedText / $recTotalText" else recElapsedText,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .clickable(enabled = hasInfo && historyProgress == 0f) { userToggledTimer = !userToggledTimer }
+                                    .animateContentSize()
+                                    .padding(
+                                        start = 12.dp,
+                                        end = if (hasInfo) 8.dp else 12.dp,
+                                        top = 6.dp,
+                                        bottom = 6.dp
+                                    )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    AnimatedContent(
+                                        targetState = showTimer,
+                                        label = "TimerTransition"
+                                    ) { isShowingTimer ->
+                                        if (isShowingTimer) {
+                                            Text(
+                                                text = timerString,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         } else {
-                                            displayCodec.uppercase()
+                                            val infoText = if (hasBitrate && hasCodec) {
+                                                stringResource(R.string.player_station_codec_bitrate, displayCodec.uppercase(), displayBitrate.toString())
+                                            } else if (hasBitrate) {
+                                                stringResource(R.string.player_station_bitrate_only, displayBitrate.toString())
+                                            } else {
+                                                displayCodec.uppercase()
+                                            }
+                                            Text(
+                                                text = infoText,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
-                                        Text(
-                                            text = infoText,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                    if (hasInfo) {
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowRight,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                }
-                                if (hasInfo) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowRight,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
                                 }
                             }
                         }
@@ -1161,10 +1329,14 @@ fun PlayerSheetContent(
                     modifier = contentModifier,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val extraNestedMiniHeight by animateDpAsState(
+                        targetValue = if (hasBothModes) MINI_MODE_BAR_HEIGHT else 0.dp,
+                        label = "nestedMiniModeHeight"
+                    )
                     // Thumbnail Placeholder and Mini Controls
                     Box(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterEnd
+                        contentAlignment = Alignment.TopCenter
                     ) {
                         // Placeholder for the moving thumbnail
                         if (!isWidescreen) {
@@ -1173,83 +1345,50 @@ fun PlayerSheetContent(
                                 .height(
                                     lerp(
                                         28.dp + baseExpandedSize, // 68dp (Thumbnail Y) + size + 16dp (gap) - 56dp (Header Box) = 28dp + size
-                                        72.dp, // Matches Row height
+                                        72.dp + extraNestedMiniHeight,
                                         historyProgress
                                     )
                                 )
                             )
                         } else {
-                            Spacer(modifier = Modifier.height(lerp(16.dp, 72.dp, historyProgress)))
+                            Spacer(modifier = Modifier.height(lerp(16.dp, 72.dp + extraNestedMiniHeight, historyProgress)))
                         }
-    
+
                         // Mini controls when history is expanded
-                    if (historyProgress > 0f) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(72.dp) // perfectly match the collapsed player height
-                                .alpha(historyProgress),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Space for the moving thumbnail (only on mobile)
-                            Spacer(modifier = Modifier.width(if (isWidescreen) 16.dp else 84.dp))
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = station.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                                )
-                                val currentTrackText = if (playbackState.isLoading) stringResource(R.string.player_buffering) else playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
-                                Text(
-                                    text = currentTrackText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                                )
-                            }
-
-                            if (playbackState.hasPrevious && playbackState.currentPlaylist.size > 1) {
-                                IconButton(onClick = onPrevious) {
-                                    Icon(
-                                        imageVector = Icons.Default.SkipPrevious,
-                                        contentDescription = stringResource(R.string.player_cd_previous)
-                                    )
-                                }
-                            }
-
-                            IconButton(onClick = onTogglePlayPause) {
-                                if (playbackState.isLoading) {
-                                    androidx.compose.material3.LoadingIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-
-                            if (playbackState.hasNext && playbackState.currentPlaylist.size > 1) {
-                                IconButton(onClick = onNext) {
-                                    Icon(
-                                        imageVector = Icons.Default.SkipNext,
-                                        contentDescription = stringResource(R.string.player_cd_next)
-                                    )
-                                }
-                            }
+                        if (historyProgress > 0f) {
+                            MiniPlayerContent(
+                                activeTitle = activeTitle,
+                                activeTrackSubtitle = activeTrackSubtitle,
+                                activeCopyableTrack = activeCopyableTrack,
+                                activeHasPrevious = activeHasPrevious,
+                                activeHasNext = activeHasNext,
+                                activeIsPlaying = activeIsPlaying,
+                                activeIsLoading = activeIsLoading,
+                                recordingProgress = recordingProgress,
+                                hasBothModes = hasBothModes,
+                                activeMode = activeMode,
+                                stationName = station?.name,
+                                recordingName = recording?.fileName,
+                                isStationPlaying = playbackState.isPlaying,
+                                isRecordingPlaying = recordingUiState.isPlaying,
+                                includeThumbnailSpace = !isWidescreen,
+                                thumbnailSpacerWidth = miniSize + 12.dp + cutoutLeftPadding,
+                                cutoutLeftPadding = if (isWidescreen) 0.dp else cutoutLeftPadding,
+                                cutoutRightPadding = cutoutRightPadding,
+                                interactionEnabled = historyProgress > 0.9f,
+                                onTitleClick = { coroutineScope.launch { historyProgressAnim.animateTo(0f) } },
+                                onCopyTrack = { track ->
+                                    clipboardManager.setText(AnnotatedString(track))
+                                    Toast.makeText(context, trackCopiedMessage, Toast.LENGTH_SHORT).show()
+                                },
+                                onPrevious = onActivePrevious,
+                                onTogglePlayPause = onActiveTogglePlayPause,
+                                onNext = onActiveNext,
+                                onSelectMode = onSelectMode,
+                                modifier = Modifier.alpha(historyProgress)
+                            )
                         }
                     }
-                }
 
                 // Player UI wrapper
                 Column(
@@ -1269,63 +1408,140 @@ fun PlayerSheetContent(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .defaultMinSize(minHeight = 48.dp)
                                 .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                text = station.name,
-                                style = MaterialTheme.typography.headlineMedium,
-                                textAlign = TextAlign.Start,
-                                maxLines = 1,
-                                fontWeight = FontWeight.Bold,
+                            Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .basicMarquee(iterations = Int.MAX_VALUE)
+                                    .height(52.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Text(
+                                    text = activeTitle,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Start,
+                                    maxLines = 1,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .basicMarquee(iterations = Int.MAX_VALUE)
+                                )
+                            }
+
+                            val titleActionShapes = androidx.compose.material3.IconButtonShapes(
+                                shape = RoundedCornerShape(20.dp),
+                                pressedShape = RoundedCornerShape(12.dp)
                             )
-                            
-                            if (isFavorite) {
-                                IconButton(
+                            if (isRecordingMode && recording != null) {
+                                val hasNote = !recording.note.isNullOrBlank()
+                                FilledTonalIconButton(
+                                    onClick = { showNoteDialog = true },
+                                    modifier = Modifier
+                                        .width(48.dp)
+                                        .height(52.dp),
+                                    shapes = titleActionShapes,
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = if (hasNote) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = if (hasNote) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Notes,
+                                        contentDescription = stringResource(
+                                            if (hasNote) R.string.recording_edit_note
+                                            else R.string.recording_add_note
+                                        ),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            } else if (isFavorite && station != null) {
+                                FilledTonalIconButton(
                                     onClick = {
                                         onCollapse()
                                         onEditStation(station)
-                                    }
+                                    },
+                                    modifier = Modifier
+                                        .width(48.dp)
+                                        .height(52.dp),
+                                    shapes = titleActionShapes,
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Edit,
                                         contentDescription = stringResource(R.string.edit_station_title),
-                                        tint = LocalContentColor.current
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
 
                         val bufferingText = stringResource(R.string.player_buffering)
                         val noTrackDataText = stringResource(R.string.player_no_track_data)
-                        
-                        val displayTrack = if (retryCountdown != null) {
-                            stringResource(R.string.player_retrying_in, retryCountdown!!)
+
+                        val displayTrack = if (isRecordingMode) {
+                            activeRecTrackText ?: recording!!.stationName.ifBlank { noTrackDataText }
+                        } else if (retryCountdown != null) {
+                            stringResource(R.string.player_retrying_in, retryCountdown)
                         } else if (playbackState.currentTrack != null) {
-                            playbackState.currentTrack!!
+                            playbackState.currentTrack
                         } else if (playbackState.isLoading) {
                             bufferingText
                         } else {
                             noTrackDataText
                         }
-                        
+
                         val isSearchExpanded = searchDialogTrack != null
-                        val canSearch = displayTrack.isNotBlank() && displayTrack != bufferingText && displayTrack != noTrackDataText
-                        
+                        val canSearch = if (isRecordingMode) {
+                            activeRecTrackText != null
+                        } else {
+                            displayTrack.isNotBlank() && displayTrack != bufferingText && displayTrack != noTrackDataText
+                        }
+
                         TrackPill(
                             displayTrack = displayTrack.ifBlank { noTrackDataText },
-                            trackCoverArtUri = if (canSearch) playbackState.trackCoverArtUri else null,
-                            isFetchingArtwork = if (canSearch) playbackState.isFetchingArtwork else false,
+                            trackCoverArtUri = if (isRecordingMode) activeRecTrack?.coverArtUrl else if (canSearch) playbackState.trackCoverArtUri else null,
+                            isFetchingArtwork = if (isRecordingMode) false else if (canSearch) playbackState.isFetchingArtwork else false,
                             canSearch = canSearch,
                             isSearchExpanded = isSearchExpanded,
                             onOpenSearch = { track -> searchDialogTrack = track }
                         )
+
+                        // Recording seekbar expands/collapses smoothly between TrackPill and Waveform
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isRecordingMode,
+                            enter = androidx.compose.animation.expandVertically(
+                                animationSpec = androidx.compose.animation.core.tween(240),
+                                expandFrom = Alignment.Top
+                            ) + fadeIn(androidx.compose.animation.core.tween(220)),
+                            exit = androidx.compose.animation.shrinkVertically(
+                                animationSpec = androidx.compose.animation.core.tween(220),
+                                shrinkTowards = Alignment.Top
+                            ) + fadeOut(androidx.compose.animation.core.tween(160))
+                        ) {
+                            if (recording != null) {
+                                RecordingSeekBarSection(
+                                    recordingUri = recording.uri,
+                                    currentPositionMs = recordingUiState.currentPositionMs,
+                                    durationMs = effectiveRecordingDuration,
+                                    isPlaying = recordingUiState.isPlaying,
+                                    onSeek = onSeekRecording
+                                )
+                            }
+                        }
 
                     // Waveform and Volume UI
                     BoxWithConstraints(
@@ -1347,18 +1563,24 @@ fun PlayerSheetContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // Waveform Pill
+                            val showLiveRecBanner = !isRecordingMode && isRecording
+                            val activeAmplitude = if (isRecordingMode) {
+                                if (recordingUiState.isPlaying) recordingUiState.amplitude else 0f
+                            } else {
+                                if (playbackState.isPlaying) amplitude else 0f
+                            }
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(64.dp)
                                     .background(
-                                        color = if (isRecording) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f) 
+                                        color = if (showLiveRecBanner) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
                                                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                         shape = RoundedCornerShape(20.dp)
                                     )
                                     .padding(
                                         start = 0.dp,
-                                        end = if (isRecording) 16.dp else 0.dp,
+                                        end = if (showLiveRecBanner) 16.dp else 0.dp,
                                         top = 8.dp,
                                         bottom = 8.dp
                                     ),
@@ -1366,13 +1588,13 @@ fun PlayerSheetContent(
                             ) {
                                 // Waveform
                                 ScrollingWaveform(
-                                    amplitude = if (playbackState.isPlaying) amplitude else 0f,
+                                    amplitude = activeAmplitude,
                                     modifier = Modifier.weight(1f),
-                                    barColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                                    emptyColor = if (isRecording) MaterialTheme.colorScheme.error.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                    barColor = if (showLiveRecBanner) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                    emptyColor = if (showLiveRecBanner) MaterialTheme.colorScheme.error.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                                 )
                                 AnimatedVisibility(
-                                    visible = isRecording,
+                                    visible = showLiveRecBanner,
                                     enter = androidx.compose.animation.expandHorizontally(expandFrom = Alignment.Start) + androidx.compose.animation.fadeIn(),
                                     exit = androidx.compose.animation.shrinkHorizontally(shrinkTowards = Alignment.Start) + androidx.compose.animation.fadeOut()
                                 ) {
@@ -1401,7 +1623,7 @@ fun PlayerSheetContent(
                                     .width(recordButtonWidth)
                                     .height(64.dp)
                             ) {
-                                val isBoosted = appPreferences.enableVolumeBoost && volumeLevel > 1.0f
+                                val isBoosted = !isRecordingMode && appPreferences.enableVolumeBoost && volumeLevel > 1.0f
                                 val volumeIcon = when {
                                     volumeLevel == 0f -> Icons.AutoMirrored.Filled.VolumeOff
                                     volumeLevel < 0.5f -> Icons.AutoMirrored.Filled.VolumeDown
@@ -1453,164 +1675,62 @@ fun PlayerSheetContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Controls Row
+                // Controls Row (stays mounted and anchored across Station ↔ Recording switches)
                 Controls(
                     historyProgress = historyProgress,
                     showSleepTimerDialog = showSleepTimerDialog,
-                    sleepTimerEndTime = playbackState.sleepTimerEndTime,
+                    sleepTimerEndTime = activeSleepTimerEndTime,
                     remainingTime = remainingTime,
                     sleepTimerProgress = sleepTimerProgress,
-                    hasPrevious = playbackState.hasPrevious && playbackState.currentPlaylist.size > 1,
-                    hasNext = playbackState.hasNext && playbackState.currentPlaylist.size > 1,
-                    isPlaying = playbackState.isPlaying,
-                    isLoading = playbackState.isLoading,
-                    isRecording = isRecording,
+                    hasPrevious = activeHasPrevious,
+                    hasNext = activeHasNext,
+                    isPlaying = activeIsPlaying,
+                    isLoading = activeIsLoading,
+                    isRecording = if (isRecordingMode) recordingUiState.isLooping else isRecording,
                     onOpenSleepTimer = { showSleepTimerDialog = true },
-                    onPrevious = onPrevious,
-                    onTogglePlayPause = onTogglePlayPause,
-                    onNext = onNext,
-                    onToggleRecording = onToggleRecording
+                    onPrevious = onActivePrevious,
+                    onTogglePlayPause = onActiveTogglePlayPause,
+                    onNext = onActiveNext,
+                    onToggleRecording = if (isRecordingMode) onToggleRecordingLoop else onToggleRecording,
+                    trailingIcon = if (isRecordingMode) {
+                        if (recordingUiState.isLooping) Icons.Default.RepeatOne else Icons.Default.Repeat
+                    } else {
+                        Icons.Default.Mic
+                    },
+                    trailingContentDescription = if (isRecordingMode) {
+                        stringResource(
+                            if (recordingUiState.isLooping) R.string.recording_cd_loop_enabled
+                            else R.string.recording_cd_loop_disabled
+                        )
+                    } else {
+                        stringResource(R.string.player_cd_record)
+                    },
+                    trailingCheckedContainerColor = if (isRecordingMode) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                    trailingCheckedContentColor = if (isRecordingMode) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onError
+                    }
                 )
                 } // End of Player UI wrapper
 
                 // Bottom Tabs (sits naturally below everything else, moves up as above content collapses)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .draggable(
-                            orientation = Orientation.Vertical,
-                            state = rememberDraggableState { delta ->
-                                coroutineScope.launch {
-                                    historyProgressAnim.snapTo((historyProgressAnim.value - delta / maxDragDistance).coerceIn(0f, 1f))
-                                }
-                            },
-                            onDragStopped = { velocity ->
-                                coroutineScope.launch {
-                                    if (velocity < -1000f) {
-                                        historyProgressAnim.animateTo(1f)
-                                    } else if (velocity > 1000f) {
-                                        historyProgressAnim.animateTo(0f)
-                                    } else {
-                                        historyProgressAnim.animateTo(if (historyProgressAnim.value > 0.5f) 1f else 0f)
-                                    }
-                                }
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val isHistoryExpanded = historyProgress > 0.5f
-
-                    val tab1TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab1Text"
-                    )
-
-                    val tab2TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab2Text"
-                    )
-
-                    val tab3TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab3Text"
-                    )
-
-                    val tab4TextColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        label = "tab4Text"
-                    )
-
-                    val scrollState = rememberScrollState()
-                    val density = androidx.compose.ui.platform.LocalDensity.current
-                    val tabWidths = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
-                    val tabOffsets = remember { androidx.compose.runtime.mutableStateListOf(0.dp, 0.dp, 0.dp, 0.dp) }
-
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier.horizontalScroll(scrollState)
-                        ) {
-                            if (isHistoryExpanded) {
-                                val currentOffset = tabOffsets.getOrElse(bottomPagerState.currentPage) { 0.dp }
-                                val currentWidth = tabWidths.getOrElse(bottomPagerState.currentPage) { 0.dp }
-
-                                val animOffset by androidx.compose.animation.core.animateDpAsState(currentOffset, label = "offset")
-                                val animWidth by androidx.compose.animation.core.animateDpAsState(currentWidth, label = "width")
-
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterStart)
-                                        .offset(x = animOffset)
-                                        .width(animWidth)
-                                        .height(36.dp)
-                                        .padding(horizontal = 4.dp)
-                                        .zIndex(-1f)
-                                        .background(
-                                            // The sheet sits on surfaceContainerLow; when a scheme (e.g. Monochrome
-                                            // dark) makes that identical to surface, lift the indicator so it stays visible.
-                                            if (MaterialTheme.colorScheme.surface == MaterialTheme.colorScheme.surfaceContainerLow) {
-                                                MaterialTheme.colorScheme.surfaceContainerHighest
-                                            } else {
-                                                MaterialTheme.colorScheme.surface
-                                            },
-                                            RoundedCornerShape(10.dp)
-                                        )
-                                )
-                            }
-
-                            val tabs = listOf(
-                                stringResource(R.string.player_tab_tracks) to tab1TextColor,
-                                stringResource(R.string.home_tab_recordings) to tab2TextColor,
-                                stringResource(R.string.player_tab_lyrics) to tab3TextColor,
-                                stringResource(R.string.player_tab_about) to tab4TextColor
-                            )
-
-                            Row {
-                                tabs.forEachIndexed { index, (title, color) ->
-                                    Box(
-                                        modifier = Modifier
-                                            .semantics { role = androidx.compose.ui.semantics.Role.Tab }
-                                            .onGloballyPositioned { coords ->
-                                                val width = with(density) { coords.size.width.toDp() }
-                                                val offset = with(density) { coords.positionInParent().x.toDp() }
-                                                if (tabWidths[index] != width) tabWidths[index] = width
-                                                if (tabOffsets[index] != offset) tabOffsets[index] = offset
-                                            }
-                                            .clickable(
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                onClick = {
-                                                    if (bottomPagerState.currentPage != index) {
-                                                        coroutineScope.launch {
-                                                            launch { bottomPagerState.animateScrollToPage(index) }
-                                                            if (!isHistoryExpanded) {
-                                                                launch { historyProgressAnim.animateTo(1f) }
-                                                            }
-                                                        }
-                                                    } else {
-                                                        coroutineScope.launch {
-                                                            historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = title,
-                                            fontWeight = FontWeight.Bold,
-                                            color = color
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                PlayerBottomTabsBar(
+                    tabTitles = listOf(
+                        stringResource(R.string.player_tab_tracks),
+                        stringResource(R.string.home_tab_recordings),
+                        stringResource(R.string.player_tab_lyrics),
+                        stringResource(R.string.player_tab_about)
+                    ),
+                    bottomPagerState = bottomPagerState,
+                    historyProgressAnim = historyProgressAnim,
+                    maxDragDistance = maxDragDistance,
+                    coroutineScope = coroutineScope
+                )
 
                 // Tab Panel Content
                 if (historyProgress > 0f) {
@@ -1625,55 +1745,118 @@ fun PlayerSheetContent(
                                 .weight(historyProgress.coerceAtLeast(0.01f))
                                 .alpha(historyProgress)
                         ) { page ->
-                        if (page == 0) {
-                            HistoryTab(
-                                trackHistory = trackHistory,
-                                savedTracks = uiState.savedTracks,
-                                listState = historyListState,
-                                nestedScrollConnection = nestedScrollConnection,
-                                onToggleStar = onToggleTrackStarred,
-                                onLoadMore = onLoadMoreHistory,
-                                onDownloadLyrics = onDownloadHistoryLyrics
-                            )
-                        } else if (page == 1) {
-                            RecordingsTab(
-                                stationRecordings = stationRecordings,
-                                listState = recordingsListState,
-                                nestedScrollConnection = nestedScrollConnection,
-                                onDeleteRecording = onDeleteRecording
-                            )
-                        } else if (page == 2) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            ) {
-                                LyricsTab(
-                                    listState = lyricsListState,
-                                    nestedScrollConnection = nestedScrollConnection,
-                                    lyricsUiState = lyricsUiState,
-                                    trackStartTime = playbackState.trackStartTime,
-                                    syncOffsetMs = playbackState.lyricsSyncOffsetMs,
-                                    isPlaying = playbackState.isPlaying,
-                                    getCurrentPosition = getCurrentPosition,
-                                    onSyncOffsetChange = onSyncOffsetChange,
-                                    currentTrack = playbackState.cleanTrackName ?: playbackState.currentTrack,
-                                    currentArtist = playbackState.cleanArtistName,
-                                    customQueryTitle = playbackState.customLyricsQueryTitle,
-                                    customQueryArtist = playbackState.customLyricsQueryArtist,
-                                    selectedProviderId = playbackState.selectedLyricsProviderId,
-                                    onSearchLyrics = onSearchLyrics,
-                                    onSelectProvider = onSelectLyricsProvider,
-                                    onResetQuery = onResetLyricsQuery
-                                )
+                            when (page) {
+                                0 -> {
+                                    if (isRecordingMode && recording != null) {
+                                        RecordingTracksTabPage(
+                                            recording = recording,
+                                            currentPositionMs = recordingUiState.currentPositionMs,
+                                            listState = historyListState,
+                                            nestedScrollConnection = nestedScrollConnection,
+                                            onSeek = onSeekRecording
+                                        )
+                                    } else {
+                                        HistoryTab(
+                                            trackHistory = trackHistory,
+                                            savedTracks = uiState.savedTracks,
+                                            listState = historyListState,
+                                            nestedScrollConnection = nestedScrollConnection,
+                                            onToggleStar = onToggleTrackStarred,
+                                            onLoadMore = onLoadMoreHistory,
+                                            onDownloadLyrics = onDownloadHistoryLyrics
+                                        )
+                                    }
+                                }
+                                1 -> {
+                                    if (isRecordingMode && recording != null) {
+                                        val folderRecordings = recordingUiState.folderRecordings.ifEmpty { recordingUiState.playlist }
+                                        RecordingFolderTabPage(
+                                            currentRecording = recording,
+                                            folderRecordings = folderRecordings,
+                                            isPlaying = recordingUiState.isPlaying,
+                                            listState = recordingsListState,
+                                            nestedScrollConnection = nestedScrollConnection,
+                                            onTogglePlayPause = onToggleRecordingPlayPause,
+                                            onPlayRecording = onPlayRecordingItem,
+                                            onDeleteRecording = onDeleteRecordingItem,
+                                            onSaveNote = onSaveRecordingNote
+                                        )
+                                    } else {
+                                        RecordingsTab(
+                                            stationRecordings = stationRecordings,
+                                            listState = recordingsListState,
+                                            nestedScrollConnection = nestedScrollConnection,
+                                            onDeleteRecording = onDeleteRecording
+                                        )
+                                    }
+                                }
+                                2 -> {
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        if (isRecordingMode) {
+                                            LyricsTab(
+                                                listState = lyricsListState,
+                                                nestedScrollConnection = nestedScrollConnection,
+                                                lyricsUiState = recordingUiState.lyricsUiState,
+                                                trackStartTime = activeRecTrack?.offsetMs,
+                                                syncOffsetMs = recordingUiState.lyricsSyncOffsetMs,
+                                                isPlaying = recordingUiState.isPlaying,
+                                                getCurrentPosition = getRecordingPositionRealtime,
+                                                onSyncOffsetChange = onRecordingSyncOffsetChange,
+                                                playbackSpeed = recordingUiState.playbackSpeed,
+                                                currentTrack = activeRecTrack?.title,
+                                                currentArtist = activeRecTrack?.artist,
+                                                customQueryTitle = recordingUiState.customLyricsQueryTitle,
+                                                customQueryArtist = recordingUiState.customLyricsQueryArtist,
+                                                selectedProviderId = recordingUiState.selectedLyricsProviderId,
+                                                onSearchLyrics = onSearchRecordingLyrics,
+                                                onSelectProvider = onSelectRecordingLyricsProvider,
+                                                onResetQuery = onResetRecordingLyricsQuery
+                                            )
+                                        } else {
+                                            LyricsTab(
+                                                listState = lyricsListState,
+                                                nestedScrollConnection = nestedScrollConnection,
+                                                lyricsUiState = lyricsUiState,
+                                                trackStartTime = playbackState.trackStartTime,
+                                                syncOffsetMs = playbackState.lyricsSyncOffsetMs,
+                                                isPlaying = playbackState.isPlaying,
+                                                getCurrentPosition = getCurrentPosition,
+                                                onSyncOffsetChange = onSyncOffsetChange,
+                                                currentTrack = playbackState.cleanTrackName ?: playbackState.currentTrack,
+                                                currentArtist = playbackState.cleanArtistName,
+                                                customQueryTitle = playbackState.customLyricsQueryTitle,
+                                                customQueryArtist = playbackState.customLyricsQueryArtist,
+                                                selectedProviderId = playbackState.selectedLyricsProviderId,
+                                                onSearchLyrics = onSearchLyrics,
+                                                onSelectProvider = onSelectLyricsProvider,
+                                                onResetQuery = onResetLyricsQuery
+                                            )
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    if (isRecordingMode && recording != null) {
+                                        RecordingAboutTab(
+                                            recording = recording,
+                                            effectiveDurationMs = effectiveRecordingDuration,
+                                            listState = aboutListState,
+                                            nestedScrollConnection = nestedScrollConnection,
+                                            onSaveNote = { newNote -> onSaveRecordingNote(recording, newNote) },
+                                            onGoToRecording = {
+                                                onCollapse()
+                                                onNavigateToRecording(recording)
+                                            }
+                                        )
+                                    } else if (station != null) {
+                                        AboutTab(
+                                            station = station,
+                                            listState = aboutListState,
+                                            nestedScrollConnection = nestedScrollConnection
+                                        )
+                                    }
+                                }
                             }
-                        } else if (page == 3) {
-                            AboutTab(
-                                station = station,
-                                listState = aboutListState,
-                                nestedScrollConnection = nestedScrollConnection
-                            )
                         }
-                    }
                     }
                 }
             }
@@ -1683,11 +1866,11 @@ fun PlayerSheetContent(
         // DIALOG: visible when expanded — same sharedBounds key as pill = true container transform
         TrackDialog(
             searchDialogTrack = searchDialogTrack,
-            rawTrackName = playbackState.rawTrackName,
-            trackCoverArtUri = playbackState.trackCoverArtUri,
-            isFetchingArtwork = playbackState.isFetchingArtwork,
-            isStarred = uiState.isCurrentTrackStarred,
-            onToggleStar = onToggleCurrentTrackStarred,
+            rawTrackName = if (isRecordingMode) activeRecTrack?.rawTitle else playbackState.rawTrackName,
+            trackCoverArtUri = if (isRecordingMode) activeRecTrack?.coverArtUrl else playbackState.trackCoverArtUri,
+            isFetchingArtwork = if (isRecordingMode) false else playbackState.isFetchingArtwork,
+            isStarred = if (isRecordingMode) false else uiState.isCurrentTrackStarred,
+            onToggleStar = if (isRecordingMode) null else onToggleCurrentTrackStarred,
             onDismissRequest = { searchDialogTrack = null }
         )
 
@@ -1710,51 +1893,200 @@ fun PlayerSheetContent(
             showDialog = showVolumeDialog,
             onDismissRequest = { showVolumeDialog = false },
             volume = volumeLevel,
-            onVolumeChange = onVolumeChange,
-            isCastActive = connectedCastDevice != null,
-            isVolumeBoostEnabled = appPreferences.enableVolumeBoost
+            onVolumeChange = {
+                if (isRecordingMode) onRecordingVolumeChange(it) else onVolumeChange(it)
+            },
+            isCastActive = !isRecordingMode && connectedCastDevice != null,
+            isVolumeBoostEnabled = !isRecordingMode && appPreferences.enableVolumeBoost
         )
 
         SleepTimerDialog(
             showDialog = showSleepTimerDialog,
-            activeTimerEndTime = playbackState.sleepTimerEndTime,
+            activeTimerEndTime = activeSleepTimerEndTime,
             timerProgress = sleepTimerProgress,
             onDismissRequest = { showSleepTimerDialog = false },
-            onSetTimer = { onSetSleepTimer(it) },
-            onCancelTimer = { onCancelSleepTimer() }
+            onSetTimer = {
+                if (isRecordingMode) onSetRecordingSleepTimer(it) else onSetSleepTimer(it)
+            },
+            onCancelTimer = {
+                if (isRecordingMode) onCancelRecordingSleepTimer() else onCancelSleepTimer()
+            }
         )
+
+        RecordingSpeedDialog(
+            showDialog = showSpeedDialog,
+            currentSpeed = recordingUiState.playbackSpeed,
+            onDismissRequest = { showSpeedDialog = false },
+            onSelectSpeed = onRecordingSpeedChange
+        )
+
+        if (showNoteDialog && recording != null) {
+            RecordingNoteEditDialog(
+                recording = recording,
+                onDismiss = { showNoteDialog = false },
+                onSave = { newNote -> onSaveRecordingNote(recording, newNote) }
+            )
+        }
     }
 }
 }
 
-/** One half of the header's connected cast/bookmark pair: tonal when off, primary when on. */
+/** Shared mini-player layout used identically for both the collapsed sheet and the nested drawer header. */
 @Composable
-private fun HeaderPairButton(
-    checked: Boolean,
-    shape: androidx.compose.ui.graphics.Shape,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+private fun MiniPlayerContent(
+    activeTitle: String,
+    activeTrackSubtitle: String,
+    activeCopyableTrack: String?,
+    activeHasPrevious: Boolean,
+    activeHasNext: Boolean,
+    activeIsPlaying: Boolean,
+    activeIsLoading: Boolean,
+    recordingProgress: Float?,
+    hasBothModes: Boolean,
+    activeMode: ActivePlaybackMode,
+    stationName: String?,
+    recordingName: String?,
+    isStationPlaying: Boolean,
+    isRecordingPlaying: Boolean,
+    includeThumbnailSpace: Boolean,
+    thumbnailSpacerWidth: Dp,
+    cutoutLeftPadding: Dp,
+    cutoutRightPadding: Dp,
+    interactionEnabled: Boolean,
+    onTitleClick: () -> Unit,
+    onCopyTrack: (String) -> Unit,
+    onPrevious: () -> Unit,
+    onTogglePlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onSelectMode: (ActivePlaybackMode) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val containerColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-        label = "headerPairContainer"
-    )
-    val contentColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (checked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-        label = "headerPairContent"
-    )
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(containerColor, shape)
-            .clip(shape)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        CompositionLocalProvider(LocalContentColor provides contentColor) {
-            content()
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .padding(start = 16.dp, end = 16.dp + cutoutRightPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (includeThumbnailSpace) {
+                    Spacer(modifier = Modifier.width(thumbnailSpacerWidth))
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            enabled = interactionEnabled,
+                            onClick = onTitleClick
+                        ),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = activeTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                    )
+                    Text(
+                        text = activeTrackSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .basicMarquee(iterations = Int.MAX_VALUE)
+                            .pointerInput(activeCopyableTrack) {
+                                detectTapGestures(
+                                    onTap = {
+                                        if (interactionEnabled) onTitleClick()
+                                    },
+                                    onLongPress = {
+                                        if (!activeCopyableTrack.isNullOrBlank()) {
+                                            onCopyTrack(activeCopyableTrack)
+                                        }
+                                    }
+                                )
+                            }
+                    )
+                }
+
+                if (activeHasPrevious) {
+                    IconButton(onClick = onPrevious) {
+                        Icon(
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = stringResource(R.string.player_cd_previous)
+                        )
+                    }
+                }
+
+                IconButton(onClick = onTogglePlayPause) {
+                    if (activeIsLoading) {
+                        LoadingIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (activeIsPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                if (activeHasNext) {
+                    IconButton(onClick = onNext) {
+                        Icon(
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = stringResource(R.string.player_cd_next)
+                        )
+                    }
+                }
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = recordingProgress != null,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .padding(
+                        start = 16.dp + cutoutLeftPadding,
+                        end = 16.dp + cutoutRightPadding
+                    )
+            ) {
+                LinearProgressIndicator(
+                    progress = { recordingProgress ?: 0f },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.5.dp)
+                        .clip(RoundedCornerShape(1.25.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    drawStopIndicator = {}
+                )
+            }
         }
+
+        AnimatedMiniModeSwitcherBar(
+            visible = hasBothModes,
+            activeMode = activeMode,
+            stationName = stationName,
+            recordingName = recordingName,
+            isStationPlaying = isStationPlaying,
+            isRecordingPlaying = isRecordingPlaying,
+            enabled = interactionEnabled,
+            onSelectMode = onSelectMode,
+            modifier = Modifier.padding(
+                start = 16.dp + cutoutLeftPadding,
+                end = 16.dp + cutoutRightPadding,
+                bottom = 10.dp
+            )
+        )
     }
 }

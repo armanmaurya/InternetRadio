@@ -129,8 +129,8 @@ class RecordingsViewModel @Inject constructor(
         _routeEventId.value = System.currentTimeMillis()
     }
 
-    fun playRecording(recording: RecordingFile) {
-        recordingPlaybackController.play(recording)
+    fun playRecording(recording: RecordingFile, playlist: List<RecordingFile> = emptyList()) {
+        recordingPlaybackController.play(recording, playlist)
     }
 
     fun pauseRecordingPlayback() {

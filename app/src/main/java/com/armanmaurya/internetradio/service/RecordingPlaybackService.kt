@@ -26,6 +26,7 @@ import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.recording.RecordingPlaybackControllerImpl
 import com.armanmaurya.internetradio.domain.repository.EqualizerRepository
 import com.armanmaurya.internetradio.domain.repository.SettingsRepository
+import com.armanmaurya.internetradio.service.playback.engine.AmplitudeAudioProcessor
 import com.armanmaurya.internetradio.service.playback.engine.EqualizerAudioProcessor
 import com.armanmaurya.internetradio.ui.mobile.MobileActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,6 +64,8 @@ class RecordingPlaybackService : MediaSessionService() {
         const val ACTION_STOP = "com.armanmaurya.internetradio.REC_STOP"
         const val ACTION_SET_SPEED = "com.armanmaurya.internetradio.REC_SET_SPEED"
         const val ACTION_SET_REPEAT_MODE = "com.armanmaurya.internetradio.REC_SET_REPEAT_MODE"
+        const val ACTION_SET_VOLUME = "com.armanmaurya.internetradio.REC_SET_VOLUME"
+        const val ACTION_OPEN_RECORDING_PLAYER = "com.armanmaurya.internetradio.ACTION_OPEN_RECORDING_PLAYER"
 
         const val EXTRA_RECORDING_URI = "EXTRA_RECORDING_URI"
         const val EXTRA_FILE_NAME = "EXTRA_FILE_NAME"
@@ -71,6 +74,7 @@ class RecordingPlaybackService : MediaSessionService() {
         const val EXTRA_SEEK_POSITION = "EXTRA_SEEK_POSITION"
         const val EXTRA_SPEED = "EXTRA_SPEED"
         const val EXTRA_REPEAT_MODE = "EXTRA_REPEAT_MODE"
+        const val EXTRA_VOLUME = "EXTRA_VOLUME"
 
         private const val CHANNEL_ID = "recording_playback_channel"
         private const val NOTIFICATION_ID = 3002
@@ -91,6 +95,9 @@ class RecordingPlaybackService : MediaSessionService() {
         val mediaSourceFactory = DefaultMediaSourceFactory(this, extractorsFactory)
 
         val equalizerProcessor = EqualizerAudioProcessor()
+        val amplitudeProcessor = AmplitudeAudioProcessor { rms ->
+            recordingPlaybackController.updateAmplitude(rms)
+        }
         serviceScope.launch {
             equalizerRepository.equalizerConfig.collect { config ->
                 equalizerProcessor.updateConfig(config)
@@ -104,7 +111,7 @@ class RecordingPlaybackService : MediaSessionService() {
                 enableAudioTrackPlaybackParams: Boolean
             ): AudioSink {
                 return DefaultAudioSink.Builder(context)
-                    .setAudioProcessors(arrayOf(equalizerProcessor))
+                    .setAudioProcessors(arrayOf(equalizerProcessor, amplitudeProcessor))
                     .build()
             }
         }
@@ -146,8 +153,8 @@ class RecordingPlaybackService : MediaSessionService() {
 
     private fun buildSessionPendingIntent(stationName: String, uriString: String): PendingIntent {
         val intent = Intent(this, MobileActivity::class.java).apply {
+            action = ACTION_OPEN_RECORDING_PLAYER
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("open_tab", "recordings")
             if (stationName.isNotBlank()) {
                 putExtra("route_recording_station", stationName)
             }
@@ -215,7 +222,12 @@ class RecordingPlaybackService : MediaSessionService() {
                 val looping = intent.getBooleanExtra(EXTRA_REPEAT_MODE, false)
                 player?.repeatMode = if (looping) androidx.media3.common.Player.REPEAT_MODE_ONE else androidx.media3.common.Player.REPEAT_MODE_OFF
             }
+            ACTION_SET_VOLUME -> {
+                val volume = intent.getFloatExtra(EXTRA_VOLUME, 1f).coerceIn(0f, 1f)
+                player?.volume = volume
+            }
             ACTION_STOP -> {
+                recordingPlaybackController.updateAmplitude(0f)
                 player?.stop()
                 player?.clearMediaItems()
                 stopSelf()

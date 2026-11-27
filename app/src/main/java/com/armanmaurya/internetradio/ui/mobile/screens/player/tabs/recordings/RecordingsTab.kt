@@ -6,11 +6,7 @@ package com.armanmaurya.internetradio.ui.mobile.screens.player.tabs.recordings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.FastOutSlowInEasing
-import kotlinx.coroutines.launch
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,11 +47,8 @@ import com.armanmaurya.internetradio.domain.model.RecordingFile
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
 import com.armanmaurya.internetradio.ui.mobile.components.RecordingFolderAccessWarning
 
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingRecordingCard
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.components.NowPlayingTrackQueue
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel
 
 @Composable
@@ -74,17 +67,6 @@ fun RecordingsTab(
         onPauseOrDispose { }
     }
     val isPlayingRecording by viewModel.isPlayingRecording.collectAsStateWithLifecycle()
-    val recordingPositionMs by viewModel.recordingPositionMs.collectAsStateWithLifecycle()
-    val recordingDurationMs by viewModel.recordingDurationMs.collectAsStateWithLifecycle()
-    val recordingPlaybackSpeed by viewModel.recordingPlaybackSpeed.collectAsStateWithLifecycle()
-    val isRecordingLooping by viewModel.isRecordingLooping.collectAsStateWithLifecycle()
-    val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(currentPlayingRecording?.uri) {
-        if (currentPlayingRecording != null && (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0)) {
-            listState.animateScrollToItem(0)
-        }
-    }
 
     var selectionMode by remember { mutableStateOf(false) }
     val selectionTransition = updateTransition(
@@ -135,38 +117,7 @@ fun RecordingsTab(
         )
     }
 
-    var cachedPlayingRecording by remember { mutableStateOf<RecordingFile?>(null) }
-    if (currentPlayingRecording != null) {
-        cachedPlayingRecording = currentPlayingRecording
-    }
-    val rawRecordingToShow = currentPlayingRecording ?: cachedPlayingRecording
-    val recordingToShow = remember(rawRecordingToShow, stationRecordings) {
-        rawRecordingToShow?.let { rec ->
-            stationRecordings?.firstOrNull { it.uri == rec.uri } ?: rec
-        }
-    }
-
-    val nowPlayingTransition = updateTransition(
-        targetState = currentPlayingRecording != null,
-        label = "NowPlayingTransition"
-    )
-    val shouldShowNowPlayingCard = currentPlayingRecording != null || nowPlayingTransition.currentState
-    val shouldShowStickyHeader = shouldShowNowPlayingCard || shouldShowSelectionBar
-    var showTrackList by remember { mutableStateOf(false) }
-
-    LaunchedEffect(currentPlayingRecording?.uri) {
-        showTrackList = false
-    }
-
-    val queueVisibleState = remember { MutableTransitionState(false) }
-    queueVisibleState.targetState = showTrackList && currentPlayingRecording != null
-    val shouldShowQueue = queueVisibleState.targetState || queueVisibleState.currentState || !queueVisibleState.isIdle
-
-    LaunchedEffect(showTrackList) {
-        if (showTrackList) {
-            listState.requestScrollToItem(0, 0)
-        }
-    }
+    val shouldShowStickyHeader = shouldShowSelectionBar
     
     Box(modifier = Modifier.fillMaxSize()) {
         if (stationRecordings == null) {
@@ -201,95 +152,8 @@ fun RecordingsTab(
                 }
 
                 if (shouldShowStickyHeader) {
-                    if (shouldShowNowPlayingCard) {
-                        stickyHeader(key = "sticky_recording_tab_header") {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.surfaceContainerLow
-                            ) {
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    nowPlayingTransition.AnimatedVisibility(
-                                        visible = { it },
-                                        enter = fadeIn(animationSpec = tween(220)) + expandVertically(
-                                            animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                            expandFrom = Alignment.Top
-                                        ),
-                                        exit = fadeOut(animationSpec = tween(200)) + shrinkVertically(
-                                            animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                            shrinkTowards = Alignment.Top
-                                        )
-                                    ) {
-                                        if (recordingToShow != null) {
-                                            NowPlayingRecordingCard(
-                                                recording = recordingToShow,
-                                                isPlaying = isPlayingRecording,
-                                                currentPositionMs = recordingPositionMs,
-                                                durationMs = recordingDurationMs,
-                                                playbackSpeed = recordingPlaybackSpeed,
-                                                isLooping = isRecordingLooping,
-                                                onPlayPauseClick = viewModel::togglePlayPauseRecording,
-                                                onSeek = viewModel::seekRecordingPlayback,
-                                                onSpeedChange = viewModel::setPlaybackSpeed,
-                                                onToggleLoop = viewModel::toggleLoopRecording,
-                                                onRouteClick = {
-                                                    viewModel.routeToRecording(recordingToShow.stationName, recordingToShow.uri.toString())
-                                                },
-                                                onStopClick = {
-                                                    showTrackList = false
-                                                    viewModel.stopRecordingPlayback()
-                                                },
-                                                showTrackList = showTrackList,
-                                                onToggleTrackList = {
-                                                    val next = !showTrackList
-                                                    showTrackList = next
-                                                    if (next) {
-                                                        listState.requestScrollToItem(0, 0)
-                                                    }
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(top = 8.dp, bottom = 12.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (shouldShowNowPlayingCard && recordingToShow != null && recordingToShow.tracks.isNotEmpty() && shouldShowQueue) {
-                        item(key = "now_playing_track_queue") {
-                            AnimatedVisibility(
-                                visibleState = queueVisibleState,
-                                enter = fadeIn(animationSpec = tween(220)) + slideInVertically(
-                                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                    initialOffsetY = { -it }
-                                ) + expandVertically(
-                                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                                    expandFrom = Alignment.Top,
-                                    initialHeight = { 1 }
-                                ),
-                                exit = fadeOut(animationSpec = tween(180)) + slideOutVertically(
-                                    animationSpec = tween(230, easing = FastOutSlowInEasing),
-                                    targetOffsetY = { -it }
-                                ) + shrinkVertically(
-                                    animationSpec = tween(230, easing = FastOutSlowInEasing),
-                                    shrinkTowards = Alignment.Top
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                NowPlayingTrackQueue(
-                                    recording = recordingToShow,
-                                    currentPositionMs = recordingPositionMs,
-                                    onSeek = viewModel::seekRecordingPlayback,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
-
                     if (shouldShowSelectionBar) {
-                        item(key = "recording_tab_selection_bar") {
+                        stickyHeader(key = "recording_tab_selection_bar") {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 color = MaterialTheme.colorScheme.surfaceContainerLow
@@ -303,7 +167,7 @@ fun RecordingsTab(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(
-                                                top = if (shouldShowNowPlayingCard) 0.dp else 8.dp,
+                                                top = 8.dp,
                                                 bottom = 8.dp
                                             ),
                                         verticalAlignment = Alignment.CenterVertically
@@ -402,10 +266,10 @@ fun RecordingsTab(
                                         selectionMode = false
                                     }
                                 } else {
-                                    if (isCurrentlyPlaying) {
+                                    if (isCurrentlyPlaying && isPlayingRecording) {
                                         viewModel.togglePlayPauseRecording()
                                     } else {
-                                        viewModel.playRecording(recording)
+                                        viewModel.playRecording(recording, stationRecordings)
                                     }
                                 }
                             },

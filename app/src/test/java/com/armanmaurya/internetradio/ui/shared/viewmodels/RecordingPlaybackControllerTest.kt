@@ -27,8 +27,11 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class RecordingPlaybackControllerTest {
 
     private lateinit var fakeRecordingPlaybackController: FakeRecordingPlaybackController
@@ -217,11 +220,53 @@ class RecordingPlaybackControllerTest {
         assertEquals(0L, fakeRecordingPlaybackController.currentPositionMs.value)
     }
 
+    @Test
+    fun `sleep timer and volume update state cleanly`() {
+        assertNull(fakeRecordingPlaybackController.sleepTimerEndTimeMs.value)
+        assertEquals(1.0f, fakeRecordingPlaybackController.volume.value)
+
+        fakeRecordingPlaybackController.setSleepTimer(60_000L)
+        assertNotNull(fakeRecordingPlaybackController.sleepTimerEndTimeMs.value)
+        assertEquals(60_000L, fakeRecordingPlaybackController.sleepTimerTotalDurationMs.value)
+
+        fakeRecordingPlaybackController.cancelSleepTimer()
+        assertNull(fakeRecordingPlaybackController.sleepTimerEndTimeMs.value)
+        assertEquals(0L, fakeRecordingPlaybackController.sleepTimerTotalDurationMs.value)
+
+        fakeRecordingPlaybackController.setVolume(0.45f)
+        assertEquals(0.45f, fakeRecordingPlaybackController.volume.value, 0.001f)
+    }
+
+    @Test
+    fun `next and previous navigate playlist`() {
+        val file1 = java.io.File("/tmp/rec1.mp3")
+        val file2 = java.io.File("/tmp/rec2.mp3")
+        val rec1 = RecordingFile("rec1.mp3", file1, android.net.Uri.parse("content://test/rec1"), 1L, 100L, 10_000L, "Station")
+        val rec2 = RecordingFile("rec2.mp3", file2, android.net.Uri.parse("content://test/rec2"), 2L, 200L, 20_000L, "Station")
+
+        fakeRecordingPlaybackController.play(rec1, listOf(rec1, rec2))
+        assertEquals(0, fakeRecordingPlaybackController.currentIndex.value)
+
+        fakeRecordingPlaybackController.next()
+        assertEquals(1, fakeRecordingPlaybackController.currentIndex.value)
+        assertEquals(rec2, fakeRecordingPlaybackController.currentRecording.value)
+
+        fakeRecordingPlaybackController.previous()
+        assertEquals(0, fakeRecordingPlaybackController.currentIndex.value)
+        assertEquals(rec1, fakeRecordingPlaybackController.currentRecording.value)
+    }
+
     // --- Test Doubles ---
 
     private class FakeRecordingPlaybackController : RecordingPlaybackController {
         private val _currentRecording = MutableStateFlow<RecordingFile?>(null)
         override val currentRecording: StateFlow<RecordingFile?> = _currentRecording.asStateFlow()
+
+        private val _playlist = MutableStateFlow<List<RecordingFile>>(emptyList())
+        override val playlist: StateFlow<List<RecordingFile>> = _playlist.asStateFlow()
+
+        private val _currentIndex = MutableStateFlow(-1)
+        override val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
         private val _isPlaying = MutableStateFlow(false)
         override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -237,6 +282,18 @@ class RecordingPlaybackControllerTest {
 
         private val _isLooping = MutableStateFlow(false)
         override val isLooping: StateFlow<Boolean> = _isLooping.asStateFlow()
+
+        private val _amplitude = MutableStateFlow(0f)
+        override val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
+
+        private val _sleepTimerEndTimeMs = MutableStateFlow<Long?>(null)
+        override val sleepTimerEndTimeMs: StateFlow<Long?> = _sleepTimerEndTimeMs.asStateFlow()
+
+        private val _sleepTimerTotalDurationMs = MutableStateFlow(0L)
+        override val sleepTimerTotalDurationMs: StateFlow<Long> = _sleepTimerTotalDurationMs.asStateFlow()
+
+        private val _volume = MutableStateFlow(1.0f)
+        override val volume: StateFlow<Float> = _volume.asStateFlow()
 
         private val _routeToRecordingTarget = MutableStateFlow<RecordingRouteTarget?>(null)
         override val routeToRecordingTarget: StateFlow<RecordingRouteTarget?> = _routeToRecordingTarget.asStateFlow()
@@ -261,10 +318,34 @@ class RecordingPlaybackControllerTest {
             }
         }
 
-        override fun play(recording: RecordingFile) {
+        override fun getCurrentPositionRealtime(): Long = _currentPositionMs.value
+
+        override fun play(recording: RecordingFile, playlist: List<RecordingFile>) {
+            val resolved = playlist.ifEmpty { listOf(recording) }
+            _playlist.value = resolved
+            _currentIndex.value = resolved.indexOfFirst { it.uri == recording.uri }.coerceAtLeast(0)
             _currentRecording.value = recording
             _isPlaying.value = true
             _durationMs.value = recording.durationMs
+        }
+
+        override fun playIndex(index: Int) {
+            val target = _playlist.value.getOrNull(index) ?: return
+            play(target, _playlist.value)
+        }
+
+        override fun next() {
+            val nextIdx = _currentIndex.value + 1
+            if (nextIdx in _playlist.value.indices) {
+                play(_playlist.value[nextIdx], _playlist.value)
+            }
+        }
+
+        override fun previous() {
+            val prevIdx = _currentIndex.value - 1
+            if (prevIdx in _playlist.value.indices) {
+                play(_playlist.value[prevIdx], _playlist.value)
+            }
         }
 
         override fun pause() {
@@ -291,11 +372,28 @@ class RecordingPlaybackControllerTest {
             _isLooping.value = !_isLooping.value
         }
 
+        override fun setSleepTimer(durationMillis: Long) {
+            _sleepTimerEndTimeMs.value = System.currentTimeMillis() + durationMillis
+            _sleepTimerTotalDurationMs.value = durationMillis
+        }
+
+        override fun cancelSleepTimer() {
+            _sleepTimerEndTimeMs.value = null
+            _sleepTimerTotalDurationMs.value = 0L
+        }
+
+        override fun setVolume(volume: Float) {
+            _volume.value = volume.coerceIn(0f, 1f)
+        }
+
         override fun stop() {
             _isPlaying.value = false
             _currentRecording.value = null
+            _playlist.value = emptyList()
+            _currentIndex.value = -1
             _currentPositionMs.value = 0L
             _durationMs.value = 0L
+            cancelSleepTimer()
         }
 
         override fun requestRouteToPlayingRecording() {

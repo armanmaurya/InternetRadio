@@ -607,6 +607,19 @@
     <string name="recording_folder_access_message">允许访问 Music/InternetRadio，以便将曲目列表和备注保存在录音旁边，并显示您较早的录音。</string>
     <string name="recording_folder_access_grant">授予访问权限</string>
     <string name="recording_folder_access_wrong_folder">请选择 Music/InternetRadio 文件夹</string>
+    <string name="player_mode_radio">电台</string>
+    <string name="player_mode_recording">录音</string>
+    <string name="player_cd_switch_to_radio">切换到电台播放器</string>
+    <string name="player_cd_switch_to_recording">切换到录音播放器</string>
+    <string name="recording_cd_rewind_5s">快退 5 秒</string>
+    <string name="recording_cd_forward_5s">快进 5 秒</string>
+    <string name="recording_label_station">电台</string>
+    <string name="recording_label_duration">时长</string>
+    <string name="recording_label_size">大小</string>
+    <string name="recording_label_recorded_at">录制时间</string>
+    <string name="recording_label_file">文件</string>
+    <string name="recording_label_note">备注</string>
+    <string name="recording_file_copied">已复制文件名</string>
 
     <!-- Equalizer -->
     <string name="settings_equalizer_title">均衡器</string>

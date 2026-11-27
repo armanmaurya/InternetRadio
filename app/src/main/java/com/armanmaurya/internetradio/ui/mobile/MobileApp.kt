@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.mobile
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,12 +40,14 @@ import com.armanmaurya.internetradio.ui.mobile.navigation.AppIntentHandler
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppNavHost
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.player.PlayerBottomSheet
+import com.armanmaurya.internetradio.ui.mobile.screens.player.components.MINI_MODE_BAR_HEIGHT
 import com.armanmaurya.internetradio.ui.mobile.screens.player.rememberPlayerSheetProgress
 import com.armanmaurya.internetradio.ui.shared.theme.InternetRadioTheme
 import com.armanmaurya.internetradio.ui.shared.theme.LocalAppPreferences
 import androidx.compose.runtime.CompositionLocalProvider
 import com.armanmaurya.internetradio.ui.shared.viewmodels.MainViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingPlayerViewModel
 import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,10 +57,12 @@ fun MobileApp(
     widthSizeClass: WindowWidthSizeClass,
     mainViewModel: MainViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel(),
-    playerViewModel: PlayerViewModel = hiltViewModel()
+    playerViewModel: PlayerViewModel = hiltViewModel(),
+    recordingPlayerViewModel: RecordingPlayerViewModel = hiltViewModel()
 ) {
     val appPreferences by mainViewModel.appPreferences.collectAsStateWithLifecycle(initialValue = AppPreferences())
     val uiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+    val recordingUiState by recordingPlayerViewModel.uiState.collectAsStateWithLifecycle()
 
     CompositionLocalProvider(
         LocalAppPreferences provides appPreferences,
@@ -81,6 +86,7 @@ fun MobileApp(
             navController = navController,
             scaffoldState = scaffoldState,
             playerViewModel = playerViewModel,
+            recordingPlayerViewModel = recordingPlayerViewModel,
             homeViewModel = homeViewModel
         )
 
@@ -106,10 +112,16 @@ fun MobileApp(
         val onCheckUpdates = rememberManualUpdateChecker(mainViewModel)
 
         val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val sheetPeekHeight = if (uiState.currentStation != null) 72.dp + bottomInset else 0.dp
+        val hasActiveMedia = uiState.currentStation != null || recordingUiState.currentRecording != null
+        val hasBothModes = uiState.currentStation != null && recordingUiState.currentRecording != null
+        val extraMiniHeight by animateDpAsState(
+            targetValue = if (hasBothModes) MINI_MODE_BAR_HEIGHT else 0.dp,
+            label = "miniModeBarPeekHeight"
+        )
+        val sheetPeekHeight = if (hasActiveMedia) 72.dp + extraMiniHeight + bottomInset else 0.dp
         val isExpanded = widthSizeClass == WindowWidthSizeClass.Expanded
 
-        val progress by rememberPlayerSheetProgress(scaffoldState, bottomInset)
+        val progress by rememberPlayerSheetProgress(scaffoldState, bottomInset, extraMiniHeight)
         // While a player dialog (cast, volume, sleep timer, track) is open, the sheet can't be dragged.
         var isPlayerDialogOpen by remember { mutableStateOf(false) }
         val cornerRadius = lerp(28.dp, 0.dp, progress)
@@ -133,7 +145,13 @@ fun MobileApp(
                     onEditStation = { station ->
                         navController.navigate(AppDestination.EditStation.createRoute(station.stationUuid))
                     },
-                    playerViewModel = playerViewModel
+                    onNavigateToRecording = { recording ->
+                        navController.popBackStack(AppDestination.Discover.route, inclusive = false)
+                        homeViewModel.onTabSelected(3)
+                        homeViewModel.routeToRecording(recording.stationName, recording.uri.toString())
+                    },
+                    playerViewModel = playerViewModel,
+                    recordingPlayerViewModel = recordingPlayerViewModel
                 )
             }
         ) { innerPadding ->

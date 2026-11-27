@@ -624,6 +624,19 @@
     <string name="recording_folder_access_message">Allow access to Music/InternetRadio to keep track lists and notes next to your recordings and to show your older recordings.</string>
     <string name="recording_folder_access_grant">Grant access</string>
     <string name="recording_folder_access_wrong_folder">Please select the Music/InternetRadio folder</string>
+    <string name="player_mode_radio">Radio</string>
+    <string name="player_mode_recording">Recording</string>
+    <string name="player_cd_switch_to_radio">Switch to radio player</string>
+    <string name="player_cd_switch_to_recording">Switch to recording player</string>
+    <string name="recording_cd_rewind_5s">Rewind 5 seconds</string>
+    <string name="recording_cd_forward_5s">Forward 5 seconds</string>
+    <string name="recording_label_station">Station</string>
+    <string name="recording_label_duration">Duration</string>
+    <string name="recording_label_size">Size</string>
+    <string name="recording_label_recorded_at">Recorded</string>
+    <string name="recording_label_file">File</string>
+    <string name="recording_label_note">Note</string>
+    <string name="recording_file_copied">File name copied</string>
 
     <!-- Equalizer -->
     <string name="settings_equalizer_title">Equalizer</string>

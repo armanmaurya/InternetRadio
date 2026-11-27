@@ -38,7 +38,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,7 +66,11 @@ fun SharedTransitionScope.Controls(
     onPrevious: () -> Unit,
     onTogglePlayPause: () -> Unit,
     onNext: () -> Unit,
-    onToggleRecording: () -> Unit
+    onToggleRecording: () -> Unit,
+    trailingIcon: ImageVector = Icons.Default.Mic,
+    trailingContentDescription: String? = null,
+    trailingCheckedContainerColor: Color = MaterialTheme.colorScheme.error,
+    trailingCheckedContentColor: Color = MaterialTheme.colorScheme.onError
 ) {
     // Expressive button group: the pressed button briefly widens while its neighbours shrink,
     // and every button morphs its shape on press (and on state for play/pause and record).
@@ -255,8 +261,8 @@ fun SharedTransitionScope.Controls(
                     colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        checkedContainerColor = MaterialTheme.colorScheme.error,
-                        checkedContentColor = MaterialTheme.colorScheme.onError
+                        checkedContainerColor = trailingCheckedContainerColor,
+                        checkedContentColor = trailingCheckedContentColor
                     ),
                     interactionSource = recordInteraction,
                     modifier = Modifier
@@ -265,8 +271,8 @@ fun SharedTransitionScope.Controls(
                         .height(64.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Mic,
-                        contentDescription = stringResource(R.string.player_cd_record),
+                        imageVector = trailingIcon,
+                        contentDescription = trailingContentDescription ?: stringResource(R.string.player_cd_record),
                         modifier = Modifier.size(28.dp)
                     )
                 }
